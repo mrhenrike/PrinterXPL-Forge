@@ -1,0 +1,27 @@
+[
+  {
+    "ip": "192.168.18.37",
+    "PJL": "closed",
+    "PS": "closed",
+    "SNMP": {},
+    "HTTP": {
+      "title": "N/A",
+      "headers": {
+        "Server": "HP HTTP Server; HP DeskJet 2700 series - 7FR22A; Serial Number: BR13E5D0JJ; Built:Wed Jun 12, 2024 09:59:37AM {TWP1FN2424DR}",
+        "Content-Encoding": "gzip",
+        "Content-Type": "text/html",
+        "Last-Modified": "Wed, 12 Jun 2024 09:59:37 GMT",
+        "Cache-Control": "max-age=0",
+        "Set-Cookie": "sid=sd1dfc3c1-195a5bf8e583d76ed9f456e02d2d5ec5;path=/;HttpOnly;",
+        "Content-Security-Policy": "default-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; frame-ancestors 'self'",
+        "X-Frame-Options": "SAMEORIGIN",
+        "X-UA-Compatible": "IE=edge",
+        "X-XSS-Protection": "1",
+        "X-Content-Type-Options": "nosniff",
+        "Content-Language": "en",
+        "Content-Length": "667"
+      }
+    },
+    "fingerprint_hash": "00944d45cb1d91ccab0ef59a17dfaafe16663341f7904f12bfc8643fcbb92aa4"
+  }
+]

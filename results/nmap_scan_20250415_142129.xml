@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE nmaprun>
-<?xml-stylesheet href="file:///C:/Program Files (x86)/Nmap/nmap.xsl" type="text/xsl"?>
-<!-- Nmap 7.95 scan initiated Tue Apr 15 14:21:29 2025 as: nmap -p 80,443,515,631,9100,161 -sS -sU -A -T4 -&#45;script default,discovery,safe,version,snmp*,http*,banner,vuln -&#45;script-args=unsafe=1,snmpcommunity=public -oA results/nmap_scan_20250415_142129 192.168.18.37 -->
-<nmaprun scanner="nmap" args="nmap -p 80,443,515,631,9100,161 -sS -sU -A -T4 -&#45;script default,discovery,safe,version,snmp*,http*,banner,vuln -&#45;script-args=unsafe=1,snmpcommunity=public -oA results/nmap_scan_20250415_142129 192.168.18.37" start="1744737689" startstr="Tue Apr 15 14:21:29 2025" version="7.95" xmloutputversion="1.05">
-<scaninfo type="syn" protocol="tcp" numservices="6" services="80,161,443,515,631,9100"/>
-<scaninfo type="udp" protocol="udp" numservices="6" services="80,161,443,515,631,9100"/>
-<verbose level="0"/>
-<debugging level="0"/>

@@ -1,14 +1,20 @@
+#!/usr/bin/env python3
+
+# ─── STANDARD LIBRARIES ────────────────────────────────────────────────────────
 import os
 import sys
 import json
 import argparse
 import subprocess
-import xml.etree.ElementTree as ET
-from datetime import datetime
 import platform
 import ipaddress
-import psutil
+import xml.etree.ElementTree as ET
+from datetime import datetime
 
+# ─── THIRD-PARTY ──────────────────────────────────────────────────────────────
+import psutil  # for detecting local interfaces
+
+# ─── NMAP CHECK ───────────────────────────────────────────────────────────────
 def check_nmap_installed():
     try:
         subprocess.check_output(["nmap", "-V"])
@@ -18,21 +24,18 @@ def check_nmap_installed():
 
 def suggest_nmap_installation():
     system = platform.system()
-    print("\n[!] Nmap is not installed or not in your system PATH.\n")
-    print("➡️  Please install it before using this tool.\n")
-
+    print("\n[!] Nmap is not installed or not found in PATH.\n")
+    print("➡️  Please install it from: https://nmap.org/download.html\n")
     if system == "Windows":
-        print("🔗 Download: https://nmap.org/dist/nmap-7.95-setup.exe")
-        print("📌 Enable 'Add Nmap to PATH' during installation")
+        print("Windows: https://nmap.org/dist/nmap-7.95-setup.exe")
+        print("⚠️ Make sure to check 'Add to PATH' during installation.")
     elif system == "Linux":
-        print("📦 Debian/Ubuntu: sudo apt install nmap")
+        print("Debian/Ubuntu: sudo apt install nmap")
     elif system == "Darwin":
-        print("🍺 macOS (Homebrew): brew install nmap")
-    else:
-        print("🔗 See: https://nmap.org/download.html")
-
+        print("macOS: brew install nmap")
     sys.exit(1)
 
+# ─── INTERFACE DETECTION ──────────────────────────────────────────────────────
 def list_all_subnets():
     subnets = []
     for iface, addrs in psutil.net_if_addrs().items():
@@ -66,45 +69,71 @@ def choose_subnet_interactively():
         print("[!] Invalid choice.")
         sys.exit(1)
 
+# ─── INPUT TARGET BUILD ───────────────────────────────────────────────────────
 def build_target_list(args):
     if args.ip:
         return [args.ip]
     elif args.range:
         try:
             start_ip, end_ip = args.range.split("-")
-            ips = [str(ip) for ip in ipaddress.summarize_address_range(ipaddress.IPv4Address(start_ip), ipaddress.IPv4Address(end_ip))]
+            ips = [str(ip) for ip in ipaddress.summarize_address_range(
+                ipaddress.IPv4Address(start_ip),
+                ipaddress.IPv4Address(end_ip)
+            )]
             return ips
         except:
-            print("[!] Invalid IP range format.")
+            print("[!] Invalid IP range format. Use: 192.168.1.10-192.168.1.50")
             sys.exit(1)
     elif args.file:
         try:
             with open(args.file, "r") as f:
                 return [line.strip() for line in f if line.strip()]
         except:
-            print(f"[!] Could not read file: {args.file}")
+            print(f"[!] Could not read IP list from file: {args.file}")
             sys.exit(1)
     elif args.subnet == "auto":
         return choose_subnet_interactively()
     else:
-        print("[!] No valid target provided.")
+        print("[!] No valid scan target specified.")
         sys.exit(1)
 
-def run_nmap_scan(target, timestamp, outdir):
+# ─── NMAP EXECUTION ───────────────────────────────────────────────────────────
+import subprocess
+
+def run_nmap_scan(target, timestamp, outdir, formats, verbose=False):
     safe_name = target.replace('/', '_').replace('.', '_')
-    base = os.path.join(outdir, f"nmap_scan_{timestamp}_{safe_name}")
     os.makedirs(outdir, exist_ok=True)
 
-    os.system(
-        f"nmap -p 80,443,515,631,9100,161 "
-        f"-sS -sU -A -T4 "
-        f"--script \"default,discovery,safe,version,snmp*,http*,banner,vuln\" "
-        f"--script-args=unsafe=1,snmpcommunity=public "
-        f"-oA {base} "
-        f"{target}"
-    )
-    return base + ".xml"
+    if formats:
+        xml_path = os.path.join(outdir, f"nmap_scan_{timestamp}_{safe_name}.xml")
+        out_flag = f"-oX \"{xml_path}\""
+    else:
+        devnull = "NUL" if platform.system() == "Windows" else "/dev/null"
+        out_flag = f"-oN {devnull}"
+        xml_path = None
 
+    cmd = [
+        "nmap",
+        "-p", "80,443,515,631,9100,161",
+        "-sS", "-sU", "-A", "-T4",
+        "--script", "default,discovery,safe,version,snmp*,http*,banner,vuln",
+        "--script-args", "unsafe=1,snmpcommunity=public"
+    ] + out_flag.split() + [target]
+
+    if verbose:
+        print(f"\n[DEBUG] Running command:\n{' '.join(cmd)}\n")
+        try:
+            process = subprocess.Popen(cmd, stdout=sys.stdout, stderr=sys.stderr)
+            process.communicate()
+        except KeyboardInterrupt:
+            print("\n[!] Scan interrupted by user.")
+            sys.exit(1)
+    else:
+        subprocess.call(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    return xml_path
+
+# ─── XML PARSER ───────────────────────────────────────────────────────────────
 def parse_nmap_xml(xml_file):
     try:
         tree = ET.parse(xml_file)
@@ -115,80 +144,86 @@ def parse_nmap_xml(xml_file):
     report = []
 
     for host in root.findall("host"):
-        status = host.find("status").attrib.get("state")
-        if status != "up":
+        if host.find("status").attrib.get("state") != "up":
             continue
 
-        addr = host.find("address").attrib.get("addr")
-        item = {"ip": addr, "ports": []}
+        ip = host.find("address").attrib.get("addr")
+        entry = {"ip": ip, "ports": []}
 
         for port in host.findall(".//port"):
-            portid = port.attrib.get("portid")
-            protocol = port.attrib.get("protocol")
-            state = port.find("state").attrib.get("state")
-            service = port.find("service").attrib.get("name", "unknown")
-            item["ports"].append({
-                "port": portid,
-                "protocol": protocol,
-                "state": state,
-                "service": service
+            entry["ports"].append({
+                "port": port.attrib.get("portid"),
+                "protocol": port.attrib.get("protocol"),
+                "state": port.find("state").attrib.get("state"),
+                "service": port.find("service").attrib.get("name", "unknown")
             })
-
-        report.append(item)
+        report.append(entry)
     return report
 
-def save_outputs(data, timestamp, target, formats, outdir):
+# ─── OUTPUT HANDLER ───────────────────────────────────────────────────────────
+def save_outputs(data, timestamp, target, formats, outdir, verbose=False):
     safe = target.replace('/', '_').replace('.', '_')
+
     if "json" in formats:
-        with open(os.path.join(outdir, f"nmap_scan_{timestamp}_{safe}.json"), "w") as f:
+        path = os.path.join(outdir, f"nmap_scan_{timestamp}_{safe}.json")
+        with open(path, "w") as f:
             json.dump(data, f, indent=2)
+        if verbose: print(f"[✓] JSON saved: {path}")
 
     if "md" in formats:
-        with open(os.path.join(outdir, f"nmap_summary_{timestamp}_{safe}.md"), "w") as f:
-            f.write(f"# Nmap Printer Scan Summary\n\n")
+        path = os.path.join(outdir, f"nmap_summary_{timestamp}_{safe}.md")
+        with open(path, "w") as f:
+            f.write(f"# Nmap Scan Summary\n\n")
             f.write(f"_Target: {target}_  \n_Generated: {timestamp}_\n\n")
             for host in data:
-                f.write(f"## Host: `{host['ip']}`\n\n")
+                f.write(f"## Host: `{host['ip']}`\n")
                 for p in host["ports"]:
                     f.write(f"- `{p['protocol']}/{p['port']}` → **{p['service']}** ({p['state']})\n")
                 f.write("\n---\n\n")
+        if verbose: print(f"[✓] Markdown saved: {path}")
 
+# ─── MAIN EXECUTION ───────────────────────────────────────────────────────────
 if __name__ == "__main__":
     if not check_nmap_installed():
         suggest_nmap_installation()
 
-    parser = argparse.ArgumentParser(description="Nmap launcher for PrinterReaper")
-    parser.add_argument('--ip', help='Single IP to scan')
-    parser.add_argument('--range', help='IP range (e.g. 192.168.1.10-192.168.1.50)')
-    parser.add_argument('--file', help='File with list of IPs')
-    parser.add_argument('--subnet', help='Use --subnet auto to select from local interfaces')
+    parser = argparse.ArgumentParser(description="PrinterReaper - Nmap Launcher")
+    parser.add_argument('--ip', help='Scan a single IP address')
+    parser.add_argument('--range', help='Scan an IP range (e.g. 192.168.1.10-192.168.1.50)')
+    parser.add_argument('--file', help='Scan a list of IPs from file (one per line)')
+    parser.add_argument('--subnet', help='Use "auto" to choose from local interfaces')
 
     parser.add_argument('--output', help='Output formats: json,md (comma-separated)', default="")
     parser.add_argument('--outdir', help='Output directory (default: ./results)', default="results")
+    parser.add_argument('--verbose', action='store_true', help='Enable detailed logs')
 
     args = parser.parse_args()
 
-    # Fallback to auto subnet if nothing was passed
     if len(sys.argv) == 1:
         print("[i] No parameters provided. Defaulting to: --subnet auto\n")
         args.subnet = "auto"
 
-    formats = [fmt.strip().lower() for fmt in args.output.split(",") if fmt.strip()]
-    if formats:
-        os.makedirs(args.outdir, exist_ok=True)
+    formats = [f.strip().lower() for f in args.output.split(",") if f.strip()]
+    if formats and args.verbose:
+        print(f"[DEBUG] Output formats: {formats}")
+        print(f"[DEBUG] Output directory: {args.outdir}")
 
     targets = build_target_list(args)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     for target in targets:
         print(f"\n[+] Scanning: {target}")
-        xml_path = run_nmap_scan(target, timestamp, args.outdir)
-        if os.path.exists(xml_path):
+        xml_path = run_nmap_scan(target, timestamp, args.outdir, formats, verbose=args.verbose)
+
+        if xml_path and os.path.exists(xml_path):
             result = parse_nmap_xml(xml_path)
+            if args.verbose:
+                print(f"[DEBUG] Parsed {len(result)} host(s)")
             if formats:
-                save_outputs(result, timestamp, target, formats, args.outdir)
-                print(f"[✓] Reports saved to: {args.outdir}")
+                save_outputs(result, timestamp, target, formats, args.outdir, verbose=args.verbose)
             else:
                 print("[i] No output format specified. Skipping report generation.")
+        elif not formats:
+            print("[i] No report generation requested. Scan complete.")
         else:
-            print(f"[!] Nmap output missing for {target}")
+            print(f"[!] No XML output found for target: {target}")

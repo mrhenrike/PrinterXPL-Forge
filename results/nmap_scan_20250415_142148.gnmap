@@ -1,1 +1,0 @@
-# Nmap 7.95 scan initiated Tue Apr 15 14:21:48 2025 as: nmap -p 80,443,515,631,9100,161 -sS -sU -A -T4 --script default,discovery,safe,version,snmp*,http*,banner,vuln --script-args=unsafe=1,snmpcommunity=public -oA results/nmap_scan_20250415_142148 192.168.18.10/31 192.168.18.12/30 192.168.18.16/28 192.168.18.32/28 192.168.18.48/31 192.168.18.50/32

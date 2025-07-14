@@ -1,0 +1,55 @@
+Metadata-Version: 2.1
+Name: pysnmpcrypto
+Version: 0.0.4
+Summary: Strong cryptography support for PySNMP (SNMP library for Python)
+Home-page: https://github.com/etingof/pysnmpcrypto
+Author: Ilya Etingof
+Author-email: etingof@gmail.com
+Maintainer: Ilya Etingof <etingof@gmail.com>
+License: BSD
+Platform: any
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Education
+Classifier: Intended Audience :: Information Technology
+Classifier: Intended Audience :: System Administrators
+Classifier: Intended Audience :: Telecommunications Industry
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Natural Language :: English
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.4
+Classifier: Programming Language :: Python :: 2.5
+Classifier: Programming Language :: Python :: 2.6
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.2
+Classifier: Programming Language :: Python :: 3.3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Topic :: Communications
+Classifier: Topic :: System :: Monitoring
+Classifier: Topic :: System :: Networking :: Monitoring
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Dist: pycryptodomex; python_version < "2.7"
+Requires-Dist: cryptography; python_version == "2.7"
+Requires-Dist: pycryptodomex; python_version == "3.0"
+Requires-Dist: pycryptodomex; python_version == "3.1"
+Requires-Dist: pycryptodomex; python_version == "3.2"
+Requires-Dist: pycryptodomex; python_version == "3.3"
+Requires-Dist: cryptography; python_version >= "3.4"
+
+
+The pysnmpcrypto package is an optional extension to SNMP library
+for Python -- pysnmp 5.0+. The pysnmpcrypto library provides
+stronger authentication and encryption features to the SNMP
+library by way of invoking stronger crypto algorithms.
+
+The pysnmpcrypto library runs on Python 2.4 through 3.7 and has a
+dependency on either PyCryptodomex (for Python versions 2.4-2.6
+and 3.2-3.3) or Cryptography (for Python versions 2.7 and 3.4+).
+
+

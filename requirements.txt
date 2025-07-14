@@ -1,0 +1,6 @@
+# (minimum versions are examples - should be adjusted according to real project dependencies)
+argparse
+python-nmap>=0.7.1
+fpdf2>=2.6.1
+pyyaml>=6.0
+termcolor>=2.4.0

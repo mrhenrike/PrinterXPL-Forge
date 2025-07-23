@@ -46,7 +46,6 @@ class pcl(printer):
             printer.do_pwd,
         )
         del (
-            printer.do_touch,
             printer.do_append,
             printer.do_cd,
         )

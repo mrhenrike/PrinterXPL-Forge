@@ -103,6 +103,37 @@ class log():
 
 
 class output():
+    # show message in cyan color
+    def message(self, msg):    
+        print(f"\033[1;36m{msg}\033[0m")
+    
+    # show red message
+    def red(self, msg):
+        print(f"\033[1;31m{msg}\033[0m")
+    
+    # show green message
+    def green(self, msg):
+        print(f"\033[1;32m{msg}\033[0m")
+    
+    # show blue message
+    def blue(self, msg):
+        print(f"\033[1;34m{msg}\033[0m")
+
+    # show yellow message
+    def yellow(self, msg):
+        print(f"\033[1;33m{msg}\033[0m")
+    
+    # show banner
+    def intro(self, quiet):
+        if not quiet:
+            print(Style.BRIGHT + Fore.CYAN + "VOID-PRINT (PRET-Enhanced base)" + Style.RESET_ALL)
+            print(Style.DIM + "Printer Reaper - a tool to discover, fuzz and exploit printers" + Style.RESET_ALL)
+    
+    def header(self, msg, eol=None):
+        if msg:
+            print(Back.BLUE + msg + Style.RESET_ALL, end=eol)
+        sys.stdout.flush()
+
     # show send commands (debug mode)
     def send(self, str, mode):
         if str:

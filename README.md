@@ -1,31 +1,41 @@
-## PRET - Printer Exploitation Toolkit
+# VOID-PRINT - *Vulnerability & Offensive Intrusion Device for PRINTers*
 
-**Is your printer secure? Check before someone else does...**
+**Is your printer safe from the void? Find out before someone else does…**
 
-PRET is a new tool for printer security testing developed in the scope of a [Master's Thesis](http://nds.rub.de/media/ei/arbeiten/2017/01/13/exploiting-printers.pdf) at Ruhr University Bochum. It connects to a device via network or USB and exploits the features of a given printer language. Currently [PostScript](https://www.adobe.com/products/postscript/pdfs/PLRM.pdf), [PJL](http://h10032.www1.hp.com/ctg/Manual/bpl13208.pdf) and [PCL](http://www.hp.com/ctg/Manual/bpl13210.pdf) are supported which are spoken by most laser printers. This allows cool stuff like capturing or manipulating print jobs, accessing the printer's file system and memory or even causing physical damage to the device. All attacks are documented in detail in the [Hacking Printers Wiki](http://hacking-printers.net/wiki/).
+VOID-PRINT (codename **VOID SPOOL**) is a cyber-punk-inspired toolkit built **exclusively** for penetration testing of printers and MFPs. Forked and enhanced from earlier research (e.g., PRET) but sharing no name or command overlap, it unifies multiple community improvements while adding modern protocol coverage, stability fixes and OSINT-ready reconnaissance modules.
 
-The main idea of PRET is to facilitate the communication between the end-user and the printer. Thus, after entering a UNIX-like command, PRET translates it to PostScript, PJL or PCL, sends it to the printer, evaluates the result and translates it back to a user-friendly format. PRET offers a whole bunch of commands useful for printer attacks and fuzzing.
+VOID-PRINT connects to a target over **network or USB** and abuses the features of common printer languages — currently [PostScript](https://www.adobe.com/products/postscript/pdfs/PLRM.pdf), [PJL](http://h10032.www1.hp.com/ctg/Manual/bpl13208.pdf) and [PCL](http://www.hp.com/ctg/Manual/bpl13210.pdf), with experimental IPP and RAW modes in development. This enables everything from capturing or manipulating print jobs to dumping the printer’s file system and memory — even inducing physical damage. Attack techniques are documented in the community-driven [Hacking Printers Wiki](http://hacking-printers.net/wiki/).
 
-![PRET design](img/architecture.png)
+The core idea is to **bridge the gap between hacker and hardware**: you type a UNIX-like command, VOID-PRINT translates it into the appropriate printer language, fires it at the device, parses the response and shows you the results in a friendly format. No vendor SDKs, no arcane PJL manuals — just pure spooler carnage.
+
+> **TL;DR:** VOID-PRINT is your neon‑lit scythe for reaping printer vulnerabilities. Scan. Exploit. Exfiltrate. Repeat.
+
+![VOID-SPOOL design](img/architecture.png)
 
 ### Installation
 
-PRET only requires a Python2 interpreter. For colored output and SNMP support however, third party modules need to be installed:
+VOID-PRINT only requires a Python3 interpreter. For colored output and SNMP support however, third party modules need to be installed:
 
-    # pip install colorama pysnmp
+```
+# pip install -r requirements.txt
+```
 
-If running on a Windows console and Unicode characters are not displayed correctly, install the *win_unicode_console* module:
+If running on a Windows console and Unicode characters are not displayed correctly, install the *win\_unicode\_console* module:
 
-    # pip install win_unicode_console
+```
+# pip install win_unicode_console
+```
 
 For experimental, ‘driverless’ printing (see print command), ImageMagick and GhostScript need to be installed:
 
-    # apt-get install imagemagick ghostscript
+```
+# apt-get install imagemagick ghostscript
+```
 
 ### Usage
 
 ```
-usage: pret.py [-h] [-s] [-q] [-d] [-i file] [-o file] target {ps,pjl,pcl}
+usage: voidprint.py [-h] [-s] [-q] [-d] [-i file] [-o file] target {ps,pjl,pcl}
 
 positional arguments:
   target                printer device or hostname
@@ -42,23 +52,25 @@ optional arguments:
 
 ###### Example usage:
 
-    $ ./pret.py laserjet.lan ps
-    $ ./pret.py /dev/usb/lp0 pjl
+```
+$ ./voidprint.py laserjet.lan ps
+$ ./voidprint.py /dev/usb/lp0 pjl
+```
 
 ###### Positional Arguments:
 
 PRET requires a valid target and a printer language as arguments. The target can either be the IP address/hostname of a network printer (with port 9100/tcp open) or a device like `/dev/usb/lp0` for a local USB printer. To quickly discover all network printers in your subnet using SNMP broadcast, simply run PRET without arguments:
 
 ```
-./pret.py
+./voidprint.py
 No target given, discovering local printers
 
-address          device                       uptime    status                 
+address          device                       uptime    status
 ───────────────────────────────────────────────────────────────────────────────
-192.168.1.5      hp LaserJet 4250             10:21:49   Ready                 
-192.168.1.11     HP LaserJet M3027 MFP        13 days    Paper jam             
-192.168.1.27     Lexmark X792                 153 days   Ready                 
-192.168.1.28     Brother MFC-7860DW           16:31:17   Sleep mode            
+192.168.1.5      hp LaserJet 4250             10:21:49   Ready
+192.168.1.11     HP LaserJet M3027 MFP        13 days    Paper jam
+192.168.1.27     Lexmark X792                 153 days   Ready
+192.168.1.28     Brother MFC-7860DW           16:31:17   Sleep mode
 ```
 
 The printer language to be abused must be one of `ps`, `pjl` or `pcl`. Not all languages are supported by every printer, so you may want to switch languages if you don't receive any feedback. Each printer language is mapped to a different set of PRET commands and has different capabilities to exploit.
@@ -69,7 +81,7 @@ The printer language to be abused must be one of `ps`, `pjl` or `pcl`. Not all l
 
 `--quit` suppresses printer model determination, intro message and some other chit-chat.
 
-`--debug` shows the datastream actually sent to the device and the feedback received. Note that header data and other overhead is filtered. The see the whole traffic, use wireshark. Debugging can also be switched on/off within a PRET session using the `debug` command 
+`--debug` shows the datastream actually sent to the device and the feedback received. Note that header data and other overhead is filtered. The see the whole traffic, use wireshark. Debugging can also be switched on/off within a PRET session using the `debug` command
 
 `--load filename` reads and executes PRET commands from a text file. This is useful for automation. Command files can also be invoked later within a PRET session via the `load` command.
 
@@ -83,8 +95,8 @@ After connecting to a printer device, you will see the PRET shell and can execut
 $ ./pret.py laserjet.lan pjl
       ________________
     _/_______________/|
-   /___________/___//||   PRET | Printer Exploitation Toolkit v0.25
-  |===        |----| ||    by Jens Mueller <jens.a.mueller@rub.de>
+   /___________/___//||   VOID-PRINT | Vulnerability & Offensive Intrusion Device for PRINTers
+  |===        |----| ||    by Andre Santos <X @mrhenrike / LinkedIn @mrhenrike>
   |           |   ô| ||
   |___________|   ô| ||
   | ||/.´---.||    | ||        「 cause your device can be
@@ -97,16 +109,16 @@ $ ./pret.py laserjet.lan pjl
 Connection to laserjet.lan established
 Device:   hp LaserJet 4250
 
-Welcome to the pret shell. Type help or ? to list commands.
+Welcome to the VoidPrint shell. Type help or ? to list commands.
 laserjet.lan:/> help
 
 Available commands (type help <topic>):
 =======================================
-append  debug    edit    free  id    ls       open      restart   timeout  
-cat     delete   env     fuzz  info  mirror   printenv  selftest  touch    
+append  debug    edit    free  id    ls       open      restart   timeout
+cat     delete   env     fuzz  info  mirror   printenv  selftest  touch
 cd      df       exit    get   load  mkdir    put       set       traversal
-chvol   disable  find    help  lock  nvram    pwd       site      unlock   
-close   display  format  hold  loop  offline  reset     status    version  
+chvol   disable  find    help  lock  nvram    pwd       site      unlock
+close   display  format  hold  loop  offline  reset     status    version
 
 laserjet.lan:/> ls ../../
 -      834   .profile
@@ -122,7 +134,7 @@ d        -   tmp
 laserjet.lan:/> exit
 ```
 
-A list of generic PRET commands is given below:
+A list of generic VOID-PRINT commands is given below:
 
 ```
 help      List available commands or get detailed help with 'help cmd'.
@@ -144,18 +156,18 @@ Generic file system operations with a PS/PJL/PCL specific implementation are:
 ┌───────────┬─────┬─────┬─────┬────────────────────────────────────────┐
 │ Command   │ PS  │ PJL │ PCL │ Description                            │
 ├───────────┼─────┼─────┼─────┼────────────────────────────────────────┤
-│ ls        │  ✓  │  ✓  │  ✓  │ List contents of remote directory.     │
-│ get       │  ✓  │  ✓  │  ✓  │ Receive file: get <file>               │
-│ put       │  ✓  │  ✓  │  ✓  │ Send file: put <local file>            │
-│ append    │  ✓  │  ✓  │     │ Append to file: append <file> <str>    │
-│ delete    │  ✓  │  ✓  │  ✓  │ Delete remote file: delete <file>      │
-│ rename    │  ✓  │     │     │ Rename remote file: rename <old> <new> │
-│ find      │  ✓  │  ✓  │     │ Recursively list directory contents.   │
-│ mirror    │  ✓  │  ✓  │     │ Mirror remote filesystem to local dir. │
-│ cat       │  ✓  │  ✓  │  ✓  │ Output remote file to stdout.          │
-│ edit      │  ✓  │  ✓  │  ✓  │ Edit remote files with vim.            │
-│ touch     │  ✓  │  ✓  │     │ Update file timestamps: touch <file>   │
-│ mkdir     │  ✓  │  ✓  │     │ Create remote directory: mkdir <path>  │
+│ ls        │  ✓  │  ✓ │  ✓  │ List contents of remote directory.     │
+│ get       │  ✓  │  ✓ │  ✓  │ Receive file: get <file>               │
+│ put       │  ✓  │  ✓ │  ✓  │ Send file: put <local file>            │
+│ append    │  ✓  │  ✓ │     │ Append to file: append <file> <str>    │
+│ delete    │  ✓  │  ✓ │  ✓  │ Delete remote file: delete <file>      │
+│ rename    │  ✓  │    │     │ Rename remote file: rename <old> <new> │
+│ find      │  ✓  │  ✓ │     │ Recursively list directory contents.   │
+│ mirror    │  ✓  │  ✓ │     │ Mirror remote filesystem to local dir. │
+│ cat       │  ✓  │  ✓ │  ✓  │ Output remote file to stdout.          │
+│ edit      │  ✓  │  ✓ │  ✓  │ Edit remote files with vim.            │
+│ touch     │  ✓  │  ✓ │     │ Update file timestamps: touch <file>   │
+│ mkdir     │  ✓  │  ✓ │     │ Create remote directory: mkdir <path>  │
 ├───────────┼─────┼─────┼─────┼────────────────────────────────────────┤
 │ cd        │  ✓  │  ✓  │     │ Change remote working directory.       │
 │ pwd       │  ✓  │  ✓  │     │ Show working directory on device.      │
@@ -278,22 +290,34 @@ PCL is a very limited page description language without access to the file syste
 
 ### File Listing
 
-- `pret.py` - Executable main program
-- `capabilities.py` - Routines to check for printer language support
-- `discovery.py` - Routines to list printers using SNMP broadcast
-- `printer.py` - Generic code to describe a printing device
-- `postscript.py` - PS specific code (inherits from class printer)
-- `pjl.py` - PJL specific code (inherits from class printer)
-- `pcl.py` - PCL specific code (inherits from class printer)
-- `helper.py` - Help functions for output, logging, sockets, etc.
-- `codebook.py` - Static table of PJL status/error codes
-- `fuzzer.py` - Constants for file system fuzzing
-- `mibs/*` - Printer specific SNMP MIBs
-- `db/*` - database of supported models
-- `lpd/*` - Scripts for LPD fuzzing
+* `voidprint.py` \- Executable main program
+* `capabilities.py` \- Routines to check for printer language support
+* `discovery.py` \- Routines to list printers using SNMP broadcast
+* `printer.py` \- Generic code to describe a printing device
+* `postscript.py` \- PS specific code \(inherits from class printer\)
+* `pjl.py` \- PJL specific code \(inherits from class printer\)
+* `pcl.py` \- PCL specific code \(inherits from class printer\)
+* `helper.py` \- Help functions for output\, logging\, sockets\, etc\.
+* `codebook.py` \- Static table of PJL status/error codes
+* `fuzzer.py` \- Constants for file system fuzzing
+* `mibs/*` \- Printer specific SNMP MIBs
+* `db/*` \- database of supported models
+* `lpd/*` \- Scripts for LPD fuzzing
+
+### Legal notice ⚠️
+
+VOID‑PRINT is intended solely for authorized security testing. Run it only against devices you own or have written permission to assess. Unauthorized use may violate laws and regulations. The authors disclaim all liability for misuse or damage.
 
 ### Getting Started
 
 Given the features and various proprietary extensions in printing languages like PostScript and PJL, conducting a pentest on printers is not a trivial job. PRET can help to assist and verify known issues in the language. Once you have played around with the tool, you may want to perform a systematic printer security analysis. A good starting point is the [Printer Security Testing Cheat Sheet](http://hacking-printers.net/wiki/index.php?title=Printer_Security_Testing_Cheat_Sheet).
 
 **Happy Hacking!**
+
+### Credits & references
+
+> Original research: “Exploiting Network Printers” (Master’s Thesis, Ruhr‑Universität Bochum)
+
+> Knowledge base: Hacking Printers Wiki
+
+> Forks merged: RUB‑NDS/PRET, KcanCurly/PRET, 0000xFFFF/PRET and community patches.

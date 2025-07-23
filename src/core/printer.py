@@ -4,6 +4,7 @@
 # python standard library
 import re
 import os
+import csv, itertools 
 import sys
 import cmd
 import glob
@@ -15,20 +16,22 @@ import hashlib
 import tempfile
 import subprocess
 import traceback
+import requests
 
 # local pret classes
 from utils.helper import log, output, conv, file, item, conn, const as c
 from core.discovery import discovery
 from utils.fuzzer import fuzzer
+from modules.cve import do_cve, help_cve
 
 
 class printer(cmd.Cmd, object):
     # cmd module config and customization
-    intro = "Welcome to the pret shell. Type help or ? to list commands."
+    intro = "Welcome to the VOID-PRINT shell. Type help or ? to list commands.\nType 'exit' to quit. Type 'discover' to scan for printers on your local network.\nNote: Not all commands will work on every printer — support depends on the device’s manufacturer, model, and firmware language implementation."
     doc_header = "Available commands (type help <topic>):"
     offline_str = "Not connected."
     undoc_header = None
-    # do not change
+
     logfile = None
     debug = False
     status = False
@@ -44,7 +47,7 @@ class printer(cmd.Cmd, object):
     cwd = ""
     traversal = ""
     # can be changed
-    editor = "notepad"  # set to nano/edit/notepad/leafpad/whatever
+    editor = "vim"  # set to nano/edit/notepad/leafpad/whatever
 
     # --------------------------------------------------------------------
     def __init__(self, args):
@@ -52,7 +55,8 @@ class printer(cmd.Cmd, object):
         cmd.Cmd.__init__(self)
         self.debug = args.debug  # debug mode
         self.quiet = args.quiet  # quiet mode
-        self.mode = args.mode  # command mode
+        self.mode = args.mode    # command mode
+
         # connect to device
         self.do_open(args.target, "init")
         # log pjl/ps cmds to file
@@ -69,7 +73,7 @@ class printer(cmd.Cmd, object):
         if args.load:
             self.do_load(args.load)
         # input loop
-        ##self.cmdloop()
+        self.cmdloop()
 
     def set_defaults(self, newtarget):
         self.fuzz = False
@@ -81,7 +85,7 @@ class printer(cmd.Cmd, object):
             self.set_prompt()
 
     # --------------------------------------------------------------------
-    # do noting on empty input
+    # do nothing on empty input
     def emptyline(self):
         pass
 
@@ -105,93 +109,81 @@ class printer(cmd.Cmd, object):
     def precmd(self, line):
         # commands that can be run offline
         off_cmd = [
-            "#",
-            "?",
-            "help",
-            "exit",
-            "quit",
-            "EOF",
-            "timeout",
-            "mode",
-            "load",
-            "loop",
-            "discover",
-            "open",
-            "debug",
+            "#", "?", "help", "exit", "quit", "EOF", "timeout",
+            "mode", "load", "loop", "discover", "open", "debug",
         ]
-        # remove whitepaces
         line = line.strip()
         if line and line.split()[0] not in off_cmd:
-            # write non-empty lines to logfile
             log().comment(self.logfile, line)
-            # only let "offline" functions pass if not connected
-            if self.conn == None:
-                print((self.offline_str))
+            if self.conn is None:
+                print(self.offline_str)
                 return os.linesep
-        # finally return original command
         return line
 
     # --------------------------------------------------------------------
     # catch-all wrapper to guarantee continuation on unhandled exceptions
     def onecmd(self, line):
         try:
-            cmd.Cmd.onecmd(self, line)
+            return cmd.Cmd.onecmd(self, line)
         except Exception as e:
-            print(traceback.print_exc())
+            traceback.print_exc()
             output().errmsg("Program Error", e)
 
     # ====================================================================
 
     # ------------------------[ exit ]------------------------------------
     def do_exit(self, *arg):
-        # close logfile
         if self.logfile:
             log().close(self.logfile)
         sys.exit()
 
-    # define alias but do not show alias in help
     do_quit = do_exit
-    do_EOF = do_exit
+    do_EOF  = do_exit
 
     def help_exit(self):
-        print("Exit the interpreter.")
+        "Exit the shell"
+        print()
+        output().header("exit")
+        output().message("  Exit the interactive shell and close the connection.")
+        print()
 
     # ------------------------[ debug ]-----------------------------------
     def do_debug(self, arg):
         "Enter debug mode. Use 'hex' for hexdump:  debug [hex]"
         self.debug = not self.debug
-        # set hex mode (= ascii + hexdump)
         if arg == "hex":
             self.debug = "hex"
         if self.conn:
             self.conn.debug = self.debug
-        print(("Debug mode on" if self.debug else "Debug mode off"))
+        output().message("Debug mode on" if self.debug else "Debug mode off")
+
+    def help_debug(self):
+        "Toggle raw traffic debug output"
+        print()
+        output().header("debug")
+        output().message("  Toggle raw traffic debug output on/off.")
+        output().message("  When enabled, show full sent/received buffers.")
+        print()
 
     # ====================================================================
-
-    # ------------------------[ load ]------------------------------------
-    def do_load(self, arg):
-        "Run commands from file:  load cmd.txt"
-        if not arg:
-            arg = eval(input("File: "))
-        data = file().read(arg).decode() or ""
-        for cmd in data.splitlines():
-            # simulate command prompt
-            print((self.prompt + cmd))
-            # execute command with premcd
-            self.onecmd(self.precmd(cmd))
-
     # ------------------------[ loop <cmd> <arg1> <arg2> … ]--------------
     def do_loop(self, arg):
         "Run command for multiple arguments:  loop <cmd> <arg1> <arg2> …"
-        args = re.split("\s+", arg)
+        args = re.split(r"\s+", arg)
         if len(args) > 1:
-            cmd = args.pop(0)
-            for arg in args:
-                output().chitchat("Executing command: '" + cmd + " " + arg + "'")
-                self.onecmd(cmd + " " + arg)
+            cmd_name = args.pop(0)
+            for a in args:
+                output().chitchat(f"Executing command: '{cmd_name} {a}'")
+                self.onecmd(f"{cmd_name} {a}")
         else:
             self.onecmd("help loop")
+
+    def help_loop(self):
+        "Run a command repeatedly over multiple arguments"
+        print()
+        output().header("loop <cmd> <arg1> <arg2> ...")
+        output().message("  Executes <cmd> for each of the listed arguments in turn.")
+        print()
 
     # ====================================================================
 
@@ -200,32 +192,35 @@ class printer(cmd.Cmd, object):
         "Discover local printer devices via SNMP."
         discovery()
 
+    def help_discover(self):
+        "Scan local networks for SNMP printers"
+        print()
+        output().header("discover")
+        output().message("  Scan local networks for SNMP printers and print their info.")
+        output().message("  Probe each /24 on your host for SNMP printers (snmpget required).")
+        print()
+
     # ------------------------[ open <target> ]---------------------------
     def do_open(self, arg, mode=""):
         "Connect to remote device:  open <target>"
         if not arg:
             arg = eval(input("Target: "))
-        # open connection
         try:
             newtarget = arg != self.target
-            self.target = arg  # set new target
+            self.target = arg
             self.conn = conn(self.mode, self.debug, self.quiet)
             self.conn.timeout(self.timeout)
             self.conn.open(arg)
-            print(("Connection to " + arg + " established"))
-            # hook method executed after successful connection
+            print(f"Connection to {arg} established")
             self.on_connect(mode)
-            # show some information about the device
             if not self.quiet and mode != "reconnect":
                 sys.stdout.write("Device:   ")
                 self.do_id()
-            print("")
-            # set printer default values
+            output().message("")
             self.set_defaults(newtarget)
         except Exception as e:
-            output().errmsg("Connection to " + arg + " failed", e)
+            output().errmsg(f"Connection to {arg} failed", e)
             self.do_close()
-            # exit if run from init function (command line)
             if mode == "init":
                 self.do_exit()
 
@@ -238,209 +233,253 @@ class printer(cmd.Cmd, object):
     def recv(self, *args):
         return self.conn.recv_until(*args) if self.conn else ""
 
+    def help_open(self):
+        "Connect to a new target"
+        print()
+        output().header("open <host[:port]>")
+        output().message("  Disconnects current session and opens to the new target.")
+        output().message("  Example: open 192.168.1.10:9100")
+        print()
+
     # ------------------------[ close ]-----------------------------------
     def do_close(self, *arg):
         "Disconnect from device."
         if self.conn:
             self.conn.close()
             self.conn = None
-        print("Connection closed.")
+        output().message("Connection closed.")
         self.set_prompt()
+
+    def help_close(self):
+        "Disconnect from the current printer"
+        print()
+        output().header("close")
+        output().message("  Close the connection but stay in the shell.")
+        print()
 
     # ------------------------[ timeout <seconds> ]-----------------------
     def do_timeout(self, arg, quiet=False):
         "Set connection timeout:  timeout <seconds>"
         try:
             if arg:
+                t = float(arg)
                 if self.conn:
-                    self.conn.timeout(float(arg))
-                self.timeout = float(arg)
+                    self.conn.timeout(t)
+                self.timeout = t
             if not quiet:
-                print(("Device or socket timeout: " + str(self.timeout)))
+                print(f"Device or socket timeout: {self.timeout}")
         except Exception as e:
             output().errmsg("Cannot set timeout", e)
 
     # send mode-specific command with modified timeout
     def timeoutcmd(self, str_send, timeout, *stuff):
-        timeout_old = self.timeout
-        self.do_timeout(timeout, True)
-        str_recv = self.cmd(str_send, *stuff)
-        self.do_timeout(timeout_old, True)
-        return str_recv
+        old = self.timeout
+        self.do_timeout(str(timeout), True)
+        recv = self.cmd(str_send, *stuff)
+        self.do_timeout(str(old), True)
+        return recv
+
+    def help_timeout(self):
+        "Change the network timeout"
+        print()
+        output().header("timeout <seconds>")
+        output().message("  Set the socket timeout for subsequent commands.")
+        print()
 
     # ------------------------[ reconnect ]-------------------------------
     def do_reconnect(self, *arg):
         self.do_close()
         self.do_open(self.target, "reconnect")
 
-    # re-open connection
+    # re-open connection on error
     def reconnect(self, msg):
-        # on incomplete command show error message
         if msg:
             output().errmsg("Command execution failed", msg)
         sys.stdout.write(os.linesep + "Forcing reconnect. ")
-        # workaround to flush socket buffers
         self.do_close()
         self.do_open(self.target, "reconnect")
-        # on CTRL+C spawn a new shell
         if not msg:
             self.cmdloop(intro="")
 
     # --------------------------------------------------------------------
     # dummy functions to overwrite
     def on_connect(self, mode):
-        pass
+        # disable unsolicited status
+        if mode == "init":
+            self.cmd("@PJL USTATUSOFF", False)
+
+            # fetch and store Device string
+            resp = self.cmd("@PJL INFO ID")
+            lines = [ line.strip('"') for line in resp.splitlines() if line.strip() ]
+            self.device_info = lines[0] if lines else None
+
 
     def do_id(self, *arg):
-        output().info("Unknown printer")
+        output().message("Unknown printer")
 
     # ====================================================================
 
     # ------------------------[ pwd ]-------------------------------------
     def do_pwd(self, arg):
-        "Show working directory on remote device."
-        path = ("" if self.vol else c.SEP) + self.rpath()
-        output().raw(path)
+        """
+        Show current working directory *and* list all volumes on the device.
+        """
+        # current remote CWD is something like "0:/path/to/dir"
+        cwd = self.cwd.lstrip(c.SEP) or ""
+        vol = self.vol or ""
+        # Print the cwd
+        print(f"{vol}:{c.SEP}{cwd or ''}")
 
-    # ------------------------[ chvol <volume> ]--------------------------
-    def do_chvol(self, arg):
-        "Change remote volume:  chvol <volume>"
-        if not arg:
-            arg = eval(input("Volume: "))
-        if arg and self.vol_exists(arg):
-            if self.mode == "ps":
-                self.set_vol("%" + arg.strip("%") + "%")
-            if self.mode == "pjl":
-                self.set_vol(arg[0] + ":" + c.SEP)
-            print(("Volume changed to " + self.vol))
+        # Now enumerate volumes
+        vols = self.vol_exists()  # returns e.g. ['0:/', '1:/', ...]
+        if vols:
+            output().message("\nAvailable volumes/storage:")
+            for v in vols:
+                # query each one to see if it actually exists
+                exists = self.vol_exists(v)
+                status = "OK" if v[0] == exists else "?" 
+                print(f"  {v}  [{status}]")
         else:
-            print("Volume not available")
+            output().message("(no others volumes found)")
 
-    # set volume
+    def help_pwd(self):
+        "Print the current remote working directory"
+        print()
+        output().header("pwd")
+        output().message("  Show current working directory on the printer.")
+        output().message("  Display CWD like '0:/' or '1:/subdir/'")
+        print()
+
+    # ------------------------[ chvol <volume> ]-------------------------
+    def do_chvol(self, arg):
+        "Change remote volume: chvol <volume>"
+        if not arg:
+            output().message("Usage: chvol <volume> (e.g. chvol 1)")
+            return
+        # allow either "1" or "1:" or "1:/"
+        vol = str(arg).rstrip(c.SEP).rstrip(":") + ":/"
+        available = self.vol_exists()
+        if vol in available:
+            self.vol = vol
+            print(f"Volume changed to {vol}")
+        else:
+            print(f"Volume not available: {vol}")
+
     def set_vol(self, vol=""):
         if not vol:
-            # set default volumes
             if self.mode == "ps":
                 vol = c.PS_VOL
             if self.mode == "pjl":
                 vol = c.PJL_VOL
         if self.vol != vol:
-            # reset path traversal and cwd
             self.set_traversal()
-            # set actual volume
             self.vol = vol
 
-    # get volume
     def get_vol(self):
-        vol = self.vol
-        if vol and self.mode == "ps":
-            vol = vol.strip("%")
-        if vol and self.mode == "pjl":
-            vol = vol[0]
-        return vol
+        v = self.vol
+        if v and self.mode == "ps":
+            v = v.strip("%")
+        if v and self.mode == "pjl":
+            v = v[0]
+        return v
+
+    def help_chvol(self):
+        "Change current volume"
+        print()
+        output().header("chvol <volume_letter>")
+        output().message("  Change current volume")
+        output().message("  Switch active filesystem volume (e.g. 0, 1, etc.)")
+        output().red("  Example: chvol 1")
+        print()
 
     # ------------------------[ traversal <path> ]------------------------
     def do_traversal(self, arg):
         "Set path traversal:  traversal <path>"
         if not arg or self.dir_exists(self.tpath(arg)):
             self.set_traversal(arg)
-            print(("Path traversal " + ("" if arg else "un") + "set."))
+            output().message("Path traversal " + ("" if arg else "un") + "set.")
         else:
-            print("Cannot use this path traversal.")
+            output().message("Cannot use this path traversal.")
 
-    # set path traversal
     def set_traversal(self, traversal=""):
         self.traversal = traversal
         if not traversal:
             self.set_cwd()
 
+    def help_traversal(self):
+        "Set path traversal root"
+        print()
+        output().header("traversal <path>")
+        output().message("  Set the path traversal root for subsequent commands.")
+        output().message("  Change how relative paths are expanded for find/mirror.")
+        print()
+        output().red("  Example: traversal 1:/jobs/")
+        output().message("  Note: This command is useful for setting a base path.")
+        output().message("  If no path is given, it will reset to the default traversal.")
+        print()
+
     # ------------------------[ cd <path> ]-------------------------------
     def do_cd(self, arg):
         "Change remote working directory:  cd <path>"
         if not self.cpath(arg) or self.dir_exists(self.rpath(arg)):
-            if re.match("^[\." + c.SEP + "]+$", self.cpath(arg)):
+            if re.match(r"^[\." + re.escape(c.SEP) + "]+$", self.cpath(arg)):
                 output().raw("*** Congratulations, path traversal found ***")
                 output().chitchat("Consider setting 'traversal' instead of 'cd'.")
             self.set_cwd(arg)
         else:
-            print("Failed to change directory.")
+            output().message("Failed to change directory.")
 
-    # set current working directory
     def set_cwd(self, cwd=""):
         self.cwd = self.cpath(cwd) if cwd else ""
         self.set_prompt()
 
-    # set command prompt
     def set_prompt(self):
-        target = self.target + ":" if self.conn else ""
+        prefix = self.target + ":" if self.conn else ""
         cwd = self.cwd if self.conn else ""
-        self.prompt = target + c.SEP + cwd + "> "
+        self.prompt = prefix + c.SEP + cwd + "> "
 
-    # get separator
     def get_sep(self, path):
-        # don't add separator between ps volume and filename
-        if self.mode == "ps" and re.search("^%.*%$", path):
+        if self.mode == "ps" and re.search(r"^%.*%$", path):
             return ""
-        # add separator if we have to deal with a directory
         return c.SEP if (path or self.cwd or self.traversal) else ""
 
-    # --------------------------------------------------------------------
-    # get path without traversal and cwd information
+    # get path without traversal and cwd
     def tpath(self, path):
-        # remove leading separators
-        path = path.lstrip(c.SEP)
-        return self.vol + self.normpath(path)
+        return self.vol + self.normpath(path.lstrip(c.SEP))
 
-    # get path without volume and traversal information
+    # get path without volume and traversal
     def cpath(self, path):
-        # generate virtual path on remote device
-        path = c.SEP.join((self.cwd, path))
-        # remove leading separators
-        path = path.lstrip(c.SEP)
-        return self.normpath(path)
+        p = c.SEP.join((self.cwd, path)).lstrip(c.SEP)
+        return self.normpath(p)
 
-    # get path without volume information
+    # get path without volume
     def vpath(self, path):
-        # generate virtual path on remote device
-        path = c.SEP.join((self.traversal, self.cwd, path))
-        # remove leading separators
-        path = path.lstrip(c.SEP)
-        return self.normpath(path)
+        p = c.SEP.join((self.traversal, self.cwd, path)).lstrip(c.SEP)
+        return self.normpath(p)
 
-    # get path with volume information
+    # get path with volume
     def rpath(self, path=""):
-        # warn if path contains volume information
         if (path.startswith("%") or path.startswith("0:")) and not self.fuzz:
             output().warning("Do not refer to disks directly, use chvol.")
-        # in fuzzing mode leave remote path as it is
         if self.fuzz:
             return path
-        # prepend volume information to virtual path
         return self.vol + self.vpath(path)
 
-    # get normalized pathname
+    # normalize posix path, mapping "." => ""
     def normpath(self, path):
-        path = posixpath.normpath(path)
-        """
-    ┌───────────────────────────────────────────────────────┐
-    │        problems when using posixpath.normpath         │
-    ├───────────────────────────────────────────────────────┤
-    │ [✗] breaks obscure traversal strategies like '.../..' │
-    │ [✓] removes tailing separators, we can deal with this │
-    │ [✓] sets '.' for 'dir/..', refused by ps interpreters │
-    └───────────────────────────────────────────────────────┘
-    """
-        # path = re.sub(r"(/)", "\\\\", path)      ### Epson/Samsung PJL
-        # path = re.sub(r"(/\.\.)", "/../.", path) ### HP path traversal
-        return path if path != "." else ""
+        p = posixpath.normpath(path)
+        return p if p != "." else ""
 
-    # --------------------------------------------------------------------
-    # get filename, independent of path naming convention
     def basename(self, path):
-        path = os.path.basename(posixpath.basename(ntpath.basename(path)))
-        return path
+        return os.path.basename(posixpath.basename(ntpath.basename(path)))
 
-    # ====================================================================
+    def help_cd(self):
+        print()
+        "Change the current working directory on the printer"
+        print()
+        output().header("cd <remote_dir>")
+        output().message("  Change the current working directory on the printer.")
+        print()
 
     # ------------------------[ get <file> ]------------------------------
     def do_get(self, arg, lpath="", r=True):
@@ -468,6 +507,13 @@ class printer(cmd.Cmd, object):
         size1, size2 = str(size1), str(size2)
         print(("Size mismatch (should: " + size1 + ", is: " + size2 + ")."))
 
+    def help_get(self):
+        print()
+        output().header("get <remote_path>")
+        output().message("  Retrieves the file at <remote_path> and prints to stdout.")
+        output().red("  Example: get 1:/config.cfg")
+        print()
+
     # ------------------------[ put <local file> ]------------------------
     def do_put(self, arg, rpath=""):
         "Send file:  put <local file>"
@@ -486,9 +532,16 @@ class printer(cmd.Cmd, object):
             if rsize == lsize:
                 print((str(rsize) + " bytes transferred."))
             elif rsize == c.NONEXISTENT:
-                print("Permission denied.")
+                output().message("Permission denied.")
             else:
                 self.size_mismatch(lsize, rsize)
+
+    def help_put(self):
+        "Upload a local file to the printer"
+        print()
+        output().header("put <local_path>")
+        output().message("  Sends the file data to the current working directory.")
+        print()
 
     # ------------------------[ append <file> <string> ]------------------
     def do_append(self, arg):
@@ -502,13 +555,13 @@ class printer(cmd.Cmd, object):
         else:
             self.onecmd("help append")
 
-    # ------------------------[ touch <file> ]----------------------------
-    def do_touch(self, arg):
-        "Update file timestamps:  touch <file>"
-        if not arg:
-            arg = eval(input("Remote file: "))
-        rpath = self.rpath(arg)
-        self.append(rpath, "")
+    def help_append(self):
+        "Append a literal string to a remote file"
+        print()
+        output().header("append <remote_path> <string>")
+        output().message("  Append the given string to the end of <remote_path>.")
+        output().message('  Example: append "/logs/today.txt" "New log entry"')
+        print()
 
     # ------------------------[ delete <file> ]---------------------------
     def do_delete(self, arg):
@@ -521,7 +574,12 @@ class printer(cmd.Cmd, object):
     do_rmdir = do_delete
 
     def help_delete(self):
-        print("Delete remote file:  delete <file>")
+        "Delete a remote file"
+        print()
+        output().header("delete <remote_path>")
+        output().message("  Remove the specified file from the printer filesystem.")
+        output().red("  Example: delete 0:/jobs/printjob.pjl")
+        print()
 
     # ------------------------[ cat <file> ]------------------------------
     def do_cat(self, arg):
@@ -533,6 +591,18 @@ class printer(cmd.Cmd, object):
         if str_recv != c.NONEXISTENT:
             rsize, data = str_recv
             output().raw(data.strip())
+
+    def help_cat(self):
+        "Print remote file contents"
+        print()
+        output().header("cat <remote_path>")
+        output().message("  Dumps the contents of the remote file to your console.")
+        print()
+        output().red("  Example: cat 0:/logs/today.txt")
+        output().message("  Note: this may not work on all devices.")
+        output().message("  If the file is binary, it may contain control characters.")
+        output().message("  Use 'get' to download the file instead.")
+        print()
 
     # ------------------------[ edit <file> ]-----------------------------
     def do_edit(self, arg):
@@ -550,7 +620,7 @@ class printer(cmd.Cmd, object):
             chksum2 = hashlib.md5(open(lpath, "rb").read()).hexdigest()
             # upload file, if changed
             if chksum1 == chksum2:
-                print("File not changed.")
+                output().message("File not changed.")
             else:
                 self.do_put(lpath, arg)
         except Exception as e:
@@ -562,7 +632,17 @@ class printer(cmd.Cmd, object):
     do_vim = do_edit
 
     def help_edit(self):
-        print("Edit remote files with our favorite editor:  edit <file>")
+        "Edit a remote file"
+        print()
+        output().header("edit <remote_path>")
+        output().message("  Open the file in your $EDITOR, upload on save.")
+        print()
+        output().red("  Example: edit 0:/config.cfg")
+        output().message("  Note: Set self.editor to your preferred editor (e.g. vim, nano).")
+        output().message("  If the file is large, it may take a while to download/upload.")
+        output().message("  If the file is binary, it may contain control characters.")
+        output().message("  Use 'get' to download the file instead.")
+        print()
 
     # ------------------------[ mirror <path> ]---------------------------
     def mirror(self, name, size):
@@ -609,6 +689,61 @@ class printer(cmd.Cmd, object):
                 pass
             else:
                 raise
+
+    def help_mirror(self):
+        """
+        Recursively download a remote directory tree to your local disk.
+
+        Usage:
+        mirror <remote_dir>
+
+        Description:
+        - Walks the PJL filesystem under <remote_dir>, downloading each file and
+            reproducing the directory hierarchy under ./mirror/<target>/<volume>/.
+        - If an entry is a directory, it creates the corresponding local folder.
+        - Simple path‐traversal mitigation strips leading “../” sequences—but be
+            cautious: deeply nested or malicious paths may still pose a risk.
+
+        Input:
+        mirror 0:/jobs/
+
+        Local output:
+        mirror/<printer-ip-or-hostname>/0/jobs/report1.txt
+        mirror/<printer-ip-or-hostname>/0/jobs/archive/log.txt
+        ...
+
+        Examples:
+        # Mirror all stored jobs on volume 0:
+        mirror 0:/jobs/
+        # Mirror root of volume 1:
+        mirror 1:/
+
+        Risks:
+        - If the remote <remote_dir> contains unexpected traversal patterns,
+            local files **outside** the intended mirror directory may be at risk.
+        - Always run in a dedicated working directory to avoid accidental
+            overwrites of your own files.
+        - Large directories may consume significant disk space and time.
+        """
+        print()
+        output().header("mirror <remote_dir>")
+        output().message("  Recursively download every file and folder under <remote_dir>")
+        output().message("  into ./mirror/<target>/<volume>/, preserving the directory tree.")
+        print()
+        output().red("Examples:")
+        output().red("  mirror 0:/jobs/")
+        output().red("    # Downloads all files under 0:/jobs/ to")
+        output().red("    #   mirror/<printer_ip>/0/jobs/... on your local disk")
+        print()
+        output().message("  mirror 1:/")
+        output().message("    # Mirrors the entire volume 1 filesystem")
+        print()
+        output().red("Warnings:")
+        output().red("  • Simple path‐traversal mitigation strips '../', but may not cover")
+        output().red("    all edge cases—avoid running in sensitive directories.")
+        output().red("  • Large file trees can use lots of disk space/time.")
+        output().red("  • If you interrupt midway, partial directories may remain.")
+        print()
 
     # --------------------------------------------------------------------
     # auto-complete dirlist for local fs
@@ -777,68 +912,241 @@ class printer(cmd.Cmd, object):
         # show fuzzing results
         output().fuzzed(path + name, "", ("", opt1, opt2))
 
-    def help_fuzz(self):
-        print("File system fuzzing:  fuzz <category>")
-        print("  fuzz path   - Explore fs structure with path traversal strategies.")
-        print("  fuzz write  - First put/append file, then check for its existence.")
-        print("  fuzz blind  - Read-only tests for existing files like /etc/passwd.")
-
     options_fuzz = ("path", "write", "blind")
 
     def complete_fuzz(self, text, line, begidx, endidx):
         return [cat for cat in self.options_fuzz if cat.startswith(text)]
-
+    
+    def help_fuzz(self):
+        "Launch file-system fuzzing"
+        print()
+        output().header("fuzz <path|write|blind>")
+        output().message("  Perform various file-system traversal and append tests.")
+        output().message("  This is an experimental feature, use with caution.")
+        print()
+        output().message("  Available categories:")
+        output().message("    path - test for path traversal and directory listing")
+        output().message("    write - test for file creation, appending and deletion")
+        output().message("    blind - test for blind file access (read)")
+        print()
+        output().red("  Example: fuzz path")
+        output().red("  Note: This may take a long time and produce many results.")
+        print()
     # ====================================================================
-
-    # ------------------------[ site <command> ]--------------------------
-    def do_site(self, arg):
-        "Execute custom command on printer:  site <command>"
-        if not arg:
-            arg = eval(input("Command: "))
-        str_recv = self.cmd(arg)
-        output().info(str_recv)
 
     # ------------------------[ print <file>|"text" ]----------------------------
     def do_print(self, arg):
         'Print image file or raw text:  print <file>|"text"'
         """
-    ┌──────────────────────────────────────────────────────────┐
-    │ Poor man's driverless printing (PCL based, experimental) │
-    └──────────────────────────────────────────────────────────┘
-    """
+┌──────────────────────────────────────────────────────────┐
+│ Poor man's driverless printing (PCL based, experimental) │
+└──────────────────────────────────────────────────────────┘
+        """
         if not arg:
             arg = eval(input('File or "text": '))
-        if arg.startswith('"'):
-            data = arg.strip('"')  # raw text string
-        elif arg.endswith(".ps"):
-            data = file().read(arg)  # postscript file
+        # raw text
+        if arg.startswith('"') and arg.endswith('"'):
+            data = arg.strip('"').encode()
         else:
-            data = self.convert(arg, "pcl")  # anything else…
-            data = c.UEL.encode() + data + c.UEL.encode()
-        if data:
-            self.send(data)  # send pcl datastream to printer
-        print("H")
+            # either PS file or convert anything else to PCL
+            if arg.lower().endswith(".ps"):
+                data = file().read(arg) or b""
+            else:
+                # convert returns bytes or None on failure
+                self.chitchat(f"Converting '{arg}' to {self.mode} format")
+                data = self.convert(arg, self.mode)
+            # wrap in PJL/UEL for PCL
+            if data is not None and self.mode == "pcl":
+                data = c.UEL.encode() + data + c.UEL.encode()
+
+        if not data:
+            output().errmsg("Print failed", "No data to send (conversion error or empty file)")
+            return
+
+        # send to printer
+        try:
+            self.send(data)
+            output().message("H")
+        except Exception as e:
+            output().errmsg("Send failed", e)
+
+    def help_print(self):
+        "Print a file or literal text through the device"
+        print()
+        output().header("print <file>|\"text\"")
+        output().message("  Send a local file or literal text to the printer.")
+        output().message("  If the file is not in PCL format, it will be converted to PCL using ImageMagick or Ghostscript.")
+        output().message("  If the file is a PostScript file, it will be sent as is.")
+        output().message("  If the file is a text file, it will be sent as raw text.")
+        print()
+        output().red("Examples:")
+        output().red('print "Hello, world!"  Send literal text to the printer')
+        output().red('print myfile.ps      Send a PostScript file')
+        output().red('print myfile.txt     Send a text file')
+        output().red('print myfile.png     Convert and send an image file')
+        output().red('print myfile.pdf     Convert and send a PDF file')
+        print()
 
     # convert image to page description language
-    def convert(self, path, pdl="pcl"):
-        """
-        ┌──────────────────────────────────────────────────────────┐
-        │ Warning: ImageMagick and Ghostscript are used to convert │
-        │ the document to be printed into a language understood be │
-        │ the printer. Don't print anything from untrusted sources │
-        │ as it may be a security risk (CVE-2016–3714, 2016-7976). │
-        └──────────────────────────────────────────────────────────┘
-        """
+    def do_convert(self, path, pdl="pcl"):
         try:
-            self.chitchat("Converting '" + path + "' to " + pdl + " format")
-            pdf = ["-density", "300"] if path.endswith(".pdf") else []
-            cmd = ["convert"] + pdf + [path, "-quality", "100", pdl + ":-"]
-            out, err = subprocess.PIPE, subprocess.PIPE
-            p = subprocess.Popen(cmd, stdout=out, stderr=err)
-            data, stderr = p.communicate()
-        except:
-            stderr = "ImageMagick or Ghostscript missing"
-        if stderr:
-            output().errmsg("Cannot convert", stderr)
-        else:
-            return data
+            self.chitchat(f"Converting '{path}' to {pdl} format")
+            pdf_opts = ["-density", "300"] if path.lower().endswith(".pdf") else []
+            cmd = ["convert"] + pdf_opts + [path, "-quality", "100", f"{pdl}:-"]
+            proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = proc.communicate()
+            if err:
+                output().errmsg("Cannot convert", err.decode(errors="ignore"))
+                return None
+            return out
+        except FileNotFoundError as e:
+            output().errmsg("Cannot convert", "ImageMagick or Ghostscript missing")
+            return None
+        except Exception as e:
+            output().errmsg("Cannot convert", e)
+            return None
+
+    def help_convert(self):
+        "Convert a file to PCL or PS format for printing"
+        print()
+        output().header("convert <file> [pcl|ps]")
+        output().message("  Convert a file to PCL or PS format for printing.")
+        output().message("  If no format is specified, defaults to PCL.")
+        output().message("  Uses ImageMagick or Ghostscript for conversion.")
+        print()
+        output().red("Examples:")
+        output().red("  convert myfile.png pcl  Convert an image to PCL format")
+        output().red("  convert myfile.pdf ps   Convert a PDF to PostScript format")
+        output().red("""
+┌──────────────────────────────────────────────────────────┐
+│ Warning: ImageMagick and Ghostscript are used to convert │
+│ the document to be printed into a language understood be │
+│ the printer. Don't print anything from untrusted sources │
+│ as it may be a security risk (CVE-2016–3714, 2016-7976). │
+└──────────────────────────────────────────────────────────┘""")
+        print()
+
+    # ------------------------[ support ]----------------------------
+    def do_support(self, arg):
+        """
+        List printer support matrix from src/utils/printers_list.csv
+        Usage: support
+        """
+        # locate the CSV
+        csv_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__),
+                         '..', 'utils', 'printers_list.csv')
+        )
+        try:
+            with open(csv_path, newline='') as f:
+                reader = csv.reader(f, delimiter=';')
+                rows = [r for r in reader if r]  # skip empty lines
+        except Exception as e:
+            output().errmsg("Cannot load support list", e)
+            return
+
+        if not rows:
+            output().message("No data in support list.")
+            return
+
+        header = rows[0]
+        num_cols = len(header)
+
+        # pad all rows to the same length
+        normalized = []
+        for r in rows:
+            if len(r) < num_cols:
+                r = r + [''] * (num_cols - len(r))
+            normalized.append(r[:num_cols])
+
+        # compute column widths
+        cols = list(itertools.zip_longest(*normalized, fillvalue=''))
+        widths = [max(len(cell) for cell in col) for col in cols]
+
+        # print header
+        output().message("  ".join(header[i].ljust(widths[i]) for i in range(num_cols)))
+        output().message("  ".join('-' * widths[i] for i in range(num_cols)))
+
+        # print rows
+        for row in normalized[1:]:
+            output().message("  ".join(row[i].ljust(widths[i]) for i in range(num_cols)))
+        output().message("")
+
+    def help_support(self):
+        "Show printer support matrix"
+        print()
+        output().header("support")
+        output().message("  List printer support matrix from src/utils/printers_list.csv")
+        output().message("  Displays the printer model, PCL version, PS support, and other flags.")
+        print()
+        output().red("  Note: This file is maintained in the src/utils directory.")
+        output().red("      It is used to determine printer capabilities and compatibility.")
+        output().red("      The output includes columns for model, PCL version, PS support, and other flags.")
+        output().red("      The CSV file is structured with semicolon (;) as the delimiter.")
+        output().red("      The first row contains headers, and subsequent rows contain printer data.")
+        print()
+
+    # --------------------------------------------------------------------
+    def do_cve(self, arg):
+        """List known CVEs for the connected printer based on its Device: string."""
+        device = getattr(self, "device_info", None)
+        device = "HP LaserJet MFP M139w"
+        if not device:
+            output().errmsg("CVE", "No device information available.")
+            return
+
+        # 1) print the product line
+        output().message(f"Searching CVEs for: {device}")
+
+        # 2) URL‐encode: replace spaces with '+'
+        keyword = device.replace(" ", "+")
+
+        # 3) CIRCL public API
+        url = f"https://cve.circl.lu/api/search/{keyword}"
+
+        # 4) fetch & handle 404 as “no results”
+        try:
+            resp = requests.get(url, timeout=10)
+            if resp.status_code == 404:
+                items = []
+            else:
+                resp.raise_for_status()
+                items = resp.json() or []
+        except HTTPError as e:
+            output().errmsg("CVE", f"Failed to fetch CVEs: {e}")
+            return
+        except Exception as e:
+            output().errmsg("CVE", f"Failed to fetch CVEs: {e}")
+            return
+
+        if not items:
+            output().info(f"No CVEs found for {device}")
+            return
+
+        # 5) build table rows
+        rows = []
+        for idx, it in enumerate(items, start=1):
+            cve_id = it.get("id", "UNKNOWN")
+            link   = f"https://nvd.nist.gov/vuln/detail/{cve_id}"
+            rows.append((str(idx), device, cve_id, link))
+
+        headers = ("ORD", "Product", "CVE-ID", "Link")
+        # compute column widths
+        col_widths = [
+            max(len(headers[i]), *(len(r[i]) for r in rows))
+            for i in range(len(headers))
+        ]
+
+        # 6) print table
+        print()
+        print("  ".join(headers[i].ljust(col_widths[i]) for i in range(len(headers))))
+        print("  ".join("-" * col_widths[i]        for i in range(len(headers))))
+        for r in rows:
+            print("  ".join(r[i].ljust(col_widths[i]) for i in range(len(headers))))
+        print()
+    def help_cve(self):
+        """Show help for the cve command."""
+        print()
+        output().header("cve")
+        output().message("  List known CVEs for the connected printer based on its Device: string.")
+        print()

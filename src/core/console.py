@@ -67,14 +67,11 @@ class DictList(npyscreen.MLTree):
                               ord('{'): self.h_collapse_all,
                               ord('}'): self.h_expand_all})
 
-
 class Dict(npyscreen.BoxTitle):
     _contained_widget = DictList
 
-
 class Perms(npyscreen.BoxTitle):
     _contained_widget = npyscreen.MultiSelect
-
 
 class ValueEdit(npyscreen.MultiLineEdit):
 
@@ -82,16 +79,13 @@ class ValueEdit(npyscreen.MultiLineEdit):
         self.color = 'DANGER'
         print('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
 
-
 class Value(npyscreen.BoxTitle):
     _contained_widget = ValueEdit
-
 
 class TreeDataDump(npyscreen.TreeData):
 
     def get_content_for_display(self):
         return str(self.content['key'] + ': ' + self.content['value'])
-
 
 class Browser(npyscreen.NPSAppManaged):
 

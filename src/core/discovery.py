@@ -1,144 +1,246 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# python standard library
 import socket
-
-# local pret classes
+import subprocess
+import ipaddress
+import shutil
 from utils.helper import output, conv
+from core.osdetect import get_os
 
-# third party modules
-try:
-    from pysnmp.carrier.asyncore.dispatch import AsyncoreDispatcher
-    from pysnmp.carrier.asyncore.dgram import udp
-    from pysnmp.proto import api
-    from pyasn1.codec.ber import encoder, decoder
-    snmp_modules_found = True
-except ImportError:
-    snmp_modules_found = False
+# SNMP OIDs we’ll query
+OID_HRDEV_TYPE            = '1.3.6.1.2.1.25.3.2.1.2.1'
+OID_HRDEV_DESCR           = '1.3.6.1.2.1.25.3.2.1.3.1'
+OID_SYS_UPTIME            = '1.3.6.1.2.1.1.3.0'
+OID_PR_STATUS             = '1.3.6.1.2.1.43.16.5.1.2.1.1'
+OID_PR_INTERPRETER        = '1.3.6.1.2.1.43.16.5.1.2.1.2'
 
-########################################################
-### Most of this code comes from the PySNMP examples ###
-### and needs to be refactored into an 'snmp' class! ###
-########################################################
+# HOST-RESOURCES-MIB Printer Table
+OID_HRPRINTER_STATUS      = '1.3.6.1.2.1.25.3.5.1.1.1'
+OID_HRPRINTER_ERROR_STATE = '1.3.6.1.2.1.25.3.5.1.2.1'
+OID_HRPRINTER_JOB_COUNT   = '1.3.6.1.2.1.25.3.5.1.3.1'
 
-start = conv().now()  # get current time
-timeout = 0.5         # be quick and dirty
-maxhost = 999         # max printers to list
-results = {}          # dict of found printers
+# Printer-MIB Supplies & Alerts
+OID_PRT_MARKER_SUPPLY_DESC  = '1.3.6.1.2.1.43.11.1.1.6.1.1'
+OID_PRT_MARKER_SUPPLY_TYPE  = '1.3.6.1.2.1.43.11.1.1.2.1.1'
+OID_PRT_MARKER_SUPPLY_LEVEL = '1.3.6.1.2.1.43.11.1.1.9.1.1'
+OID_PRT_INPUT_MEDIA_TYPE    = '1.3.6.1.2.1.43.11.1.1.2.1.1'
+OID_PRT_INPUT_STATUS        = '1.3.6.1.2.1.43.11.1.1.8.1.1'
+OID_PRT_ALERTS_VALUE        = '1.3.6.1.2.1.43.18.1.1.8.1.1'
 
-try:
-    # use snmp v1 because it is most widely supported among printers
-    pmod = api.protoModules[api.protoVersion1]
-    pdu_send = pmod.GetRequestPDU()  # build protocol data unit (pdu)
-except:
-    pass
-
-# cause timeout interrupt
-
-
-class stop_waiting(Exception):
-    pass
-
-# check for timeout
+# ENTITY-MIB Physical Entities
+OID_ENT_PHYS_DESCR         = '1.3.6.1.2.1.47.1.1.1.1.2'
+OID_ENT_PHYS_NAME          = '1.3.6.1.2.1.47.1.1.1.1.7'
+OID_ENT_PHYS_FIRMWARE_REV  = '1.3.6.1.2.1.47.1.1.1.1.10'
+OID_ENT_PHYS_SERIAL        = '1.3.6.1.2.1.47.1.1.1.1.11'
+OID_ENT_PHYS_MODEL_NAME    = '1.3.6.1.2.1.47.1.1.1.1.13'
 
 
-def timer(date):
-    if date - start > timeout:
-        raise stop_waiting()
-
-# noinspection PyUnusedLocal,PyUnusedLocal
-
-
-def recv(dispatcher, domain, address, msg):
-    while msg:
-        msg_recv, msg = decoder.decode(msg, asn1Spec=pmod.Message())
-        pdu_recv = pmod.apiMessage.getPDU(msg_recv)
-        # match response to request as we're broadcasting
-        if pmod.apiPDU.getRequestID(pdu_send) == pmod.apiPDU.getRequestID(pdu_recv):
-            ipaddr = address[0]
-            device = '?'
-            uptime = '?'
-            status = '?'
-            prstat = 0
-            # retrieve device properties
-            for oid, val in pmod.apiPDU.getVarBinds(pdu_recv):
-                oid, val = oid.prettyPrint(), val.prettyPrint()
-                # skip non-printer devices
-                if oid == '1.3.6.1.2.1.25.3.2.1.2.1' and val != '1.3.6.1.2.1.25.3.1.5':
-                    return
-                # harvest device information
-                if oid == '1.3.6.1.2.1.25.3.2.1.3.1':
-                    device = val
-                if oid == '1.3.6.1.2.1.1.3.0':
-                    uptime = conv().elapsed(val, 100, True)
-                if oid == '1.3.6.1.2.1.43.16.5.1.2.1.1':
-                    status = val
-                if oid == '1.3.6.1.2.1.25.3.2.1.5.1' and val:
-                    prstat = val[:1]
-            dispatcher.jobFinished(1)
-            results[ipaddr] = [device, uptime, status, prstat]
+def parse_selection(sel, max_index):
+    sel = sel.strip().lower()
+    if sel in ('all', 'a', ''):
+        return list(range(1, max_index + 1))
+    chosen = set()
+    for part in sel.split(','):
+        if '-' in part:
+            start, end = part.split('-', 1)
+            chosen.update(range(int(start), int(end) + 1))
+        else:
+            chosen.add(int(part))
+    return sorted(i for i in chosen if 1 <= i <= max_index)
 
 
-class discovery():
-    # discover local network printers
-    def __init__(self, usage=False):
-        # abort if pysnmp is not installed
-        if not snmp_modules_found:
-            output().warning("Please install the 'pysnmp' module for SNMP support.")
-            if usage:
-                print("")
-            return
-        # skip when running 'discover' in interactive mode
-        if usage:
-            print("No target given, discovering local printers")
-        oid = (('1.3.6.1.2.1.25.3.2.1.2.1',    None),  # HOST-RESOURCES-MIB → hrDeviceType
-               # HOST-RESOURCES-MIB → hrDeviceDescr
-               ('1.3.6.1.2.1.25.3.2.1.3.1',    None),
-               # HOST-RESOURCES-MIB → hrDeviceStatus
-               ('1.3.6.1.2.1.25.3.2.1.5.1',    None),
-               # Printer-MIB        → Printer status
-               ('1.3.6.1.2.1.43.16.5.1.2.1.1', None),
-               ('1.3.6.1.2.1.1.3.0',           None))  # SNMPv2-MIBv        → sysUpTime
+def _get_local_networks(os_type):
+    """
+    Return a list of IPv4 /24 networks on UP, non-loopback,
+    non-link-local interfaces for Linux, WSL and Windows.
+    """
+    raw = []
+
+    # Linux / WSL
+    if os_type in ('linux', 'wsl'):
         try:
-            # build protocol data unit (pdu)
-            pmod.apiPDU.setDefaults(pdu_send)
-            pmod.apiPDU.setVarBinds(pdu_send, oid)
-            # build message
-            msg_send = pmod.Message()
-            pmod.apiMessage.setDefaults(msg_send)
-            pmod.apiMessage.setCommunity(msg_send, 'public')
-            pmod.apiMessage.setPDU(msg_send, pdu_send)
-            # ...
-            dispatcher = AsyncoreDispatcher()
-            dispatcher.registerRecvCbFun(recv)
-            dispatcher.registerTimerCbFun(timer)
-            # use ipv4 udp broadcast
-            udpSocketTransport = udp.UdpSocketTransport().openClientMode().enableBroadcast()
-            dispatcher.registerTransport(udp.domainName, udpSocketTransport)
-            # pass message to dispatcher
-            target = ('255.255.255.255', 161)
-            dispatcher.sendMessage(encoder.encode(
-                msg_send), udp.domainName, target)
-            # wait for timeout or max hosts
-            dispatcher.jobStarted(1, maxhost)
-            # dispatcher will finish as all jobs counter reaches zero
-            try:
-                dispatcher.runDispatcher()
-            except stop_waiting:
-                dispatcher.closeDispatcher()
-            # list found network printers
-            if results:
-                print("")
-                output().discover(('address', ('device', 'uptime', 'status', None)))
-                output().hline(79)
-                for printer in sorted(list(results.items()), key=lambda item: socket.inet_aton(item[0])):
-                    output().discover(printer)
-            else:
-                output().info("No printers found via SNMP broadcast")
-            if usage or results:
-                print("")
+            out = subprocess.check_output(
+                ['ip', '-o', '-f', 'inet', 'addr', 'show', 'up'],
+                text=True
+            )
+            for line in out.splitlines():
+                parts = line.split()
+                iface = parts[1].rstrip(':')
+                cidr  = next((p for p in parts if '/' in p), None)
+                if not cidr or iface == 'lo':
+                    continue
+                raw.append(ipaddress.ip_network(cidr, strict=False))
         except Exception as e:
-            output().errmsg("SNMP Error", e)
-            if usage:
-                print("")
+            output().warning(f"Could not list Linux interfaces: {e}")
+
+    # Windows / WSL
+    if os_type in ('windows', 'wsl'):
+        pwsh = shutil.which('powershell.exe') or shutil.which('pwsh.exe')
+        if pwsh:
+            try:
+                cmd = [
+                    pwsh, '-NoProfile', '-Command',
+                    "Get-NetIPAddress -AddressFamily IPv4 "
+                    "| Where { $_.IPAddress -ne '127.0.0.1' } "
+                    "| Select -ExpandProperty IPAddress"
+                ]
+                out = subprocess.check_output(cmd, text=True)
+                for ip in out.splitlines():
+                    try:
+                        raw.append(ipaddress.ip_network(f"{ip}/24", strict=False))
+                    except:
+                        pass
+            except Exception as e:
+                output().warning(f"Could not list Windows interfaces: {e}")
+        else:
+            output().warning("PowerShell not found; skipping Windows IPs.")
+
+    # dedupe and filter out loopback/link-local
+    uniq = []
+    for net in raw:
+        na = net.network_address
+        if na.is_loopback or na.is_link_local:
+            continue
+        if net not in uniq:
+            uniq.append(net)
+    return uniq
+
+
+def _snmp_get(ip, oid):
+    """
+    Run snmpget and return the value or None.
+    """
+    cmd = shutil.which('snmpget')
+    if not cmd:
+        return None
+    try:
+        return subprocess.check_output(
+            [cmd, '-v1', '-c', 'public', '-Oqv', '-t', '1', '-r', '1', f'{ip}:161', oid],
+            stderr=subprocess.DEVNULL,
+            text=True
+        ).strip()
+    except subprocess.CalledProcessError:
+        return None
+
+
+class discovery:
+    def __init__(self, usage=False):
+        os_type = get_os()
+        print(f"Detected OS: {os_type}")
+        if os_type == 'unsupported':
+            output().warning("This OS is not supported for SNMP-based discovery.")
+            return
+
+        if usage:
+            print("No target given — discovering printers on local network.")
+            print("Press CTRL+C at any time to cancel.\n")
+
+        if not shutil.which('snmpget'):
+            output().warning("Please install 'snmpget' (e.g. apt install snmp).")
+            return
+
+        networks = _get_local_networks(os_type)
+        if not networks:
+            output().warning("No eligible networks found to scan.")
+            return
+
+        print(f"Found {len(networks)} network(s) to consider:")
+        for idx, net in enumerate(networks, 1):
+            hosts = net.num_addresses - 2 if net.num_addresses > 2 else net.num_addresses
+            print(f"  [{idx}] {net} ({hosts} hosts)")
+
+        sel = input("\nSelect networks to scan [e.g. 1,1-3,all]: ")
+        chosen = parse_selection(sel, len(networks))
+        if not chosen:
+            print("Nothing selected, exiting.")
+            return
+
+        verb = input("Verbose probing? [y/N]: ").strip().lower()
+        verbose = verb in ('y', 'yes')
+
+        results = {}
+        total = 0
+        try:
+            for i in chosen:
+                net = networks[i - 1]
+                print(f"\nScanning {net} (Ctrl+C to cancel)...")
+                for host in net.hosts():
+                    ip = str(host)
+                    total += 1
+
+                    typ = _snmp_get(ip, OID_HRDEV_TYPE)
+                    if typ != '1.3.6.1.2.1.25.3.1.5':
+                        if verbose:
+                            print(f"  {ip}: not a printer ({typ})")
+                        continue
+
+                    # collect all SNMP fields
+                    descr       = _snmp_get(ip, OID_HRDEV_DESCR) or '?'
+                    upv         = _snmp_get(ip, OID_SYS_UPTIME)
+                    uptime      = conv().elapsed(int(upv), 100, True) if upv and upv.isdigit() else '?'
+                    pr_status   = _snmp_get(ip, OID_PR_STATUS) or '?'
+                    interp      = _snmp_get(ip, OID_PR_INTERPRETER) or '?'
+                    hp_status   = _snmp_get(ip, OID_HRPRINTER_STATUS) or '?'
+                    err_state   = _snmp_get(ip, OID_HRPRINTER_ERROR_STATE) or '?'
+                    job_count   = _snmp_get(ip, OID_HRPRINTER_JOB_COUNT) or '?'
+                    m_desc      = _snmp_get(ip, OID_PRT_MARKER_SUPPLY_DESC) or '?'
+                    m_type      = _snmp_get(ip, OID_PRT_MARKER_SUPPLY_TYPE) or '?'
+                    m_level     = _snmp_get(ip, OID_PRT_MARKER_SUPPLY_LEVEL) or '?'
+                    in_media    = _snmp_get(ip, OID_PRT_INPUT_MEDIA_TYPE) or '?'
+                    in_status   = _snmp_get(ip, OID_PRT_INPUT_STATUS) or '?'
+                    alerts      = _snmp_get(ip, OID_PRT_ALERTS_VALUE) or '?'
+                    phys_descr  = _snmp_get(ip, OID_ENT_PHYS_DESCR) or '?'
+                    phys_name   = _snmp_get(ip, OID_ENT_PHYS_NAME) or '?'
+                    phys_fw      = _snmp_get(ip, OID_ENT_PHYS_FIRMWARE_REV) or '?'
+                    phys_serial = _snmp_get(ip, OID_ENT_PHYS_SERIAL) or '?'
+                    phys_model  = _snmp_get(ip, OID_ENT_PHYS_MODEL_NAME) or '?'
+
+                    results[ip] = [
+                        descr, uptime, pr_status, interp,
+                        hp_status, err_state, job_count,
+                        m_desc, m_type, m_level,
+                        in_media, in_status, alerts,
+                        phys_name, phys_model, phys_serial, phys_fw
+                    ]
+
+                    if verbose:
+                        print(f"  {ip}:")
+                        print(f"    Description: {descr}")
+                        print(f"    Uptime:      {uptime}")
+                        print(f"    PJL Status:  {pr_status}")
+                        print(f"    Interpreter: {interp}")
+                        print(f"    hrStatus:    {hp_status}")
+                        print(f"    Errors:      {err_state}")
+                        print(f"    Jobs:        {job_count}")
+                        print(f"    Supplies:    {m_desc} / {m_type} @ {m_level}")
+                        print(f"    Input:       {in_media} / {in_status}")
+                        print(f"    Alerts:      {alerts}")
+                        print(f"    Entity:      {phys_name} ({phys_model})")
+                        print(f"    Serial:      {phys_serial}")
+                        print(f"    FW Rev:      {phys_fw}")
+                    else:
+                        print(f"  {ip}: Printer → {descr}, uptime={uptime}, status={pr_status}")
+
+        except KeyboardInterrupt:
+            print()
+            output().warning("[!] Discovery interrupted by user. Exiting...\n")
+
+        print(f"\nProbed {total} hosts in total.\n")
+        if results:
+            print("Discovered printers:")
+            hdr = (
+                'address',
+                ('descr','uptime','pjl_status','interp','hr_status','errors',
+                 'jobs','sup_desc','sup_type','sup_lvl',
+                 'in_media','in_status','alerts',
+                 'ent_name','ent_model','ent_serial','ent_fw')
+            )
+            output().discover(hdr)
+            output().hline(79)
+            for entry in sorted(results.items(), key=lambda i: socket.inet_aton(i[0])):
+                output().discover(entry)
+            print()
+        else:
+            output().info("No printers found via SNMP scan")
+            print()

@@ -112,7 +112,7 @@ class pjl_v2(printer):
         if not arg:
             output().errmsg("Usage: mkdir <directory>")
             return
-        self.cmd("@PJL FSMKDIR NAME=" + c.QUOTE + arg + c.QUOTE)
+        self.cmd("@PJL FSMKDIR NAME=\"" + arg + "\"")
 
     def do_find(self, arg):
         "Recursively list all files"
@@ -137,7 +137,7 @@ class pjl_v2(printer):
                 data = f.read()
             
             # Upload file using PJL FSUPLOAD
-            self.cmd(f"@PJL FSUPLOAD NAME={c.QUOTE}{remote_path}{c.QUOTE} OFFSET=0 LENGTH={len(data)}")
+            self.cmd(f"@PJL FSUPLOAD NAME=\"{remote_path}\" OFFSET=0 LENGTH={len(data)}")
             self.send(data)
             output().info(f"Uploaded {local_file} to {remote_path}")
         except Exception as e:
@@ -155,7 +155,7 @@ class pjl_v2(printer):
         
         try:
             # Download file using PJL FSDOWNLOAD
-            data = self.cmd(f"@PJL FSDOWNLOAD NAME={c.QUOTE}{remote_file}{c.QUOTE}", binary=True)
+            data = self.cmd(f"@PJL FSDOWNLOAD NAME=\"{remote_file}\"", binary=True)
             
             with open(local_path, 'wb') as f:
                 f.write(data)
@@ -169,7 +169,7 @@ class pjl_v2(printer):
         if not arg:
             output().errmsg("Usage: delete <file>")
             return
-        self.cmd("@PJL FSDELETE NAME=" + c.QUOTE + arg + c.QUOTE)
+        self.cmd("@PJL FSDELETE NAME=\"" + arg + "\"")
 
     def do_copy(self, arg):
         "Copy remote file: copy <source> <destination>"
@@ -185,8 +185,8 @@ class pjl_v2(printer):
         source, dest = parts
         # Download source and upload as destination
         try:
-            data = self.cmd(f"@PJL FSDOWNLOAD NAME={c.QUOTE}{source}{c.QUOTE}", binary=True)
-            self.cmd(f"@PJL FSUPLOAD NAME={c.QUOTE}{dest}{c.QUOTE} OFFSET=0 LENGTH={len(data)}")
+            data = self.cmd(f"@PJL FSDOWNLOAD NAME=\"{source}\"", binary=True)
+            self.cmd(f"@PJL FSUPLOAD NAME=\"{dest}\" OFFSET=0 LENGTH={len(data)}")
             self.send(data)
             output().info(f"Copied {source} to {dest}")
         except Exception as e:
@@ -220,7 +220,7 @@ class pjl_v2(printer):
         
         # Create empty file if it doesn't exist
         try:
-            self.cmd(f"@PJL FSUPLOAD NAME={c.QUOTE}{arg}{c.QUOTE} OFFSET=0 LENGTH=0")
+            self.cmd(f"@PJL FSUPLOAD NAME=\"{arg}\" OFFSET=0 LENGTH=0")
             output().info(f"Touched {arg}")
         except Exception as e:
             output().errmsg(f"Touch failed: {e}")
@@ -239,7 +239,7 @@ class pjl_v2(printer):
         perms, file_path = parts
         # PJL doesn't have direct chmod, but we can try to set attributes
         try:
-            self.cmd(f"@PJL FSSETATTR NAME={c.QUOTE}{file_path}{c.QUOTE} ATTR={perms}")
+            self.cmd(f"@PJL FSSETATTR NAME=\"{file_path}\" ATTR={perms}")
             output().info(f"Changed permissions of {file_path} to {perms}")
         except Exception as e:
             output().errmsg(f"Chmod failed: {e}")
@@ -252,13 +252,20 @@ class pjl_v2(printer):
         
         try:
             # Try to access file to test permissions
-            result = self.cmd(f"@PJL FSQUERY NAME={c.QUOTE}{arg}{c.QUOTE}")
+            result = self.cmd(f"@PJL FSQUERY NAME=\"{arg}\"")
             if result:
                 output().info(f"File {arg} is accessible")
             else:
                 output().errmsg(f"File {arg} is not accessible")
         except Exception as e:
             output().errmsg(f"Permission test failed: {e}")
+
+    def do_rmdir(self, arg):
+        "Remove remote directory: rmdir <directory>"
+        if not arg:
+            output().errmsg("Usage: rmdir <directory>")
+            return
+        self.cmd("@PJL FSDELETE NAME=\"" + arg + "\"")
 
     def do_mirror(self, arg):
         "Mirror remote filesystem locally"
@@ -386,7 +393,7 @@ class pjl_v2(printer):
         else:
             message = arg
         
-        self.cmd("@PJL DISPLAY " + c.QUOTE + message + c.QUOTE)
+        self.cmd("@PJL DISPLAY \"" + message + "\"")
 
     def do_offline(self, arg):
         "Take printer offline and display message: offline <message>"
@@ -399,7 +406,7 @@ class pjl_v2(printer):
         else:
             message = arg
         
-        self.cmd("@PJL OFFLINE " + c.QUOTE + message + c.QUOTE)
+        self.cmd("@PJL OFFLINE \"" + message + "\"")
 
     def do_restart(self, arg):
         "Restart printer"
@@ -812,7 +819,7 @@ class pjl_v2(printer):
             path = "."
         
         try:
-            result = self.cmd("@PJL FSDIRLIST NAME=" + c.QUOTE + path + c.QUOTE)
+            result = self.cmd("@PJL FSDIRLIST NAME=\"" + path + "\"")
             if result:
                 return result
         except Exception as e:
@@ -826,7 +833,7 @@ class pjl_v2(printer):
         
         try:
             if operation == "find":
-                result = self.cmd("@PJL FSDIRLIST NAME=" + c.QUOTE + path + c.QUOTE)
+                result = self.cmd("@PJL FSDIRLIST NAME=\"" + path + "\"")
                 if result:
                     print(result)
             elif operation == "mirror":

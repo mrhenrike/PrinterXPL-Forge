@@ -1,2 +1,0 @@
-[console_scripts]
-pret = src.pret:main2

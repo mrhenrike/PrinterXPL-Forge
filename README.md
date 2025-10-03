@@ -45,11 +45,11 @@ For experimental, ‘driverless’ printing (see print command), ImageMagick and
 ### Usage
 
 ```
-usage: printer-reaper.py [-h] [-s] [-q] [-d] [-i file] [-o file] target {pjl,pjl2,auto}
+usage: printer-reaper.py [-h] [-s] [-q] [-d] [-i file] [-o file] target {pjl,auto}
 
 positional arguments:
   target                printer device or hostname
-  {pjl,pjl2,auto}       PJL version to use (PJL v1, PJL v2, or auto-detect)
+  {pjl,auto}            PJL language to use (PJL or auto-detect)
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -66,8 +66,7 @@ optional arguments:
 # Automatic PJL detection (recommended)
 $ python3 printer-reaper.py laserjet.lan auto
 
-# Manual PJL version specification  
-$ python3 printer-reaper.py laserjet.lan pjl2
+# Manual PJL specification  
 $ python3 printer-reaper.py laserjet.lan pjl
 ```
 

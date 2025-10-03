@@ -81,6 +81,15 @@ class pjl_v2(printer):
         self.status = not self.status
         print("Status messages enabled" if self.status else "Status messages disabled")
 
+    def help_status(self):
+        """Show help for status command"""
+        print()
+        print("status - Toggle PJL status messages")
+        print("Usage: status")
+        print("Enables or disables detailed status messages from the printer.")
+        print("Useful for debugging and monitoring printer responses.")
+        print()
+
     def showstatus(self, stat):
         codes = {}
         msgs = {}
@@ -107,12 +116,29 @@ class pjl_v2(printer):
         if lst:
             print(lst)
 
+    def help_ls(self):
+        """Show help for ls command"""
+        print()
+        print("ls - List remote directory contents")
+        print("Usage: ls [directory]")
+        print("Lists files and directories on the remote printer.")
+        print("If no directory is specified, lists current directory.")
+        print()
+
     def do_mkdir(self, arg):
         "Create remote directory"
         if not arg:
             output().errmsg("Usage: mkdir <directory>")
             return
         self.cmd("@PJL FSMKDIR NAME=\"" + arg + "\"")
+
+    def help_mkdir(self):
+        """Show help for mkdir command"""
+        print()
+        print("mkdir - Create remote directory")
+        print("Usage: mkdir <directory>")
+        print("Creates a new directory on the remote printer.")
+        print()
 
     def do_find(self, arg):
         "Recursively list all files"
@@ -303,11 +329,28 @@ class pjl_v2(printer):
         if pagecount:
             print(f"\nPage Count: {pagecount.strip()}")
 
+    def help_id(self):
+        """Show help for id command"""
+        print()
+        print("id - Show comprehensive printer identification and system information")
+        print("Usage: id")
+        print("Displays device ID, firmware version, product information, and page count.")
+        print("This is the main command for getting printer identification details.")
+        print()
+
     def do_variables(self, arg):
         "Show environment variables"
         resp = self.cmd("@PJL INFO VARIABLES")
         if resp:
             print(resp)
+
+    def help_variables(self):
+        """Show help for variables command"""
+        print()
+        print("variables - Show environment variables")
+        print("Usage: variables")
+        print("Displays all environment variables configured on the printer.")
+        print()
 
     def do_printenv(self, arg):
         "Show specific environment variable"
@@ -322,6 +365,15 @@ class pjl_v2(printer):
             for line in lines:
                 if arg.upper() in line.upper():
                     print(line)
+
+    def help_printenv(self):
+        """Show help for printenv command"""
+        print()
+        print("printenv - Show specific environment variable")
+        print("Usage: printenv <variable>")
+        print("Displays the value of a specific environment variable.")
+        print("Example: printenv PAGECOUNT")
+        print()
 
     # --------------------------------------------------------------------
     # ⚙️ CONTROLE E CONFIGURAÇÃO (8 comandos)
@@ -339,6 +391,15 @@ class pjl_v2(printer):
         
         var, value = arg.split("=", 1)
         self.cmd("@PJL SET " + var.upper() + "=" + value)
+
+    def help_set(self):
+        """Show help for set command"""
+        print()
+        print("set - Set environment variable")
+        print("Usage: set <variable>=<value>")
+        print("Sets an environment variable on the printer.")
+        print("Example: set TESTVAR=testvalue")
+        print()
 
     def do_display(self, arg):
         "Set printer's display message: display <message>"
@@ -657,6 +718,15 @@ class pjl_v2(printer):
                 output().info(f"Page count set to {new_count}")
             except ValueError:
                 output().errmsg("Invalid page count value")
+
+    def help_pagecount(self):
+        """Show help for pagecount command"""
+        print()
+        print("pagecount - Manipulate printer's page counter")
+        print("Usage: pagecount [number]")
+        print("Shows current page count or sets it to a specific number.")
+        print("Example: pagecount 1000")
+        print()
 
     # --------------------------------------------------------------------
     # HELP SYSTEM

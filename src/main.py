@@ -124,7 +124,7 @@ def intro(quiet: bool) -> None:
         "Author : Andre Henrique",
         "Contact: X / LinkedIn @mrhenrike",
         "",
-        "「 feast on paper, harvest vulnerabilities 」",
+        "feast on paper, harvest vulnerabilities",
         "",
         "(ASCII art by ChatGPT)",
     ]

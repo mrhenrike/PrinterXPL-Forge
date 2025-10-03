@@ -13,6 +13,7 @@ import random
 import ntpath
 import posixpath
 import hashlib
+import socket
 import tempfile
 import subprocess
 import traceback
@@ -127,9 +128,18 @@ class printer(cmd.Cmd, object):
     def onecmd(self, line):
         try:
             return cmd.Cmd.onecmd(self, line)
+        except (ConnectionResetError, BrokenPipeError, OSError) as e:
+            output().errmsg("Connection lost - printer may have disconnected")
+            return False
+        except socket.timeout as e:
+            output().errmsg("Command timed out - printer may be busy")
+            return False
         except Exception as e:
-            traceback.print_exc()
-            output().errmsg("Program Error", e)
+            # Only show traceback in debug mode
+            if hasattr(self, 'debug') and self.debug:
+                traceback.print_exc()
+            output().errmsg(f"Command failed: {str(e)}")
+            return False
 
     # ====================================================================
 

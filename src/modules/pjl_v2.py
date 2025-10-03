@@ -273,77 +273,35 @@ class pjl_v2(printer):
         self.fswalk(arg, "mirror")
 
     # --------------------------------------------------------------------
-    # ℹ️ INFORMAÇÕES DO SISTEMA (8 comandos)
+    # ℹ️ INFORMAÇÕES DO SISTEMA (3 comandos)
     # --------------------------------------------------------------------
 
     def do_id(self, *args):
-        "Show printer identification"
-        resp = self.cmd("@PJL INFO ID")
-        if resp:
-            print(resp)
-
-    def do_version(self, *arg):
-        "Show firmware version/serial"
-        if not self.do_info("config", r".*(VERSION|FIRMWARE|SERIAL|MODEL).*"):
-            self.do_info("id")
-
-    def do_info(self, arg, item="", echo=True):
-        "Show PJL INFO <category>"
-        if arg in self.options_info or not echo:
-            resp = self.cmd("@PJL INFO " + arg.upper())
-            if resp:
-                print(resp)
-        else:
-            output().errmsg("Unknown info category. Use 'help info' for available categories.")
-
-    def do_product(self, arg):
-        "Show product info: model, serial, firmware, driver version, page counts"
-        print("Product Information:")
-        print("=" * 50)
+        "Show comprehensive printer identification and system information"
+        print("Printer Identification & System Information:")
+        print("=" * 60)
         
-        # Get basic info
+        # Get basic ID
         id_info = self.cmd("@PJL INFO ID")
         if id_info:
             print(f"Device ID: {id_info.strip()}")
         
-        # Get configuration info
-        config_info = self.cmd("@PJL INFO CONFIG")
-        if config_info:
-            print("Configuration:")
-            print(config_info)
+        # Get version/firmware info
+        version_info = self.cmd("@PJL INFO CONFIG")
+        if version_info:
+            print("\nFirmware/Version Information:")
+            print(version_info)
+        
+        # Get product details
+        product_info = self.cmd("@PJL INFO PRODUCT")
+        if product_info:
+            print("\nProduct Information:")
+            print(product_info)
         
         # Get page count
         pagecount = self.cmd("@PJL INFO PAGECOUNT")
         if pagecount:
-            print(f"Page Count: {pagecount.strip()}")
-
-    def do_network(self, arg):
-        "Show network information"
-        print("Network Information:")
-        print("=" * 50)
-        
-        # Get network info
-        net_info = self.cmd("@PJL INFO NETWORK")
-        if net_info:
-            print(net_info)
-        
-        # Get IP configuration
-        ip_info = self.cmd("@PJL INFO IP")
-        if ip_info:
-            print("IP Configuration:")
-            print(ip_info)
-
-    def do_wifi(self, *arg):
-        "Show Wi-Fi information"
-        print("Wi-Fi Information:")
-        print("=" * 50)
-        
-        # Get WiFi info
-        wifi_info = self.cmd("@PJL INFO WIFI")
-        if wifi_info:
-            print(wifi_info)
-        else:
-            output().info("Wi-Fi information not available")
+            print(f"\nPage Count: {pagecount.strip()}")
 
     def do_variables(self, arg):
         "Show environment variables"
@@ -608,8 +566,33 @@ class pjl_v2(printer):
             output().info("Format cancelled")
 
     # --------------------------------------------------------------------
-    # 🌐 REDE E CONECTIVIDADE (3 comandos)
+    # 🌐 REDE E CONECTIVIDADE (5 comandos)
     # --------------------------------------------------------------------
+
+    def do_network(self, arg):
+        "Show comprehensive network information including WiFi"
+        print("Network Information:")
+        print("=" * 50)
+        
+        # Get network info
+        net_info = self.cmd("@PJL INFO NETWORK")
+        if net_info:
+            print("Network Configuration:")
+            print(net_info)
+        
+        # Get IP configuration
+        ip_info = self.cmd("@PJL INFO IP")
+        if ip_info:
+            print("\nIP Configuration:")
+            print(ip_info)
+        
+        # Get WiFi info
+        wifi_info = self.cmd("@PJL INFO WIFI")
+        if wifi_info:
+            print("\nWi-Fi Information:")
+            print(wifi_info)
+        else:
+            output().info("Wi-Fi information not available")
 
     def do_direct(self, *arg):
         "Show direct-print configuration"
@@ -703,12 +686,7 @@ class pjl_v2(printer):
         print()
         print("System Information Commands:")
         print("=" * 50)
-        print("id          - Show printer identification")
-        print("version     - Show firmware version")
-        print("info        - Show detailed information")
-        print("product     - Show product information")
-        print("network     - Show network information")
-        print("wifi        - Show Wi-Fi information")
+        print("id          - Show comprehensive printer identification and system information")
         print("variables   - Show environment variables")
         print("printenv    - Show specific variable")
         print()
@@ -755,6 +733,7 @@ class pjl_v2(printer):
         print()
         print("Network Commands:")
         print("=" * 50)
+        print("network     - Show comprehensive network information including WiFi")
         print("direct      - Show direct print config")
         print("execute     - Execute arbitrary PJL command")
         print("load        - Load commands from file")

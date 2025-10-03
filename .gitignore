@@ -25,6 +25,16 @@ MANIFEST
 old-files-backup/
 old-sources/
 
+# Build and distribution
+dist/
+build/
+*.egg-info/
+
+# Fonts and assets
+fonts/
+mibs/
+testpages/
+
 # IDE
 .vscode/
 .idea/
@@ -50,3 +60,5 @@ logs/
 *.temp
 test_*.py
 *_test.py
+passwd
+simple_test.txt

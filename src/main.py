@@ -19,12 +19,13 @@ from modules.pjl import pjl
 from modules.postscript import postscript
 from modules.pcl import pcl
 from utils.helper import output
+from version import get_version_string
 
 # --------------------------------------------------------------------------- #
 # Metadata
 # --------------------------------------------------------------------------- #
 APP_NAME: str = "PrinterReaper"
-VERSION: str = "1.0.0"
+VERSION: str = get_version_string()
 
 # --------------------------------------------------------------------------- #
 # Argument parsing

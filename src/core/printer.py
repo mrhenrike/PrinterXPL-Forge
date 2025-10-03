@@ -1120,8 +1120,36 @@ class printer(cmd.Cmd, object):
     # --------------------------------------------------------------------
     def do_cve(self, arg):
         """List known CVEs for the connected printer based on its Device: string."""
+        try:
+            from core.cve_smart import CVESmart
+            
+            # Initialize smart CVE system
+            cve_system = CVESmart()
+            
+            # Get device information
+            device_info = cve_system.get_device_info_from_printer(self)
+            
+            if not device_info:
+                output().errmsg("CVE", "No device information available.")
+                return
+            
+            # Search for CVEs with hierarchical approach
+            cves = cve_system.search_hierarchical(device_info)
+            
+            # Format and display results with hierarchical search
+            cve_system.format_smart_results(cves, device_info)
+            
+        except ImportError:
+            # Fallback to original CVE system
+            self._do_cve_fallback(arg)
+        except Exception as e:
+            output().errmsg("CVE", f"Smart CVE search failed: {e}")
+            # Try fallback
+            self._do_cve_fallback(arg)
+    
+    def _do_cve_fallback(self, arg):
+        """Fallback CVE search using original method"""
         device = getattr(self, "device_info", None)
-        device = "HP LaserJet MFP M139w"
         if not device:
             output().errmsg("CVE", "No device information available.")
             return
@@ -1135,7 +1163,7 @@ class printer(cmd.Cmd, object):
         # 3) CIRCL public API
         url = f"https://cve.circl.lu/api/search/{keyword}"
 
-        # 4) fetch & handle 404 as “no results”
+        # 4) fetch & handle 404 as "no results"
         try:
             resp = requests.get(url, timeout=10)
             if resp.status_code == 404:

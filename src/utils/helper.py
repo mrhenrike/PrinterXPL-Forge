@@ -185,7 +185,7 @@ class output():
             info = Style.RESET_ALL + Style.DIM + \
                 " (" + info.strip('<>') + ")" + Style.RESET_ALL
         if msg:
-            print(Back.RED + msg + info)
+            print(Fore.RED + Style.BRIGHT + msg + info + Style.RESET_ALL)
 
     # show printer and status
     def discover(self, xxx_todo_changeme):

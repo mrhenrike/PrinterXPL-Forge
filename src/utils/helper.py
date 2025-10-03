@@ -126,7 +126,7 @@ class output():
     # show banner
     def intro(self, quiet):
         if not quiet:
-            print(Style.BRIGHT + Fore.CYAN + "VOID-PRINT (PRET-Enhanced base)" + Style.RESET_ALL)
+            print(Style.BRIGHT + Fore.CYAN + "PrinterReaper - Advanced Printer Penetration Testing" + Style.RESET_ALL)
             print(Style.DIM + "Printer Reaper - a tool to discover, fuzz and exploit printers" + Style.RESET_ALL)
     
     def header(self, msg, eol=None):
@@ -180,7 +180,7 @@ class output():
     def errmsg(self, msg, info=""):
         info = str(info).strip()
         if info:  # monkeypatch to make python error message less ugly
-            info = item(re.findall('Errno -?\d+\] (.*)', info),
+            info = item(re.findall(r'Errno -?\d+\] (.*)', info),
                         '') or info.splitlines()[-1]
             info = Style.RESET_ALL + Style.DIM + \
                 " (" + info.strip('<>') + ")" + Style.RESET_ALL
@@ -631,9 +631,9 @@ class const():  # define constants
     EOF = EOL + '\x0c\x04'  # potential end of file chars
     DELIMITER = "DELIMITER"  # delimiter marking end of response
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    PS_CATCH = '%%\[ (.*)\]%%'
-    PS_ERROR = '%%\[ Error: (.*)\]%%'
-    PS_FLUSH = '%%\[ Flushing: (.*)\]%%'
+    PS_CATCH = r'%%\[ (.*)\]%%'
+    PS_ERROR = r'%%\[ Error: (.*)\]%%'
+    PS_FLUSH = r'%%\[ Flushing: (.*)\]%%'
     PS_PROMPT = '>'  # TBD: could be derived from PS command 'prompt'
     PS_HEADER = '@PJL ENTER LANGUAGE = POSTSCRIPT\n%!\n'
     PS_GLOBAL = 'true 0 startjob pop\n'  # 'serverdict begin 0 exitserver'

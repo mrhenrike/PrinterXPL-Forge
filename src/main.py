@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-VOID-PRINT (Vulnerability & Offensive Intrusion Device for PRINTers)
+PrinterReaper - Advanced Printer Penetration Testing Toolkit
 Main entry point.
 """
 
@@ -14,6 +14,7 @@ from typing import Callable, Dict
 from core.osdetect import get_os
 from core.discovery import discovery
 from core.capabilities import capabilities
+from core.language_detector import LanguageDetector
 from modules.pjl import pjl
 from modules.postscript import postscript
 from modules.pcl import pcl
@@ -22,7 +23,7 @@ from utils.helper import output
 # --------------------------------------------------------------------------- #
 # Metadata
 # --------------------------------------------------------------------------- #
-APP_NAME: str = "VOID-PRINT"
+APP_NAME: str = "PrinterReaper"
 VERSION: str = "1.0.0"
 
 # --------------------------------------------------------------------------- #
@@ -32,13 +33,13 @@ def get_args() -> argparse.Namespace:
     """Return parsed CLI arguments."""
     parser = argparse.ArgumentParser(
         prog=APP_NAME.lower(),
-        description=f"{APP_NAME} (PRET-Enhanced fork)",
+        description=f"{APP_NAME} - Advanced Printer Penetration Testing Toolkit",
     )
     parser.add_argument("target", help="Printer IP address or hostname")
     parser.add_argument(
         "mode",
-        choices=["ps", "pjl", "pcl"],
-        help="Printer language to abuse (PostScript, PJL or PCL)",
+        choices=["ps", "pjl", "pcl", "auto"],
+        help="Printer language to abuse (PostScript, PJL, PCL, or auto-detect)",
     )
     parser.add_argument(
         "-s",
@@ -64,6 +65,11 @@ def get_args() -> argparse.Namespace:
         action="store_true",
     )
     parser.add_argument(
+        "--auto-detect",
+        help="Automatically detect supported printer languages",
+        action="store_true",
+    )
+    parser.add_argument(
         "--version",
         action="version",
         version=f"%(prog)s {VERSION}",
@@ -78,7 +84,7 @@ from itertools import zip_longest
 # Banner
 # --------------------------------------------------------------------------- #
 def intro(quiet: bool) -> None:
-    """Print the VOID-PRINT banner (ASCII art on the left, project info on the right)."""
+    """Print the PrinterReaper banner (ASCII art on the left, project info on the right)."""
     if quiet:
         return
 
@@ -154,8 +160,27 @@ def main() -> None:
     # Basic startup message
     if not args.quiet:
         print()
-        output().green(">> Starting VOID-PRINT (PRET-Enhanced base)")
+        output().green(f">> Starting {APP_NAME} (Advanced Printer Penetration Testing)")
         print()
+
+    # Auto-detect supported languages if requested or mode is 'auto'
+    if args.auto_detect or args.mode == 'auto':
+        detector = LanguageDetector(args.target)
+        supported_languages = detector.detect_languages()
+        detector.print_summary()
+        
+        if not supported_languages:
+            output().red("No supported languages detected. Exiting.")
+            sys.exit(1)
+            
+        # Use recommended language or first available
+        recommended = detector.get_recommended_language()
+        if recommended:
+            args.mode = recommended
+            output().info(f"Using recommended language: {recommended.upper()}")
+        else:
+            args.mode = supported_languages[0]
+            output().info(f"Using first available language: {args.mode.upper()}")
 
     # Capability auto-detection (e.g., SNMP, USB IDs, PJL INFO, etc.)
     capabilities(args)

@@ -210,7 +210,7 @@ class pcl(printer):
     # convert pcl echo commands to binary data
     def echo2data(self, echo):
         data = ""
-        echo = re.findall("ECHO (\d+)", echo)
+        echo = re.findall(r"ECHO (\d+)", echo)
         for n in echo:
             data += conv().chr(n)
         return data

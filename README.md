@@ -1,20 +1,30 @@
-# VOID-PRINT - *Vulnerability & Offensive Intrusion Device for PRINTers*
+# PrinterReaper - *Advanced Printer Penetration Testing Toolkit*
 
 **Is your printer safe from the void? Find out before someone else does…**
 
-VOID-PRINT (codename **VOID SPOOL**) is a cyber-punk-inspired toolkit built **exclusively** for penetration testing of printers and MFPs. Forked and enhanced from earlier research (e.g., PRET) but sharing no name or command overlap, it unifies multiple community improvements while adding modern protocol coverage, stability fixes and OSINT-ready reconnaissance modules.
+PrinterReaper is a comprehensive toolkit built **exclusively** for penetration testing of printers and MFPs. Enhanced with modern protocol coverage, stability fixes, OSINT-ready reconnaissance modules, and **automatic language detection**.
 
-VOID-PRINT connects to a target over **network or USB** and abuses the features of common printer languages — currently [PostScript](https://www.adobe.com/products/postscript/pdfs/PLRM.pdf), [PJL](http://h10032.www1.hp.com/ctg/Manual/bpl13208.pdf) and [PCL](http://www.hp.com/ctg/Manual/bpl13210.pdf), with experimental IPP and RAW modes in development. This enables everything from capturing or manipulating print jobs to dumping the printer’s file system and memory — even inducing physical damage. Attack techniques are documented in the community-driven [Hacking Printers Wiki](http://hacking-printers.net/wiki/).
+PrinterReaper connects to a target over **network or USB** and abuses the features of common printer languages — currently [PostScript](https://www.adobe.com/products/postscript/pdfs/PLRM.pdf), [PJL](http://h10032.www1.hp.com/ctg/Manual/bpl13208.pdf) and [PCL](http://www.hp.com/ctg/Manual/bpl13210.pdf), with experimental IPP and RAW modes in development. This enables everything from capturing or manipulating print jobs to dumping the printer's file system and memory — even inducing physical damage. Attack techniques are documented in the community-driven [Hacking Printers Wiki](http://hacking-printers.net/wiki/).
 
-The core idea is to **bridge the gap between hacker and hardware**: you type a UNIX-like command, VOID-PRINT translates it into the appropriate printer language, fires it at the device, parses the response and shows you the results in a friendly format. No vendor SDKs, no arcane PJL manuals — just pure spooler carnage.
+The core idea is to **bridge the gap between hacker and hardware**: you type a UNIX-like command, PrinterReaper translates it into the appropriate printer language, fires it at the device, parses the response and shows you the results in a friendly format. No vendor SDKs, no arcane PJL manuals — just pure spooler carnage.
 
-> **TL;DR:** VOID-PRINT is your neon‑lit scythe for reaping printer vulnerabilities. Scan. Exploit. Exfiltrate. Repeat.
+> **TL;DR:** PrinterReaper is your advanced toolkit for reaping printer vulnerabilities. **Auto-detect. Scan. Exploit. Exfiltrate. Repeat.**
 
 ![VOID-SPOOL design](img/architecture.png)
 
+### 🚀 New Features in PrinterReaper
+
+- **🔍 Automatic Language Detection**: Automatically detects supported printer languages (PJL/PS/PCL)
+- **🌐 HTTP Fallback**: When port 9100 is not accessible, automatically tries HTTP connections
+- **🔄 Smart Retry Logic**: Improved timeout handling with automatic retry mechanisms
+- **📊 Enhanced Logging**: Structured logging for better debugging and analysis
+- **🎯 OSINT Integration**: Built-in passive reconnaissance capabilities
+- **🔒 CVE Lookup**: Automatic vulnerability database queries
+- **⚡ Performance Optimized**: Faster detection and connection establishment
+
 ### Installation
 
-VOID-PRINT only requires a Python3 interpreter. For colored output and SNMP support however, third party modules need to be installed:
+PrinterReaper only requires a Python3 interpreter. For colored output and SNMP support however, third party modules need to be installed:
 
 ```
 # pip install -r requirements.txt
@@ -53,13 +63,17 @@ optional arguments:
 ###### Example usage:
 
 ```
-$ ./voidprint.py laserjet.lan ps
-$ ./voidprint.py /dev/usb/lp0 pjl
+# Automatic language detection (recommended)
+$ python3 src/main.py laserjet.lan auto
+
+# Manual language specification  
+$ python3 src/main.py laserjet.lan ps
+$ python3 src/main.py /dev/usb/lp0 pjl
 ```
 
 ###### Positional Arguments:
 
-PRET requires a valid target and a printer language as arguments. The target can either be the IP address/hostname of a network printer (with port 9100/tcp open) or a device like `/dev/usb/lp0` for a local USB printer. To quickly discover all network printers in your subnet using SNMP broadcast, simply run PRET without arguments:
+PrinterReaper requires a valid target and a printer language as arguments. The target can either be the IP address/hostname of a network printer (with port 9100/tcp open) or a device like `/dev/usb/lp0` for a local USB printer. To quickly discover all network printers in your subnet using SNMP broadcast, simply run PrinterReaper without arguments:
 
 ```
 ./voidprint.py
@@ -73,7 +87,7 @@ address          device                       uptime    status
 192.168.1.28     Brother MFC-7860DW           16:31:17   Sleep mode
 ```
 
-The printer language to be abused must be one of `ps`, `pjl` or `pcl`. Not all languages are supported by every printer, so you may want to switch languages if you don't receive any feedback. Each printer language is mapped to a different set of PRET commands and has different capabilities to exploit.
+The printer language to be abused must be one of `ps`, `pjl` or `pcl`. Not all languages are supported by every printer, so you may want to switch languages if you don't receive any feedback. Each printer language is mapped to a different set of PrinterReaper commands and has different capabilities to exploit.
 
 ###### Optional Arguments:
 
@@ -81,21 +95,21 @@ The printer language to be abused must be one of `ps`, `pjl` or `pcl`. Not all l
 
 `--quit` suppresses printer model determination, intro message and some other chit-chat.
 
-`--debug` shows the datastream actually sent to the device and the feedback received. Note that header data and other overhead is filtered. The see the whole traffic, use wireshark. Debugging can also be switched on/off within a PRET session using the `debug` command
+`--debug` shows the datastream actually sent to the device and the feedback received. Note that header data and other overhead is filtered. The see the whole traffic, use wireshark. Debugging can also be switched on/off within a PrinterReaper session using the `debug` command
 
-`--load filename` reads and executes PRET commands from a text file. This is useful for automation. Command files can also be invoked later within a PRET session via the `load` command.
+`--load filename` reads and executes PrinterReaper commands from a text file. This is useful for automation. Command files can also be invoked later within a PrinterReaper session via the `load` command.
 
 `--log filename` writes a copy of the raw datastream sent to the printer into a file. This can be useful to build a malicious print job file which can be deployed on another printer not directly reachable, for example by printing it from USB drive.
 
 ### Generic Commands
 
-After connecting to a printer device, you will see the PRET shell and can execute various commands:
+After connecting to a printer device, you will see the PrinterReaper shell and can execute various commands:
 
 ```
 $ ./pret.py laserjet.lan pjl
       ________________
     _/_______________/|
-   /___________/___//||   VOID-PRINT | Vulnerability & Offensive Intrusion Device for PRINTers
+   /___________/___//||   PrinterReaper | Advanced Printer Penetration Testing Toolkit
   |===        |----| ||    by Andre Santos <X @mrhenrike / LinkedIn @mrhenrike>
   |           |   ô| ||
   |___________|   ô| ||
@@ -134,7 +148,7 @@ d        -   tmp
 laserjet.lan:/> exit
 ```
 
-A list of generic VOID-PRINT commands is given below:
+A list of generic PrinterReaper commands is given below:
 
 ```
 help      List available commands or get detailed help with 'help cmd'.
@@ -310,7 +324,7 @@ VOID‑PRINT is intended solely for authorized security testing. Run it only aga
 
 ### Getting Started
 
-Given the features and various proprietary extensions in printing languages like PostScript and PJL, conducting a pentest on printers is not a trivial job. PRET can help to assist and verify known issues in the language. Once you have played around with the tool, you may want to perform a systematic printer security analysis. A good starting point is the [Printer Security Testing Cheat Sheet](http://hacking-printers.net/wiki/index.php?title=Printer_Security_Testing_Cheat_Sheet).
+Given the features and various proprietary extensions in printing languages like PostScript and PJL, conducting a pentest on printers is not a trivial job. PrinterReaper can help to assist and verify known issues in the language. Once you have played around with the tool, you may want to perform a systematic printer security analysis. A good starting point is the [Printer Security Testing Cheat Sheet](http://hacking-printers.net/wiki/index.php?title=Printer_Security_Testing_Cheat_Sheet).
 
 **Happy Hacking!**
 
@@ -320,4 +334,4 @@ Given the features and various proprietary extensions in printing languages like
 
 > Knowledge base: Hacking Printers Wiki
 
-> Forks merged: RUB‑NDS/PRET, KcanCurly/PRET, 0000xFFFF/PRET and community patches.
+> Enhanced with modern features, automatic language detection, and advanced penetration testing capabilities.

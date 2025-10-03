@@ -156,7 +156,7 @@ class postscript(printer):
 
     # escape postscript pathname
     def escape(self, path):
-        return path.replace('\\', '\\\\').replace('(', '\(').replace(')', '\)')
+        return path.replace('\\', '\\\\').replace('(', r'\(').replace(')', r'\)')
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # get complete list of files and directories on remote device
@@ -263,7 +263,7 @@ class postscript(printer):
 
     # ------------------------[ rename <old> <new> ]----------------------
     def do_rename(self, arg):
-        arg = re.split("\s+", arg, 1)
+        arg = re.split(r"\s+", arg, 1)
         if len(arg) > 1:
             old = self.rpath(arg[0])
             new = self.rpath(arg[1])
@@ -573,7 +573,7 @@ class postscript(printer):
 
     # ------------------------[ cross <text> <font> ]---------------------
     def do_cross(self, arg):
-        arg = re.split("\s+", arg, 1)
+        arg = re.split(r"\s+", arg, 1)
         if len(arg) > 1 and arg[0] in self.options_cross:
             font, text = arg
             text = text.strip('"')
@@ -604,7 +604,7 @@ class postscript(printer):
     # ------------------------[ replace <old> <new> ]---------------------
     def do_replace(self, arg):
         "Replace string in documents to be printed:  replace <old> <new>"
-        arg = re.split("\s+", arg, 1)
+        arg = re.split(r"\s+", arg, 1)
         if len(arg) > 1:
             output().psonly()
             oldstr, newstr = self.escape(arg[0]), self.escape(arg[1])
@@ -633,7 +633,7 @@ class postscript(printer):
         # record future print jobs
         if arg.startswith('start'):
             output().psonly()
-            # PRET commands themself should not be capture if they're performed within ≤ 10s idle
+            # PrinterReaper commands themselves should not be capture if they're performed within ≤ 10s idle
             '''
       ┌──────────┬───────────────────────────────┬───────────────┐
       │ hooking: │       BeginPage/EndPage       │ overwrite all │
@@ -939,7 +939,7 @@ class postscript(printer):
                    '/remove {exch pop () exch 3 1 roll exch strcat strcat} def\n'       \
                    '/escape { {(")   search {remove}{exit} ifelse} loop \n'             \
                    '          {(/)   search {remove}{exit} ifelse} loop \n'             \
-                   '          {(\\\) search {remove}{exit} ifelse} loop } def\n'        \
+                   r'          {(\\\) search {remove}{exit} ifelse} loop } def\n'        \
                    '/clones 220 array def /counter 0 def % performance drawback\n'      \
                    '/redundancy { /redundant false def\n'                               \
                    '  clones {exch dup 3 1 roll eq {/redundant true def} if} forall\n'  \
@@ -1020,13 +1020,13 @@ class postscript(printer):
     # bad practice
     def clean_json(self, string):
         string = re.sub(",[ \t\r\n]+}", "}", string)
-        string = re.sub(",[ \t\r\n]+\]", "]", string)
+        string = re.sub(r",[ \t\r\n]+\]", "]", string)
         return string
         # return str(string, errors='ignore')
 
     # ------------------------[ resource <category> [dump] ]--------------
     def do_resource(self, arg):
-        arg = re.split("\s+", arg, 1)
+        arg = re.split(r"\s+", arg, 1)
         cat, dump = arg[0], len(arg) > 1
         self.populate_resource()
         if cat in self.options_resource:
@@ -1084,7 +1084,7 @@ class postscript(printer):
 
     # ------------------------[ config <setting> ]------------------------
     def do_config(self, arg):
-        arg = re.split("\s+", arg, 1)
+        arg = re.split(r"\s+", arg, 1)
         (arg, val) = tuple(arg) if len(arg) > 1 else (arg[0], None)
         if arg in list(self.options_config.keys()):
             key = self.options_config[arg]

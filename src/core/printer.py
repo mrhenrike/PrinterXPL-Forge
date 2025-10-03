@@ -17,6 +17,7 @@ import tempfile
 import subprocess
 import traceback
 import requests
+import time
 
 # local pret classes
 from utils.helper import log, output, conv, file, item, conn, const as c
@@ -27,7 +28,7 @@ from modules.cve import do_cve, help_cve
 
 class printer(cmd.Cmd, object):
     # cmd module config and customization
-    intro = "Welcome to the VOID-PRINT shell. Type help or ? to list commands.\nType 'exit' to quit. Type 'discover' to scan for printers on your local network.\nNote: Not all commands will work on every printer — support depends on the device’s manufacturer, model, and firmware language implementation."
+    intro = "Welcome to the PrinterReaper shell. Type help or ? to list commands.\nType 'exit' to quit. Type 'discover' to scan for printers on your local network.\nNote: Not all commands will work on every printer — support depends on the device's manufacturer, model, and firmware language implementation."
     doc_header = "Available commands (type help <topic>):"
     offline_str = "Not connected."
     undoc_header = None
@@ -42,6 +43,7 @@ class printer(cmd.Cmd, object):
     error = None
     iohack = True
     timeout = 10
+    max_retries = 3
     target = ""
     vol = ""
     cwd = ""
@@ -232,6 +234,25 @@ class printer(cmd.Cmd, object):
     # wrapper to recv data
     def recv(self, *args):
         return self.conn.recv_until(*args) if self.conn else ""
+    
+    def cmd_with_retry(self, command, max_retries=None):
+        """Execute command with retry logic"""
+        if max_retries is None:
+            max_retries = self.max_retries
+            
+        for attempt in range(max_retries):
+            try:
+                if hasattr(self, 'cmd'):
+                    return self.cmd(command)
+                else:
+                    return self.send(command)
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    output().yellow(f"Attempt {attempt + 1} failed, retrying...")
+                    time.sleep(1)  # Wait before retry
+                else:
+                    output().red(f"Command failed after {max_retries} attempts: {e}")
+                    raise
 
     def help_open(self):
         "Connect to a new target"
@@ -546,7 +567,7 @@ class printer(cmd.Cmd, object):
     # ------------------------[ append <file> <string> ]------------------
     def do_append(self, arg):
         "Append to file:  append <file> <string>"
-        arg = re.split("\s+", arg, 1)
+        arg = re.split(r"\s+", arg, 1)
         if len(arg) > 1:
             path, data = arg
             rpath = self.rpath(path)

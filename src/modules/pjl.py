@@ -42,8 +42,12 @@ class pjl(printer):
             return ""
 
         # receive until token
-        raw = self.recv(r"(@PJL ECHO\s+)?" + re.escape(token) + r".*$",
-                        wait, True, binary)
+        try:
+            raw = self.recv(r"(@PJL ECHO\s+)?" + re.escape(token) + r".*$",
+                            wait, True, binary)
+        except Exception as e:
+            output().errmsg(f"Failed to receive response: {str(e)}")
+            return ""
         stat = ""
         if self.status:
             stat = item(re.findall(r"@PJL INFO STATUS.*", raw, re.DOTALL))
@@ -367,6 +371,14 @@ class pjl(printer):
 
     def complete_info(self, text, line, begidx, endidx):
         return [c for c in self.options_info if c.startswith(text)]
+    
+    def help_info(self):
+        "Show available INFO categories"
+        output().info("Available INFO categories:")
+        for option in self.options_info:
+            output().info(f"  {option}")
+        output().info("Usage: info <category>")
+        output().info("Example: info id")
 
     # --------------------------------------------------------------------
     # printenv / set
@@ -446,7 +458,11 @@ class pjl(printer):
     def do_display(self, arg):
         "Set printer's display message:  display <message>"
         if not arg:
-            arg = eval(input("Message: "))
+            try:
+                arg = input("Message: ")
+            except (EOFError, KeyboardInterrupt):
+                output().errmsg("No message provided")
+                return
         arg = arg.strip('"')  # remove quotes
         self.chitchat("Setting printer's display message to \"" + arg + '"')
         self.cmd('@PJL RDYMSG DISPLAY="' + arg + '"', False)
@@ -455,7 +471,11 @@ class pjl(printer):
     def do_offline(self, arg):
         "Take printer offline and display message:  offline <message>"
         if not arg:
-            arg = eval(input("Offline display message: "))
+            try:
+                arg = input("Offline display message: ")
+            except (EOFError, KeyboardInterrupt):
+                output().errmsg("No message provided")
+                return
         arg = arg.strip('"')  # remove quotes
         output().warning(
             "Warning: Taking the printer offline will prevent yourself and others"
@@ -768,7 +788,11 @@ class pjl(printer):
     def do_lock(self, arg):
         "Lock control panel settings and disk write access."
         if not arg:
-            arg = eval(input("Enter PIN (1..65535): "))
+            try:
+                arg = input("Enter PIN (1..65535): ")
+            except (EOFError, KeyboardInterrupt):
+                output().errmsg("No PIN provided")
+                return
         self.cmd(
             "@PJL DEFAULT PASSWORD="
             + arg

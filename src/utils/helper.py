@@ -493,8 +493,12 @@ class conn(object):
                 data = data.encode()
             try:
                 return self._sock.sendall(data)
-            except:
-                print(traceback.print_exc())
+            except (ConnectionResetError, BrokenPipeError, OSError) as e:
+                output().errmsg("Connection lost while sending data")
+                return None
+            except Exception as e:
+                output().errmsg(f"Send error: {str(e)}")
+                return None
 
     # receive data
     def recv(self, bytes):
@@ -503,7 +507,14 @@ class conn(object):
             data = os.read(self._file, bytes).decode()
         # receive data from socket
         else:
-            data = self._sock.recv(bytes).decode()
+            try:
+                data = self._sock.recv(bytes).decode()
+            except (ConnectionResetError, BrokenPipeError, OSError) as e:
+                output().errmsg("Connection lost while receiving data")
+                return ""
+            except Exception as e:
+                output().errmsg(f"Receive error: {str(e)}")
+                return ""
         # output recv data when in debug mode
         if self.debug:
             output().recv(self.beautify(data), self.debug)
@@ -527,7 +538,16 @@ class conn(object):
         s = re.compile("^\x04?\x0d?\x0a?" + delimiter, re.DOTALL)
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         while not r.search(data):
-            data += self.recv(4096)  # receive actual data
+            try:
+                new_data = self.recv(4096)  # receive actual data
+                if new_data is None:
+                    output().errmsg("Connection lost while receiving data")
+                    break
+                data += new_data
+            except Exception as e:
+                output().errmsg(f"Error receiving data: {str(e)}")
+                break
+                
             if self.past(limit, wd):
                 wd_old, bytes = wd, len(data)
             wd += sleep       # workaround for endless loop w/o socket timeout

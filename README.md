@@ -1,26 +1,26 @@
-# PrinterReaper - *Advanced Printer Penetration Testing Toolkit*
+# PrinterReaper v2.0 - *Advanced PJL Penetration Testing Toolkit*
 
 **Is your printer safe from the void? Find out before someone else does…**
 
-PrinterReaper is a comprehensive toolkit built **exclusively** for penetration testing of printers and MFPs. Enhanced with modern protocol coverage, stability fixes, OSINT-ready reconnaissance modules, and **automatic language detection**.
+PrinterReaper v2.0 is a **focused toolkit** built exclusively for **PJL (Printer Job Language)** penetration testing of printers and MFPs. Completely reorganized with 41 commands across 7 logical categories, enhanced functionality, and improved usability.
 
-PrinterReaper connects to a target over **network or USB** and abuses the features of common printer languages — currently [PostScript](https://www.adobe.com/products/postscript/pdfs/PLRM.pdf), [PJL](http://h10032.www1.hp.com/ctg/Manual/bpl13208.pdf) and [PCL](http://www.hp.com/ctg/Manual/bpl13210.pdf), with experimental IPP and RAW modes in development. This enables everything from capturing or manipulating print jobs to dumping the printer's file system and memory — even inducing physical damage. Attack techniques are documented in the community-driven [Hacking Printers Wiki](http://hacking-printers.net/wiki/).
+PrinterReaper v2.0 connects to a target over **network** and abuses the features of [PJL (Printer Job Language)](http://h10032.www1.hp.com/ctg/Manual/bpl13208.pdf) — the most common printer control language. This enables everything from capturing or manipulating print jobs to dumping the printer's file system and memory — even inducing physical damage.
 
-The core idea is to **bridge the gap between hacker and hardware**: you type a UNIX-like command, PrinterReaper translates it into the appropriate printer language, fires it at the device, parses the response and shows you the results in a friendly format. No vendor SDKs, no arcane PJL manuals — just pure spooler carnage.
+The core idea is to **bridge the gap between hacker and hardware**: you type a UNIX-like command, PrinterReaper translates it into the appropriate PJL command, fires it at the device, parses the response and shows you the results in a friendly format. No vendor SDKs, no arcane PJL manuals — just pure spooler carnage.
 
-> **TL;DR:** PrinterReaper is your advanced toolkit for reaping printer vulnerabilities. **Auto-detect. Scan. Exploit. Exfiltrate. Repeat.**
+> **TL;DR:** PrinterReaper v2.0 is your focused toolkit for reaping PJL printer vulnerabilities. **Connect. Scan. Exploit. Exfiltrate. Repeat.**
 
 ![VOID-SPOOL design](img/architecture.png)
 
-### 🚀 New Features in PrinterReaper
+### 🚀 New Features in PrinterReaper v2.0
 
-- **🔍 Automatic Language Detection**: Automatically detects supported printer languages (PJL/PS/PCL)
-- **🌐 HTTP Fallback**: When port 9100 is not accessible, automatically tries HTTP connections
-- **🔄 Smart Retry Logic**: Improved timeout handling with automatic retry mechanisms
-- **📊 Enhanced Logging**: Structured logging for better debugging and analysis
-- **🎯 OSINT Integration**: Built-in passive reconnaissance capabilities
-- **🔒 CVE Lookup**: Automatic vulnerability database queries
-- **⚡ Performance Optimized**: Faster detection and connection establishment
+- **🎯 PJL-Focused**: Exclusively focused on PJL (Printer Job Language) penetration testing
+- **📋 41 Commands**: Complete PJL command coverage across 7 logical categories
+- **🔧 Enhanced Functionality**: Upload/download, file manipulation, backup/restore, permission control
+- **📚 Organized Help System**: Commands grouped by category with detailed help
+- **⚡ Improved Performance**: Faster connection and command execution
+- **🛡️ Better Error Handling**: Robust error handling with user-friendly messages
+- **📊 Comprehensive Testing**: Full coverage of PJL capabilities and security testing
 
 ### Installation
 
@@ -45,15 +45,15 @@ For experimental, ‘driverless’ printing (see print command), ImageMagick and
 ### Usage
 
 ```
-usage: voidprint.py [-h] [-s] [-q] [-d] [-i file] [-o file] target {ps,pjl,pcl}
+usage: printer-reaper.py [-h] [-s] [-q] [-d] [-i file] [-o file] target {pjl,pjl2,auto}
 
 positional arguments:
   target                printer device or hostname
-  {ps,pjl,pcl}          printing language to abuse
+  {pjl,pjl2,auto}       PJL version to use (PJL v1, PJL v2, or auto-detect)
 
 optional arguments:
   -h, --help            show this help message and exit
-  -s, --safe            verify if language is supported
+  -s, --safe            verify if PJL is supported
   -q, --quiet           suppress warnings and chit-chat
   -d, --debug           enter debug mode (show traffic)
   -i file, --load file  load and run commands from file
@@ -63,12 +63,12 @@ optional arguments:
 ###### Example usage:
 
 ```
-# Automatic language detection (recommended)
-$ python3 src/main.py laserjet.lan auto
+# Automatic PJL detection (recommended)
+$ python3 printer-reaper.py laserjet.lan auto
 
-# Manual language specification  
-$ python3 src/main.py laserjet.lan ps
-$ python3 src/main.py /dev/usb/lp0 pjl
+# Manual PJL version specification  
+$ python3 printer-reaper.py laserjet.lan pjl2
+$ python3 printer-reaper.py laserjet.lan pjl
 ```
 
 ###### Positional Arguments:
@@ -100,6 +100,31 @@ The printer language to be abused must be one of `ps`, `pjl` or `pcl`. Not all l
 `--load filename` reads and executes PrinterReaper commands from a text file. This is useful for automation. Command files can also be invoked later within a PrinterReaper session via the `load` command.
 
 `--log filename` writes a copy of the raw datastream sent to the printer into a file. This can be useful to build a malicious print job file which can be deployed on another printer not directly reachable, for example by printing it from USB drive.
+
+### PJL v2.0 Commands
+
+PrinterReaper v2.0 features **41 commands** organized into **7 logical categories**:
+
+#### 📁 **Filesystem Commands (12)**
+- `ls`, `mkdir`, `find`, `upload`, `download`, `delete`, `copy`, `move`, `touch`, `chmod`, `permissions`, `mirror`
+
+#### ℹ️ **System Information Commands (8)**
+- `id`, `version`, `info`, `product`, `network`, `wifi`, `variables`, `printenv`
+
+#### ⚙️ **Control Commands (8)**
+- `set`, `display`, `offline`, `restart`, `reset`, `selftest`, `backup`, `restore`
+
+#### 🔒 **Security Commands (4)**
+- `lock`, `unlock`, `disable`, `nvram`
+
+#### 💥 **Attack Commands (4)**
+- `destroy`, `flood`, `hold`, `format`
+
+#### 🌐 **Network Commands (3)**
+- `direct`, `execute`, `load`
+
+#### 📊 **Monitoring Commands (2)**
+- `pagecount`, `status`
 
 ### Generic Commands
 

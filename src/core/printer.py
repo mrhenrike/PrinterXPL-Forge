@@ -24,7 +24,7 @@ import time
 from utils.helper import log, output, conv, file, item, conn, const as c
 from core.discovery import discovery
 from utils.fuzzer import fuzzer
-from modules.cve import do_cve, help_cve
+# CVE module moved to backup - functionality integrated into PJL v2.0
 
 
 class printer(cmd.Cmd, object):

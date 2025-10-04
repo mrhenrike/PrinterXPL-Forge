@@ -231,7 +231,25 @@ class printer(cmd.Cmd, object):
         return True
 
     def help_exit(self):
-        "Exit the shell"
+        """Exit the PrinterReaper shell"""
+        print()
+        print("exit - Exit the PrinterReaper shell")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Exits the PrinterReaper shell and closes the connection to the printer.")
+        print("  This command will also close any open log files.")
+        print()
+        print("USAGE:")
+        print("  exit")
+        print()
+        print("EXAMPLES:")
+        print("  exit                    # Exit the shell")
+        print("  quit                    # Alternative command (same as exit)")
+        print()
+        print("NOTES:")
+        print("  - All unsaved work will be lost")
+        print("  - Connection to printer will be closed")
+        print("  - Log files will be properly closed")
         print()
 
     def do_debug(self, arg):
@@ -240,7 +258,25 @@ class printer(cmd.Cmd, object):
         output().message("Debug output " + ("enabled" if self.debug else "disabled"))
 
     def help_debug(self):
-        "Toggle raw traffic debug output"
+        """Toggle debug output mode"""
+        print()
+        print("debug - Toggle debug output mode")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Enables or disables debug output mode. When enabled, shows")
+        print("  detailed information about commands being sent to and")
+        print("  received from the printer. Useful for troubleshooting connection issues.")
+        print()
+        print("USAGE:")
+        print("  debug")
+        print()
+        print("EXAMPLES:")
+        print("  debug                    # Toggle debug mode on/off")
+        print()
+        print("NOTES:")
+        print("  - Debug mode shows raw PJL/PS/PCL commands")
+        print("  - Useful for understanding printer communication")
+        print("  - May produce verbose output")
         print()
 
     def do_loop(self, arg):
@@ -255,7 +291,26 @@ class printer(cmd.Cmd, object):
             self.onecmd(f"{cmd} {arg}")
 
     def help_loop(self):
-        "Run a command repeatedly over multiple arguments"
+        """Run a command repeatedly over multiple arguments"""
+        print()
+        print("loop - Run a command repeatedly over multiple arguments")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Executes a command multiple times, once for each argument provided.")
+        print("  Useful for batch operations and automation tasks.")
+        print()
+        print("USAGE:")
+        print("  loop <command> <arg1> <arg2> ...")
+        print()
+        print("EXAMPLES:")
+        print("  loop download file1.txt file2.txt file3.txt")
+        print("  loop delete old1.log old2.log old3.log")
+        print("  loop cat config1.cfg config2.cfg")
+        print()
+        print("NOTES:")
+        print("  - Each argument is passed to the command separately")
+        print("  - Useful for batch file operations")
+        print("  - Commands are executed in sequence")
         print()
 
     # ====================================================================
@@ -268,7 +323,25 @@ class printer(cmd.Cmd, object):
         discovery(usage=False)
 
     def help_discover(self):
-        "Scan local networks for SNMP printers"
+        """Scan local networks for SNMP printers"""
+        print()
+        print("discover - Scan local networks for SNMP printers")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Scans the local network for printers using SNMP protocol.")
+        print("  Discovers printers on the network and displays their information.")
+        print()
+        print("USAGE:")
+        print("  discover")
+        print()
+        print("EXAMPLES:")
+        print("  discover                 # Scan local network for printers")
+        print()
+        print("NOTES:")
+        print("  - Requires SNMP to be enabled on target printers")
+        print("  - Scans common printer ports (9100, 515, 631)")
+        print("  - May take some time depending on network size")
+        print("  - Results show IP address, model, and capabilities")
         print()
 
     def do_open(self, arg, mode=""):
@@ -284,13 +357,28 @@ class printer(cmd.Cmd, object):
             self.set_defaults(False)
 
     def help_open(self):
-        "Connect to a new target"
+        """Connect to a new printer target"""
         print()
-        output().header("open <target>")
-        output().message("  Connect to a new printer target.")
-        output().message("  Examples:")
-        output().message("    open 192.168.1.100")
-        output().message("    open printer.local")
+        print("open - Connect to a new printer target")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Establishes a connection to a printer target. This command")
+        print("  connects to the specified printer and prepares it for")
+        print("  subsequent commands.")
+        print()
+        print("USAGE:")
+        print("  open <target>")
+        print()
+        print("EXAMPLES:")
+        print("  open 192.168.1.100        # Connect to IP address")
+        print("  open printer.local        # Connect to hostname")
+        print("  open 10.0.0.50:9100       # Connect to specific port")
+        print()
+        print("NOTES:")
+        print("  - Target can be IP address or hostname")
+        print("  - Default port is 9100 (raw printing)")
+        print("  - Connection is established immediately")
+        print("  - Previous connection is closed if exists")
         print()
 
     def do_close(self, *arg):
@@ -301,7 +389,25 @@ class printer(cmd.Cmd, object):
         self.set_defaults(False)
 
     def help_close(self):
-        "Disconnect from the current printer"
+        """Disconnect from the current printer"""
+        print()
+        print("close - Disconnect from the current printer")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Closes the connection to the currently connected printer.")
+        print("  This command disconnects from the printer and resets")
+        print("  the connection state.")
+        print()
+        print("USAGE:")
+        print("  close")
+        print()
+        print("EXAMPLES:")
+        print("  close                    # Disconnect from current printer")
+        print()
+        print("NOTES:")
+        print("  - Closes the current connection")
+        print("  - Resets connection state")
+        print("  - Use 'open' to connect to a new printer")
         print()
 
     def do_timeout(self, arg, quiet=False):
@@ -316,7 +422,26 @@ class printer(cmd.Cmd, object):
         return self.conn.timeoutcmd(str_send, timeout, *stuff)
 
     def help_timeout(self):
-        "Change the network timeout"
+        """Change the network timeout"""
+        print()
+        print("timeout - Change the network timeout")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Sets the network timeout value for printer communications.")
+        print("  This affects how long the system waits for responses")
+        print("  from the printer before timing out.")
+        print()
+        print("USAGE:")
+        print("  timeout <seconds>")
+        print()
+        print("EXAMPLES:")
+        print("  timeout 30              # Set timeout to 30 seconds")
+        print("  timeout 5               # Set timeout to 5 seconds")
+        print()
+        print("NOTES:")
+        print("  - Default timeout is 10 seconds")
+        print("  - Higher values for slow networks")
+        print("  - Lower values for faster response")
         print()
 
     def do_reconnect(self, *arg):
@@ -340,11 +465,25 @@ class printer(cmd.Cmd, object):
         output().message("Connected to " + self.target)
 
     def help_reconnect(self):
-        "Reconnect to the current printer"
+        """Reconnect to the current printer"""
         print()
-        output().header("reconnect")
-        output().message("  Reconnect to the current printer target.")
-        output().message("  Useful when connection is lost or unstable.")
+        print("reconnect - Reconnect to the current printer")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Reconnects to the currently configured printer target.")
+        print("  Useful when the connection is lost or becomes unstable.")
+        print("  Attempts to re-establish the connection using the same target.")
+        print()
+        print("USAGE:")
+        print("  reconnect")
+        print()
+        print("EXAMPLES:")
+        print("  reconnect                # Reconnect to current printer")
+        print()
+        print("NOTES:")
+        print("  - Uses the same target as previous connection")
+        print("  - Useful for unstable connections")
+        print("  - Closes old connection before reconnecting")
         print()
 
     # ====================================================================
@@ -357,11 +496,25 @@ class printer(cmd.Cmd, object):
         output().message("Unknown printer")
 
     def help_id(self):
-        "Show printer identification and system information"
+        """Show printer identification and system information"""
         print()
-        output().header("id")
-        output().message("  Show comprehensive printer identification and system information.")
-        output().message("  Displays device ID, firmware version, and product details.")
+        print("id - Show printer identification and system information")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Displays comprehensive identification and system information")
+        print("  about the connected printer. Shows device ID, firmware version,")
+        print("  product details, and other system information.")
+        print()
+        print("USAGE:")
+        print("  id")
+        print()
+        print("EXAMPLES:")
+        print("  id                       # Show printer identification")
+        print()
+        print("NOTES:")
+        print("  - Shows device ID and model information")
+        print("  - Displays firmware version and capabilities")
+        print("  - Useful for identifying printer type and features")
         print()
 
     def do_pwd(self, arg):
@@ -377,7 +530,25 @@ class printer(cmd.Cmd, object):
             output().message("  " + vol)
 
     def help_pwd(self):
-        "Print the current remote working directory"
+        """Print the current remote working directory"""
+        print()
+        print("pwd - Print the current remote working directory")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Shows the current working directory on the remote printer")
+        print("  and lists all available volumes. Useful for understanding")
+        print("  the printer's file system structure.")
+        print()
+        print("USAGE:")
+        print("  pwd")
+        print()
+        print("EXAMPLES:")
+        print("  pwd                      # Show current directory and volumes")
+        print()
+        print("NOTES:")
+        print("  - Shows current working directory")
+        print("  - Lists all available volumes (0:, 1:, etc.)")
+        print("  - Useful for navigation planning")
         print()
 
     # ====================================================================
@@ -401,7 +572,26 @@ class printer(cmd.Cmd, object):
         return ["0:", "1:", "2:", "3:", "4:", "5:", "6:", "7:", "8:", "9:"]
 
     def help_chvol(self):
-        "Change current volume"
+        """Change current volume"""
+        print()
+        print("chvol - Change current volume")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Changes the current working volume on the printer.")
+        print("  Printers may have multiple volumes (0:, 1:, 2:, etc.)")
+        print("  and this command allows switching between them.")
+        print()
+        print("USAGE:")
+        print("  chvol <volume>")
+        print()
+        print("EXAMPLES:")
+        print("  chvol 0:                 # Switch to volume 0")
+        print("  chvol 1:                 # Switch to volume 1")
+        print()
+        print("NOTES:")
+        print("  - Volume format is typically 'X:' where X is a number")
+        print("  - Use 'pwd' to see available volumes")
+        print("  - Different volumes may contain different files")
         print()
 
     def do_traversal(self, arg):
@@ -414,7 +604,26 @@ class printer(cmd.Cmd, object):
         self.traversal = traversal
 
     def help_traversal(self):
-        "Set path traversal root"
+        """Set path traversal root"""
+        print()
+        print("traversal - Set path traversal root")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Sets the root directory for path traversal operations.")
+        print("  This limits file system access to a specific directory")
+        print("  and its subdirectories for security purposes.")
+        print()
+        print("USAGE:")
+        print("  traversal <path>")
+        print()
+        print("EXAMPLES:")
+        print("  traversal /               # Set root to filesystem root")
+        print("  traversal /tmp            # Limit to /tmp directory")
+        print()
+        print("NOTES:")
+        print("  - Restricts file access to specified directory")
+        print("  - Security feature to prevent unauthorized access")
+        print("  - Use empty string to disable traversal restrictions")
         print()
 
     def do_cd(self, arg):
@@ -456,9 +665,27 @@ class printer(cmd.Cmd, object):
         return posixpath.basename(path)
 
     def help_cd(self):
+        """Change the current working directory on the printer"""
         print()
-        output().header("cd <remote_dir>")
-        output().message("  Change the current working directory on the printer.")
+        print("cd - Change the current working directory on the printer")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Changes the current working directory on the remote printer.")
+        print("  This affects the default location for file operations")
+        print("  and determines the current working directory context.")
+        print()
+        print("USAGE:")
+        print("  cd <directory>")
+        print()
+        print("EXAMPLES:")
+        print("  cd /                      # Change to root directory")
+        print("  cd /tmp                   # Change to /tmp directory")
+        print("  cd config                 # Change to config subdirectory")
+        print()
+        print("NOTES:")
+        print("  - Use 'pwd' to see current directory")
+        print("  - Directory must exist on the printer")
+        print("  - Affects default paths for file operations")
         print()
 
     # ====================================================================
@@ -490,10 +717,27 @@ class printer(cmd.Cmd, object):
         print(("Size mismatch (should: " + size1 + ", is: " + size2 + ")."))
 
     def help_download(self):
+        """Download a file from the printer"""
         print()
-        output().header("download <remote_path>")
-        output().message("  Retrieves the file at <remote_path> and prints to stdout.")
-        output().red("  Example: download 1:/config.cfg")
+        print("download - Download a file from the printer")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Downloads a file from the remote printer to the local system.")
+        print("  The file is saved to the current local directory with")
+        print("  the same name as the remote file.")
+        print()
+        print("USAGE:")
+        print("  download <remote_file>")
+        print()
+        print("EXAMPLES:")
+        print("  download config.cfg       # Download config.cfg")
+        print("  download 1:/config.cfg   # Download from volume 1")
+        print("  download /tmp/log.txt     # Download from /tmp directory")
+        print()
+        print("NOTES:")
+        print("  - File is saved to current local directory")
+        print("  - Remote file must exist and be readable")
+        print("  - Use volume prefix (1:) for specific volumes")
         print()
 
     def do_upload(self, arg, rpath=""):
@@ -519,10 +763,27 @@ class printer(cmd.Cmd, object):
             output().errmsg("Could not read local file.")
 
     def help_upload(self):
-        "Upload a local file to the printer"
+        """Upload a local file to the printer"""
         print()
-        output().header("upload <local_path>")
-        output().message("  Sends the file data to the current working directory.")
+        print("upload - Upload a local file to the printer")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Uploads a file from the local system to the remote printer.")
+        print("  The file is transferred to the current working directory")
+        print("  on the printer with the same name.")
+        print()
+        print("USAGE:")
+        print("  upload <local_file>")
+        print()
+        print("EXAMPLES:")
+        print("  upload config.txt         # Upload config.txt")
+        print("  upload /path/to/file.cfg  # Upload with full path")
+        print("  upload script.py          # Upload Python script")
+        print()
+        print("NOTES:")
+        print("  - Local file must exist and be readable")
+        print("  - File is uploaded to current remote directory")
+        print("  - Preserves original filename")
         print()
 
     def do_append(self, arg):
@@ -535,7 +796,26 @@ class printer(cmd.Cmd, object):
         self.append(self.rpath(path), data)
 
     def help_append(self):
-        "Append to file:  append <file> <string>"
+        """Append to file"""
+        print()
+        print("append - Append to file")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Appends text content to a remote file on the printer.")
+        print("  If the file doesn't exist, it will be created.")
+        print("  The text is added to the end of the file.")
+        print()
+        print("USAGE:")
+        print("  append <file> <text>")
+        print()
+        print("EXAMPLES:")
+        print("  append log.txt 'New entry'  # Append to log.txt")
+        print("  append config.cfg 'setting=value'  # Add configuration")
+        print()
+        print("NOTES:")
+        print("  - File is created if it doesn't exist")
+        print("  - Text is appended to the end of the file")
+        print("  - Use quotes for text with spaces")
         print()
 
     def do_delete(self, arg):
@@ -544,7 +824,26 @@ class printer(cmd.Cmd, object):
         self.delete(arg)
 
     def help_delete(self):
-        "Delete a remote file"
+        """Delete a remote file"""
+        print()
+        print("delete - Delete a remote file")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Deletes a file from the remote printer's file system.")
+        print("  The file is permanently removed from the printer.")
+        print("  Use with caution as this operation cannot be undone.")
+        print()
+        print("USAGE:")
+        print("  delete <file>")
+        print()
+        print("EXAMPLES:")
+        print("  delete old.log           # Delete old.log")
+        print("  delete /tmp/temp.txt     # Delete from /tmp directory")
+        print()
+        print("NOTES:")
+        print("  - File is permanently deleted")
+        print("  - Operation cannot be undone")
+        print("  - File must exist and be writable")
         print()
 
     def do_cat(self, arg):
@@ -559,7 +858,27 @@ class printer(cmd.Cmd, object):
             output().errmsg("File not found or permission denied.")
 
     def help_cat(self):
-        "Print remote file contents"
+        """Print remote file contents"""
+        print()
+        print("cat - Print remote file contents")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Displays the contents of a remote file on the printer.")
+        print("  The file content is printed to the console.")
+        print("  Useful for viewing configuration files and logs.")
+        print()
+        print("USAGE:")
+        print("  cat <file>")
+        print()
+        print("EXAMPLES:")
+        print("  cat config.cfg           # View configuration file")
+        print("  cat /var/log/printer.log  # View log file")
+        print("  cat status.txt           # View status file")
+        print()
+        print("NOTES:")
+        print("  - File must exist and be readable")
+        print("  - Content is displayed in the console")
+        print("  - Large files may produce lots of output")
         print()
 
     def do_edit(self, arg):
@@ -588,7 +907,26 @@ class printer(cmd.Cmd, object):
         output().message(f"Edited {arg}")
 
     def help_edit(self):
-        "Edit a remote file"
+        """Edit a remote file"""
+        print()
+        print("edit - Edit a remote file")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Downloads a remote file, opens it in a text editor,")
+        print("  and uploads the modified version back to the printer.")
+        print("  Uses the system's default text editor.")
+        print()
+        print("USAGE:")
+        print("  edit <file>")
+        print()
+        print("EXAMPLES:")
+        print("  edit config.cfg          # Edit configuration file")
+        print("  edit /tmp/script.sh      # Edit script file")
+        print()
+        print("NOTES:")
+        print("  - File is downloaded, edited, and uploaded")
+        print("  - Uses system default editor (vim, nano, etc.)")
+        print("  - Temporary files are cleaned up automatically")
         print()
 
     # ====================================================================
@@ -618,9 +956,27 @@ class printer(cmd.Cmd, object):
             os.makedirs(path)
 
     def help_mirror(self):
-        """
-        Recursively download a remote directory tree to your local disk.
-        """
+        """Mirror files from printer to local system"""
+        print()
+        print("mirror - Mirror files from printer to local system")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Recursively downloads a remote directory tree to the local disk.")
+        print("  Creates a local copy of the remote file system structure.")
+        print("  Useful for backups and offline analysis.")
+        print()
+        print("USAGE:")
+        print("  mirror <remote_directory>")
+        print()
+        print("EXAMPLES:")
+        print("  mirror /                  # Mirror entire filesystem")
+        print("  mirror /config            # Mirror config directory")
+        print("  mirror /logs              # Mirror logs directory")
+        print()
+        print("NOTES:")
+        print("  - Creates local directory structure")
+        print("  - Downloads all files recursively")
+        print("  - May take time for large directories")
         print()
 
     # ====================================================================
@@ -693,7 +1049,27 @@ class printer(cmd.Cmd, object):
         return []
 
     def help_fuzz(self):
-        "Launch file-system fuzzing"
+        """Launch file-system fuzzing"""
+        print()
+        print("fuzz - Launch file-system fuzzing")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Performs security testing by fuzzing the printer's file system.")
+        print("  Tests various paths, filenames, and data to find vulnerabilities.")
+        print("  Use with caution as this may affect printer stability.")
+        print()
+        print("USAGE:")
+        print("  fuzz [path]")
+        print()
+        print("EXAMPLES:")
+        print("  fuzz                     # Fuzz current directory")
+        print("  fuzz /tmp                # Fuzz /tmp directory")
+        print("  fuzz /config             # Fuzz config directory")
+        print()
+        print("NOTES:")
+        print("  - Tests for path traversal vulnerabilities")
+        print("  - May generate large amounts of output")
+        print("  - Use with caution")
         print()
 
     # ====================================================================
@@ -717,7 +1093,27 @@ class printer(cmd.Cmd, object):
             output().message(f"Printed text: {arg}")
 
     def help_print(self):
-        "Print a file or literal text through the device"
+        """Print a file or literal text through the device"""
+        print()
+        print("print - Print a file or literal text through the device")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Sends a file or text to the printer for printing.")
+        print("  Can print local files or literal text strings.")
+        print("  The content is sent directly to the printer.")
+        print()
+        print("USAGE:")
+        print("  print <file_or_text>")
+        print()
+        print("EXAMPLES:")
+        print("  print document.pdf       # Print PDF file")
+        print("  print 'Hello World'      # Print literal text")
+        print("  print /path/to/file.txt  # Print file with full path")
+        print()
+        print("NOTES:")
+        print("  - File must exist locally")
+        print("  - Text is sent as-is to printer")
+        print("  - Printer must support the file format")
         print()
 
     def do_convert(self, path, pdl="pcl"):
@@ -731,7 +1127,27 @@ class printer(cmd.Cmd, object):
         output().message(f"Converted {path} to {pdl.upper()}")
 
     def help_convert(self):
-        "Convert a file to PCL or PS format for printing"
+        """Convert a file to PCL or PS format for printing"""
+        print()
+        print("convert - Convert a file to PCL or PS format for printing")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Converts a file to PCL (Printer Command Language) or")
+        print("  PS (PostScript) format for printing. This ensures")
+        print("  compatibility with the target printer.")
+        print()
+        print("USAGE:")
+        print("  convert <file> [format]")
+        print()
+        print("EXAMPLES:")
+        print("  convert document.pdf      # Convert to default format")
+        print("  convert file.txt pcl      # Convert to PCL format")
+        print("  convert image.png ps      # Convert to PostScript")
+        print()
+        print("NOTES:")
+        print("  - Default format is PCL")
+        print("  - Supported formats: pcl, ps")
+        print("  - Conversion may not be perfect for all file types")
         print()
 
     # ====================================================================
@@ -749,7 +1165,25 @@ class printer(cmd.Cmd, object):
         output().message("SNMP: Not tested")
 
     def help_support(self):
-        "Show printer support matrix"
+        """Show printer support matrix"""
+        print()
+        print("support - Show printer support matrix")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Displays the support matrix showing which features")
+        print("  and commands are supported by the connected printer.")
+        print("  Useful for understanding printer capabilities.")
+        print()
+        print("USAGE:")
+        print("  support")
+        print()
+        print("EXAMPLES:")
+        print("  support                  # Show support matrix")
+        print()
+        print("NOTES:")
+        print("  - Shows supported protocols (PJL, PS, PCL)")
+        print("  - Displays available features")
+        print("  - Helps determine which commands will work")
         print()
 
     def do_cve(self, arg):
@@ -766,10 +1200,25 @@ class printer(cmd.Cmd, object):
         output().message("Using fallback CVE search...")
 
     def help_cve(self):
-        """Show help for the cve command."""
+        """Search for CVEs related to the connected printer"""
         print()
-        output().header("cve")
-        output().message("  List known CVEs for the connected printer based on its Device: string.")
+        print("cve - Search for CVEs related to the connected printer")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Searches for known Common Vulnerabilities and Exposures (CVEs)")
+        print("  related to the connected printer based on its identification")
+        print("  information. Helps identify potential security issues.")
+        print()
+        print("USAGE:")
+        print("  cve")
+        print()
+        print("EXAMPLES:")
+        print("  cve                      # Search for CVEs")
+        print()
+        print("NOTES:")
+        print("  - Requires internet connection")
+        print("  - Searches based on printer model and firmware")
+        print("  - Results may include CVEs from multiple sources")
         print()
 
     # ====================================================================
@@ -800,124 +1249,29 @@ class printer(cmd.Cmd, object):
             output().errmsg(f"Load failed: {e}")
 
     def help_load(self):
-        """Show help for load command"""
+        """Run commands from file"""
         print()
         print("load - Run commands from file")
-        print("Usage: load <filename>")
-        print("Executes commands from a text file line by line.")
-        print("Lines starting with # are treated as comments and ignored.")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Executes commands from a text file line by line.")
+        print("  Useful for automation and batch operations.")
+        print("  Lines starting with # are treated as comments and ignored.")
+        print()
+        print("USAGE:")
+        print("  load <filename>")
+        print()
+        print("EXAMPLES:")
+        print("  load commands.txt        # Execute commands from file")
+        print("  load /path/to/script.txt  # Execute with full path")
+        print()
+        print("NOTES:")
+        print("  - File must contain one command per line")
+        print("  - Lines starting with # are comments")
+        print("  - Commands are executed sequentially")
+        print("  - Useful for automation and scripting")
         print()
 
-    # ====================================================================
-    # HIDDEN COMMANDS
-    # ====================================================================
-    # These commands are available but not shown in help
-
-    def do_list_all(self, arg):
-        """Hidden command to list all available commands (does not appear in help)"""
-        print("\n" + "="*70)
-        print(f"PrinterReaper {self.mode.upper()} - Complete Command List")
-        print("="*70)
-        
-        # Get all command methods that are actually implemented
-        commands = []
-        for attr_name in dir(self):
-            if attr_name.startswith('do_') and not attr_name.startswith('do_list_all'):
-                command_name = attr_name[3:]  # Remove 'do_' prefix
-                # Only include commands that have help methods (indicating they're real commands)
-                if hasattr(self, f'help_{command_name}') or command_name in ['exit', 'debug', 'loop', 'discover', 'open', 'close', 'timeout', 'reconnect', 'pwd', 'chvol', 'traversal', 'cd', 'download', 'upload', 'append', 'delete', 'cat', 'edit', 'fuzz', 'print', 'convert', 'support', 'cve', 'load']:
-                    commands.append(command_name)
-        
-        # Sort commands alphabetically
-        commands.sort()
-        
-        # Command descriptions (matching help exactly)
-        descriptions = {
-            # Filesystem commands
-            "ls": "List directory contents",
-            "mkdir": "Create directory",
-            "find": "Find files recursively",
-            "upload": "Upload file to printer",
-            "download": "Download file from printer",
-            "delete": "Delete file",
-            "copy": "Copy file",
-            "move": "Move file",
-            "touch": "Create/update file",
-            "chmod": "Change file permissions",
-            "permissions": "Test file permissions",
-            "mirror": "Mirror filesystem",
-            
-            # System commands
-            "id": "Show comprehensive printer identification and system information",
-            "variables": "Show environment variables",
-            "printenv": "Show specific variable",
-            
-            # Control commands
-            "set": "Set environment variable",
-            "display": "Set display message",
-            "offline": "Take printer offline",
-            "restart": "Restart printer",
-            "reset": "Reset to factory defaults",
-            "selftest": "Perform self-tests",
-            "backup": "Backup configuration",
-            "restore": "Restore configuration",
-            
-            # Security commands
-            "lock": "Lock printer with PIN",
-            "unlock": "Unlock printer",
-            "disable": "Disable functionality",
-            "nvram": "Access NVRAM",
-            
-            # Attack commands
-            "destroy": "Cause physical damage",
-            "flood": "Flood with data",
-            "hold": "Enable job retention",
-            "format": "Format filesystem",
-            
-            # Network commands
-            "network": "Show comprehensive network information including WiFi",
-            "direct": "Show direct print config",
-            "execute": "Execute arbitrary PJL command",
-            "load": "Load commands from file",
-            
-            # Monitoring commands
-            "pagecount": "Manipulate page counter",
-            "status": "Toggle status messages"
-        }
-        
-        # Categorize commands (matching help categories exactly)
-        categories = {
-            "filesystem": ["ls", "mkdir", "find", "upload", "download", "delete", "copy", "move", "touch", "chmod", "permissions", "mirror"],
-            "system": ["id", "variables", "printenv"],
-            "control": ["set", "display", "offline", "restart", "reset", "selftest", "backup", "restore"],
-            "security": ["lock", "unlock", "disable", "nvram"],
-            "attacks": ["destroy", "flood", "hold", "format"],
-            "network": ["network", "direct", "execute", "load"],
-            "monitoring": ["pagecount", "status"]
-        }
-        
-        # Display commands by category
-        for category, cmd_list in categories.items():
-            print(f"\n{category}:")
-            print("-" * 50)
-            for cmd in cmd_list:
-                if cmd in commands:
-                    desc = descriptions.get(cmd, "No description available")
-                    print(f"  {cmd:<15} - {desc}")
-        
-        # Show any uncategorized commands
-        uncategorized = [cmd for cmd in commands if not any(cmd in cat_list for cat_list in categories.values())]
-        if uncategorized:
-            print(f"\nOther Commands:")
-            print("-" * 50)
-            for cmd in uncategorized:
-                desc = descriptions.get(cmd, "No description available")
-                print(f"  {cmd:<15} - {desc}")
-        
-        print(f"\nTotal Commands: {len(commands)}")
-        print("="*70)
-        print("Note: This is a hidden command and does not appear in help.")
-        print("="*70 + "\n")
 
     # ====================================================================
     # COMMUNICATION METHODS

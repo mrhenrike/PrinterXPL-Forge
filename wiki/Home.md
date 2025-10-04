@@ -8,7 +8,7 @@
 
 ## 🎯 What is PrinterReaper?
 
-PrinterReaper v2.3.4 is a **focused, powerful toolkit** built exclusively for **PJL (Printer Job Language)** penetration testing of network printers and multifunction devices (MFPs). It enables security professionals to discover, assess, and exploit printer vulnerabilities through an intuitive command-line interface.
+PrinterReaper v2.4.2 is a **focused, powerful toolkit** built exclusively for **PJL (Printer Job Language)** penetration testing of network printers and multifunction devices (MFPs). It enables security professionals to discover, assess, and exploit printer vulnerabilities through an intuitive command-line interface.
 
 ### Key Features
 
@@ -47,7 +47,7 @@ PrinterReaper v2.3.4 is a **focused, powerful toolkit** built exclusively for **
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    PrinterReaper v2.3.4                     │
+│                    PrinterReaper v2.4.2                     │
 ├─────────────────────────────────────────────────────────────┤
 │  📁 Filesystem     │  12 commands │ Upload, download, copy │
 │  ℹ️  Information    │   8 commands │ ID, version, network   │
@@ -144,14 +144,16 @@ This wiki is organized into the following sections:
 
 ## 🌟 Key Highlights
 
-### Version 2.3.4 Features
+### Version 2.4.2 Features
 
-**✨ New in 2.3.4:**
-- Complete wiki documentation
-- All 54 commands fully documented
-- Enhanced help system
-- macOS and BSD support
-- Improved error messages
+**✨ New in 2.4.2:**
+- HTML wiki for website deployment
+- QA tested with 100% pass rate
+- Complete toolkit: 109 commands
+- 3 printer languages (PJL, PS, PCL)
+- 4 network protocols (RAW, LPD, IPP, SMB)
+- 5 attack payloads
+- Comprehensive documentation
 
 **⚡ Performance:**
 - 30-second timeout configuration

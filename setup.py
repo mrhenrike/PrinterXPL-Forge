@@ -8,7 +8,7 @@ try:
     from version import get_version_string
     VERSION = get_version_string()
 except:
-    VERSION = "2.3.0"  # Fallback version
+    VERSION = "2.4.2"  # Fallback version
 
 setup(
     name="PrinterReaper",
@@ -39,7 +39,7 @@ setup(
     },
     
     classifiers=[
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Information Technology",
         "Intended Audience :: System Administrators",
         "Topic :: Security",
@@ -55,7 +55,7 @@ setup(
         "Operating System :: Microsoft :: Windows",
     ],
     
-    python_requires=">=3.9",
+    python_requires=">=3.8",
     
     entry_points={
         "console_scripts": [

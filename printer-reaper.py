@@ -1,7 +1,19 @@
 #!/usr/bin/env python3
 """
-PrinterReaper v2.0 - Advanced Printer Penetration Testing Toolkit
-Main entry point for PJL-focused security testing
+PrinterReaper v2.4.2 - Complete Printer Penetration Testing Toolkit
+==================================================================
+Main entry point supporting:
+- PJL (Printer Job Language) - 54 commands
+- PostScript - 40 commands  
+- PCL (Printer Command Language) - 15 commands
+- 4 Network Protocols (RAW, LPD, IPP, SMB)
+- 5 Attack Payloads
+
+Total: 109 commands across 3 printer languages
+
+Author: Andre Henrique (mrhenrike)
+License: MIT
+Website: https://github.com/mrhenrike/PrinterReaper
 """
 
 import sys

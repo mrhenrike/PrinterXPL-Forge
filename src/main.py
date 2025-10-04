@@ -193,7 +193,10 @@ def main() -> None:
     # Instantiate and run the chosen shell.
     shell_class = shell_map[args.mode]
     shell = shell_class(args)
-    shell.cmdloop()
+    
+    # Only enter interactive loop if not exiting from loaded commands
+    if not shell.should_exit:
+        shell.cmdloop()
 
 # --------------------------------------------------------------------------- #
 # Entrypoint

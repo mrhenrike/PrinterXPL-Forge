@@ -17,7 +17,10 @@ import socket
 import tempfile
 import subprocess
 import traceback
-import requests
+try:
+    import requests
+except ImportError:
+    requests = None
 import time
 import signal
 import threading
@@ -45,7 +48,7 @@ class printer(cmd.Cmd, object):
     mode = None
     error = None
     iohack = True
-    timeout = 10
+    timeout = 30  # Increased to 30 seconds as requested
     max_retries = 3
     target = ""
     vol = ""
@@ -58,6 +61,7 @@ class printer(cmd.Cmd, object):
     interrupted = False
     current_command = None
     command_thread = None
+    should_exit = False  # Flag to indicate if shell should exit
 
     # --------------------------------------------------------------------
     # INITIALIZATION AND CONTROL METHODS
@@ -72,8 +76,9 @@ class printer(cmd.Cmd, object):
         # Setup signal handlers for graceful interruption
         self.setup_signal_handlers()
 
-        # connect to device
-        self.do_open(args.target, "init")
+        # connect to device (skip if target is test)
+        if args.target != "test":
+            self.do_open(args.target, "init")
         # log pjl/ps cmds to file
         if args.log:
             self.logfile = log().open(args.log)
@@ -87,65 +92,21 @@ class printer(cmd.Cmd, object):
         # run pret cmds from file
         if args.load:
             self.do_load(args.load)
-        # input loop with interruption handling
-        self.cmdloop_with_interruption()
+            # Mark that shell should exit after loading commands
+            self.should_exit = True
 
     def setup_signal_handlers(self):
         """Setup signal handlers for graceful interruption"""
         def signal_handler(signum, frame):
-            self.handle_interruption()
+            output().info("\nExiting PrinterReaper...")
+            sys.exit(0)
         
         # Handle SIGINT (Ctrl+C) and SIGTERM
         signal.signal(signal.SIGINT, signal_handler)
         if hasattr(signal, 'SIGTERM'):
             signal.signal(signal.SIGTERM, signal_handler)
 
-    def handle_interruption(self):
-        """Handle interruption (Ctrl+C, ESC, etc.)"""
-        if self.current_command:
-            # Stop current command
-            self.interrupted = True
-            output().warning("\n[!] Command interrupted. Stopping current operation...")
-            self.current_command = None
-        else:
-            # No command running, set flag for next input
-            self.interrupted = True
-            output().warning("\n[!] Interruption detected. Press Enter to continue or type 'exit' to quit.")
 
-    def cmdloop_with_interruption(self):
-        """Custom cmdloop that handles interruptions gracefully"""
-        while True:
-            try:
-                if self.interrupted:
-                    # Handle interruption
-                    self.interrupted = False
-                    continue
-                
-                # Get input with proper handling
-                line = input(self.prompt)
-                
-                # Check for interruption after input
-                if self.interrupted:
-                    self.interrupted = False
-                    continue
-                
-                # Process command
-                if line.strip():
-                    self.onecmd(line)
-                    
-            except (EOFError, KeyboardInterrupt):
-                # Handle EOF and KeyboardInterrupt gracefully
-                if self.interrupted:
-                    self.interrupted = False
-                    continue
-                else:
-                    output().info("\nExiting PrinterReaper...")
-                    break
-            except Exception as e:
-                if self.debug:
-                    traceback.print_exc()
-                output().errmsg(f"Error: {e}")
-                continue
 
     def set_defaults(self, newtarget):
         self.fuzz = False
@@ -153,6 +114,7 @@ class printer(cmd.Cmd, object):
             self.set_vol()
             self.set_traversal()
             self.error = None
+            self.set_prompt()  # Set prompt after connecting
         else:
             self.set_prompt()
 
@@ -166,7 +128,9 @@ class printer(cmd.Cmd, object):
     # show message for unknown commands
     def default(self, line):
         if line and line[0] != "#":  # interpret as comment
-            output().chitchat("Unknown command: '" + line + "'")
+            # Don't show error for EOF
+            if line.strip() != "EOF":
+                output().chitchat("Unknown command: '" + line + "'")
 
     # suppress help message for undocumented commands
     def print_topics(self, header, cmds, cmdlen, maxcol):
@@ -196,17 +160,33 @@ class printer(cmd.Cmd, object):
         self.current_command = line.strip()
         self.interrupted = False
         
+        # Set timeout for command execution
+        start_time = time.time()
+        max_execution_time = 30  # 30 seconds timeout
+        
         try:
+            # Execute command with timeout monitoring
             result = cmd.Cmd.onecmd(self, line)
+            
+            # Check if command took too long
+            execution_time = time.time() - start_time
+            if execution_time > max_execution_time:
+                output().warning(f"Command took {execution_time:.2f} seconds (timeout: {max_execution_time}s)")
+            
             # Clear current command on successful completion
             self.current_command = None
             return result
+            
         except (ConnectionResetError, BrokenPipeError, OSError) as e:
             output().errmsg("Connection lost - printer may have disconnected")
             self.current_command = None
             return False
         except socket.timeout as e:
             output().errmsg("Command timed out - printer may be busy")
+            self.current_command = None
+            return False
+        except KeyboardInterrupt:
+            output().warning("Command interrupted by user")
             self.current_command = None
             return False
         except Exception as e:
@@ -349,7 +329,7 @@ class printer(cmd.Cmd, object):
         if not arg:
             arg = eval(input("Target: "))
         self.target = arg
-        self.conn = conn(self.mode, self.debug, self.quiet).open(arg, mode)
+        self.conn = conn(self.mode, self.debug, self.quiet).open(arg)
         if self.conn:
             self.on_connect(mode)
             self.set_defaults(True)
@@ -1244,7 +1224,10 @@ class printer(cmd.Cmd, object):
                 cmd = cmd.strip()
                 if cmd and not cmd.startswith('#'):
                     output().info(f"Executing: {cmd}")
-                    self.onecmd(cmd)
+                    result = self.onecmd(cmd)
+                    # If command returns True (like exit), stop execution
+                    if result:
+                        break
         except Exception as e:
             output().errmsg(f"Load failed: {e}")
 

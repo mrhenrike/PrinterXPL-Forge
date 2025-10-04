@@ -1,5 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+PostScript Operators Database
+===============================
+This module contains a comprehensive list of PostScript operators organized by category.
+
+CURRENT STATUS: Reserved for future use
+WILL BE USED BY: PostScript module (src/modules/ps.py) in v2.4.0
+NOT CURRENTLY IMPORTED: This is intentional - awaiting PS module implementation
+
+Contains 400+ PostScript operators including:
+- Standard operators (file, exec, run, etc.)
+- Proprietary operators (Brother, HP, etc.)
+- Security-relevant operators for testing
+
+DO NOT REMOVE: Required for upcoming PostScript security testing module
+"""
 
 class operators():
     '''

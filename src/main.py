@@ -15,7 +15,6 @@ from core.osdetect import get_os
 from core.discovery import discovery
 from core.capabilities import capabilities
 from modules.pjl import pjl
-from modules.pjl_v2 import pjl_v2
 from utils.helper import output
 from version import get_version_string
 
@@ -37,8 +36,8 @@ def get_args() -> argparse.Namespace:
     parser.add_argument("target", help="Printer IP address or hostname")
     parser.add_argument(
         "mode",
-        choices=["pjl", "pjl2", "auto"],
-        help="Printer language to abuse (PJL v1, PJL v2, or auto-detect)",
+        choices=["pjl", "auto"],
+        help="Printer language to abuse (PJL or auto-detect)",
     )
     parser.add_argument(
         "-s",
@@ -189,7 +188,6 @@ def main() -> None:
     # Map language option to the corresponding interactive shell class.
     shell_map: Dict[str, Callable[[argparse.Namespace], object]] = {
         "pjl": pjl,
-        "pjl2": pjl_v2,
     }
 
     # Instantiate and run the chosen shell.

@@ -1209,3 +1209,34 @@ class printer(cmd.Cmd, object):
         output().header("cve")
         output().message("  List known CVEs for the connected printer based on its Device: string.")
         print()
+
+    def do_load(self, arg):
+        "Run commands from file: load <filename>"
+        if not arg:
+            output().errmsg("Usage: load <filename>")
+            return
+        
+        if not os.path.exists(arg):
+            output().errmsg(f"File not found: {arg}")
+            return
+        
+        try:
+            with open(arg, 'r') as f:
+                commands = f.readlines()
+            
+            for cmd in commands:
+                cmd = cmd.strip()
+                if cmd and not cmd.startswith('#'):
+                    output().info(f"Executing: {cmd}")
+                    self.onecmd(cmd)
+        except Exception as e:
+            output().errmsg(f"Load failed: {e}")
+
+    def help_load(self):
+        """Show help for load command"""
+        print()
+        print("load - Run commands from file")
+        print("Usage: load <filename>")
+        print("Executes commands from a text file line by line.")
+        print("Lines starting with # are treated as comments and ignored.")
+        print()

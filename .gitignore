@@ -24,6 +24,7 @@ MANIFEST
 # Backup folders
 old-files-backup/
 old-sources/
+deleted/
 
 # IDE
 .vscode/

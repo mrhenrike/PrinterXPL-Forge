@@ -513,7 +513,7 @@ class printer(cmd.Cmd, object):
         print()
 
     # ------------------------[ get <file> ]------------------------------
-    def do_get(self, arg, lpath="", r=True):
+    def do_download(self, arg, lpath="", r=True):
         "Receive file:  get <file>"
         if not arg:
             arg = eval(input("Remote file: "))
@@ -538,15 +538,15 @@ class printer(cmd.Cmd, object):
         size1, size2 = str(size1), str(size2)
         print(("Size mismatch (should: " + size1 + ", is: " + size2 + ")."))
 
-    def help_get(self):
+    def help_download(self):
         print()
-        output().header("get <remote_path>")
+        output().header("download <remote_path>")
         output().message("  Retrieves the file at <remote_path> and prints to stdout.")
-        output().red("  Example: get 1:/config.cfg")
+        output().red("  Example: download 1:/config.cfg")
         print()
 
     # ------------------------[ put <local file> ]------------------------
-    def do_put(self, arg, rpath=""):
+    def do_upload(self, arg, rpath=""):
         "Send file:  put <local file>"
         if not arg:
             arg = eval(input("Local file: "))
@@ -567,10 +567,10 @@ class printer(cmd.Cmd, object):
             else:
                 self.size_mismatch(lsize, rsize)
 
-    def help_put(self):
+    def help_upload(self):
         "Upload a local file to the printer"
         print()
-        output().header("put <local_path>")
+        output().header("upload <local_path>")
         output().message("  Sends the file data to the current working directory.")
         print()
 
@@ -1274,8 +1274,8 @@ class printer(cmd.Cmd, object):
             "chvol": "Change current volume",
             "traversal": "Set path traversal root",
             "cd": "Change directory",
-            "get": "Download file from printer",
-            "put": "Upload file to printer",
+            "download": "Download file from printer",
+            "upload": "Upload file to printer",
             "append": "Append to remote file",
             "delete": "Delete remote file",
             "cat": "Print remote file contents",
@@ -1292,8 +1292,6 @@ class printer(cmd.Cmd, object):
             "ls": "List directory contents",
             "mkdir": "Create directory",
             "find": "Find files and directories",
-            "upload": "Upload file to printer",
-            "download": "Download file from printer",
             "pjl_delete": "Delete file using PJL",
             "copy": "Copy file",
             "move": "Move/rename file",
@@ -1328,15 +1326,15 @@ class printer(cmd.Cmd, object):
             "status": "Toggle status messages"
         }
         
-        # Categorize commands
+        # Categorize commands (matching help categories exactly)
         categories = {
-            "Filesystem": ["ls", "mkdir", "find", "upload", "download", "pjl_delete", "copy", "move", "touch", "chmod", "permissions", "rmdir", "mirror", "get", "put", "append", "cat", "edit"],
-            "System Information": ["id", "variables", "printenv", "set", "pwd", "chvol", "traversal", "cd"],
-            "Control": ["display", "offline", "restart", "reset", "selftest", "backup", "restore", "open", "close", "reconnect"],
-            "Security": ["lock", "unlock", "disable", "nvram"],
-            "Attacks": ["destroy", "flood", "hold", "format", "fuzz"],
-            "Network": ["network", "direct", "execute", "discover", "timeout"],
-            "Utilities": ["load", "pagecount", "help", "status", "exit", "debug", "loop", "print", "convert", "support", "cve"]
+            "filesystem": ["ls", "mkdir", "find", "upload", "download", "pjl_delete", "copy", "move", "touch", "chmod", "permissions", "rmdir", "mirror", "download", "upload", "append", "cat", "edit"],
+            "system": ["id", "variables", "printenv", "set", "pwd", "chvol", "traversal", "cd"],
+            "control": ["display", "offline", "restart", "reset", "selftest", "backup", "restore", "open", "close", "reconnect"],
+            "security": ["lock", "unlock", "disable", "nvram"],
+            "attacks": ["destroy", "flood", "hold", "format", "fuzz"],
+            "network": ["network", "direct", "execute", "discover", "timeout"],
+            "monitoring": ["load", "pagecount", "help", "status", "exit", "debug", "loop", "print", "convert", "support", "cve"]
         }
         
         # Display commands by category

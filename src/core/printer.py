@@ -1278,7 +1278,12 @@ class printer(cmd.Cmd, object):
 
     def recv(self, *args):
         if self.conn:
-            return self.conn.recv(*args)
+            # If multiple args, use recv_until (delimiter, fb, crop, binary)
+            # If single arg, use recv (bytes)
+            if len(args) > 1:
+                return self.conn.recv_until(*args)
+            else:
+                return self.conn.recv(*args)
         return ""
 
     def cmd_with_retry(self, command, max_retries=None):

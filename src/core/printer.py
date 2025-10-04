@@ -579,7 +579,12 @@ class printer(cmd.Cmd, object):
     def do_traversal(self, arg):
         "Set path traversal root"
         if not arg:
-            arg = eval(input("Traversal root: "))
+            # Show current traversal root if no argument provided
+            if self.traversal:
+                output().message(f"Current traversal root: {self.traversal}")
+            else:
+                output().message("Traversal root not set (unrestricted)")
+            return
         self.set_traversal(arg)
 
     def set_traversal(self, traversal=""):

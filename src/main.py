@@ -15,6 +15,8 @@ from core.osdetect import get_os
 from core.discovery import discovery
 from core.capabilities import capabilities
 from modules.pjl import pjl
+from modules.ps import ps
+from modules.pcl import pcl
 from utils.helper import output
 from version import get_version_string
 
@@ -36,8 +38,8 @@ def get_args() -> argparse.Namespace:
     parser.add_argument("target", help="Printer IP address or hostname")
     parser.add_argument(
         "mode",
-        choices=["pjl", "auto"],
-        help="Printer language to abuse (PJL or auto-detect)",
+        choices=["pjl", "ps", "pcl", "auto"],
+        help="Printer language to abuse (PJL, PostScript, PCL, or auto-detect)",
     )
     parser.add_argument(
         "-s",
@@ -173,26 +175,30 @@ def main() -> None:
         output().green(f">> Starting {APP_NAME} (Advanced Printer Penetration Testing)")
         print()
 
-    # Auto-detect PJL support if mode is 'auto'
+    # Auto-detect printer language support if mode is 'auto'
     if args.mode == 'auto':
-        output().info("Auto-detecting PJL support...")
-        # Simple PJL detection - try to connect and check for PJL support
-        try:
-            import socket
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(5)
-            result = sock.connect_ex((args.target, 9100))
-            sock.close()
-            
-            if result == 0:
-                args.mode = 'pjl2'  # Default to PJL v2.0
-                output().info("PJL support detected. Using PJL v2.0")
+        output().info("Auto-detecting printer language support...")
+        # Try to detect via capabilities
+        cap = capabilities(args)
+        
+        # Priority: PJL > PostScript > PCL
+        if cap.support:
+            if 'PJL' in str(cap.support):
+                args.mode = 'pjl'
+                output().info("✅ PJL support detected. Using PJL mode")
+            elif 'PostScript' in str(cap.support) or 'PS' in str(cap.support):
+                args.mode = 'ps'
+                output().info("✅ PostScript support detected. Using PS mode")
+            elif 'PCL' in str(cap.support):
+                args.mode = 'pcl'
+                output().info("✅ PCL support detected. Using PCL mode")
             else:
-                output().red("No PJL support detected. Exiting.")
-                sys.exit(1)
-        except Exception as e:
-            output().red(f"Auto-detection failed: {e}")
-            sys.exit(1)
+                output().warning("⚠️  Unknown language detected. Defaulting to PJL")
+                args.mode = 'pjl'
+        else:
+            # Fallback to PJL
+            output().warning("⚠️  Could not detect language. Defaulting to PJL")
+            args.mode = 'pjl'
 
     # Capability auto-detection (e.g., SNMP, USB IDs, PJL INFO, etc.)
     capabilities(args)
@@ -200,6 +206,8 @@ def main() -> None:
     # Map language option to the corresponding interactive shell class.
     shell_map: Dict[str, Callable[[argparse.Namespace], object]] = {
         "pjl": pjl,
+        "ps": ps,
+        "pcl": pcl,
     }
 
     # Instantiate and run the chosen shell.

@@ -1,0 +1,60 @@
+%% PrinterReaper v2.4.2 - Layered Architecture
+%% Generates: diagrams/png/architecture_layered.png
+flowchart TB
+    subgraph L1[Presentation Layer]
+      CLI["CLI Interface<br/>argparse + cmd.Cmd<br/>Help/Completion/History"]
+    end
+
+    subgraph L2[Application Layer]
+      PJL["PJL Module (pjl.py)<br/>54 commands"]
+      PS["PostScript Module (ps.py)<br/>40 commands"]
+      PCL["PCL Module (pcl.py)<br/>15 commands"]
+    end
+
+    subgraph L3[Business Logic Layer]
+      PRINTER["Base Class (printer.py)<br/>Connection<br/>File Ops<br/>Retry/Timeout<br/>Mirror/Fuzz"]
+    end
+
+    subgraph L4[Utility Engines]
+      CODEBOOK["Codebook (codebook.py)<br/>378 PJL error codes"]
+      FUZZER["Fuzzer (fuzzer.py)<br/>381 vectors"]
+      OPERATORS["Operators (operators.py)<br/>371 PS operators"]
+      PAYLOADS["Payload System (payloads/*.ps)<br/>5 payloads"]
+      HELPER["helper.py<br/>output/conn/file/conv/log"]
+    end
+
+    subgraph L5[Protocol Layer]
+      RAW["RAW :9100 (raw.py)"]
+      LPD["LPD :515 (lpd.py)"]
+      IPP["IPP :631 (ipp.py)"]
+      SMB["SMB :445 (smb.py)"]
+    end
+
+    subgraph L6[Transport Layer]
+      TCP["TCP/IP (socket)"]
+    end
+
+    subgraph L7[Target Layer]
+      PRN["Target Printer<br/>PJL/PS/PCL Interpreters<br/>Filesystem/NVRAM/Jobs"]
+    end
+
+    CLI -->|main.py selects mode| PJL
+    CLI -->|main.py selects mode| PS
+    CLI -->|main.py selects mode| PCL
+    PJL --> PRINTER
+    PS --> PRINTER
+    PCL --> PRINTER
+    PRINTER --> HELPER
+    PRINTER --> CODEBOOK
+    PRINTER --> FUZZER
+    PS --> OPERATORS
+    PS --> PAYLOADS
+    PRINTER --> RAW
+    PRINTER --> LPD
+    PRINTER --> IPP
+    PRINTER --> SMB
+    RAW --> TCP --> PRN
+    LPD --> TCP
+    IPP --> TCP
+    SMB --> TCP
+

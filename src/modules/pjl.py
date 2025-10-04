@@ -42,8 +42,12 @@ class pjl(printer):
         if not wait:
             return ""
 
-        # receive until token
+        # receive until token with timeout
         try:
+            # Set a reasonable timeout for receiving data (30 seconds as requested)
+            if hasattr(self.conn, '_sock') and self.conn._sock:
+                self.conn._sock.settimeout(30.0)  # 30 second timeout
+            
             raw = self.recv(r"(@PJL ECHO\s+)?" + re.escape(token) + r".*$",
                             wait, True, binary)
         except Exception as e:
@@ -184,6 +188,10 @@ class pjl(printer):
         try:
             # Download file using PJL FSDOWNLOAD
             data = self.cmd(f"@PJL FSDOWNLOAD NAME=\"{remote_file}\"", binary=True)
+            
+            # Ensure data is bytes
+            if isinstance(data, str):
+                data = data.encode('utf-8')
             
             with open(local_path, 'wb') as f:
                 f.write(data)
@@ -599,12 +607,17 @@ class pjl(printer):
                 # This is a destructive command - be very careful
                 output().warning("Executing destructive command...")
                 
-                # Check for interruption during execution
+                # Check for interruption during execution with better control
                 for i in range(10):  # Simulate long operation
                     if hasattr(self, 'interrupted') and self.interrupted:
                         output().warning("Command interrupted by user")
                         return
-                    time.sleep(0.1)  # Small delay to allow interruption
+                    # Check for keyboard interrupt more frequently
+                    try:
+                        time.sleep(0.1)  # Small delay to allow interruption
+                    except KeyboardInterrupt:
+                        output().warning("Command interrupted by user")
+                        return
                 
                 self.cmd("@PJL SET NVRAM=0", False)
                 output().warning("Destructive command executed")
@@ -810,6 +823,35 @@ class pjl(printer):
         print("status      - Toggle status messages")
         print()
 
+    def do_test_interrupt(self, arg):
+        "Test interrupt handling system"
+        output().info("Testing interrupt handling system...")
+        output().info("This command will run for 10 seconds. Press Ctrl+C to interrupt.")
+        
+        try:
+            for i in range(100):  # 10 seconds with 0.1 second intervals
+                if hasattr(self, 'interrupted') and self.interrupted:
+                    output().warning("Test interrupted by user")
+                    return
+                
+                output().info(f"Test running... {i+1}/100")
+                time.sleep(0.1)
+                
+        except KeyboardInterrupt:
+            output().warning("Test interrupted by keyboard")
+            return
+        
+        output().info("Test completed successfully")
+
+    def help_test_interrupt(self):
+        """Show help for test_interrupt command"""
+        print()
+        print("test_interrupt - Test interrupt handling system")
+        print("Usage: test_interrupt")
+        print("Tests the interrupt handling system by running a timed operation.")
+        print("Use Ctrl+C to interrupt the test.")
+        print()
+
     def do_help(self, arg):
         """Show help for commands"""
         if not arg:
@@ -824,6 +866,7 @@ class pjl(printer):
             print("attacks     - Attack and testing")
             print("network     - Network and connectivity")
             print("monitoring  - Monitoring and status")
+            print("test        - Testing and debugging")
             print()
             print("Use 'help <category>' for detailed help")
             print("Use 'help <command>' for specific command help")
@@ -842,6 +885,12 @@ class pjl(printer):
             self.help_network()
         elif arg == "monitoring":
             self.help_monitoring()
+        elif arg == "test":
+            print()
+            print("Test Commands:")
+            print("=" * 50)
+            print("test_interrupt - Test interrupt handling system")
+            print()
         else:
             # Try to find specific command help
             method_name = f"help_{arg}"
@@ -903,3 +952,100 @@ class pjl(printer):
             "id", "status", "memory", "filesys", "variables", "config",
             "network", "wifi", "direct", "nvram", "pagecount"
         ]
+    
+    # --------------------------------------------------------------------
+    # FILE OPERATIONS (Implementing missing methods from printer base class)
+    # --------------------------------------------------------------------
+    
+    def get(self, path):
+        """
+        Download/read file from printer using PJL FSDOWNLOAD
+        Returns tuple (size, data) or c.NONEXISTENT if file doesn't exist
+        """
+        try:
+            from utils.helper import const as c
+            
+            # Try to download the file using PJL FSDOWNLOAD
+            result = self.cmd(f"@PJL FSDOWNLOAD NAME=\"{path}\"", binary=True)
+            
+            if result and len(result) > 0:
+                # File exists and was downloaded
+                return (len(result), result.encode() if isinstance(result, str) else result)
+            else:
+                # File doesn't exist or is empty
+                return c.NONEXISTENT
+                
+        except Exception as e:
+            output().errmsg(f"Get file failed: {e}")
+            from utils.helper import const as c
+            return c.NONEXISTENT
+    
+    def put(self, path, data):
+        """
+        Upload/write file to printer using PJL FSUPLOAD
+        Returns size of data written or c.NONEXISTENT on error
+        """
+        try:
+            from utils.helper import const as c
+            
+            # Ensure data is bytes
+            if isinstance(data, str):
+                data = data.encode('utf-8')
+            
+            # Upload file using PJL FSUPLOAD
+            self.cmd(f"@PJL FSUPLOAD NAME=\"{path}\" OFFSET=0 SIZE={len(data)}")
+            self.send(data)
+            
+            # Return size of data written
+            return len(data)
+            
+        except Exception as e:
+            output().errmsg(f"Put file failed: {e}")
+            from utils.helper import const as c
+            return c.NONEXISTENT
+    
+    def append(self, path, data):
+        """
+        Append data to file on printer
+        First reads file, then writes it back with appended data
+        """
+        try:
+            from utils.helper import const as c
+            
+            # Ensure data is string for appending
+            if isinstance(data, bytes):
+                data = data.decode('utf-8')
+            
+            # Try to read existing file
+            result = self.get(path)
+            
+            if result == c.NONEXISTENT:
+                # File doesn't exist, create new with data
+                existing_data = ""
+            else:
+                # File exists, get its content
+                size, content = result
+                existing_data = content.decode('utf-8') if isinstance(content, bytes) else content
+            
+            # Append new data
+            new_data = existing_data + data + "\n"
+            
+            # Write back to file
+            return self.put(path, new_data)
+            
+        except Exception as e:
+            output().errmsg(f"Append failed: {e}")
+            from utils.helper import const as c
+            return c.NONEXISTENT
+    
+    def delete(self, path):
+        """
+        Delete file using PJL FSDELETE
+        """
+        try:
+            self.cmd(f"@PJL FSDELETE NAME=\"{path}\"")
+            output().info(f"Deleted {path}")
+            return True
+        except Exception as e:
+            output().errmsg(f"Delete failed: {e}")
+            return False

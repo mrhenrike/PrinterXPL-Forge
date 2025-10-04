@@ -39,6 +39,6 @@
 
 ---
 
-**Version 2.3.4**  
+**Version 2.4.2**  
 *feast on paper*
 

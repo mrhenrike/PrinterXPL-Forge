@@ -1,8 +1,8 @@
 # 📚 PrinterReaper Wiki - Complete Documentation
 
-**Version**: 2.3.4  
+**Version**: 2.4.2  
 **Last Updated**: October 4, 2025  
-**Total Pages**: 11
+**Total Pages**: 14
 
 ---
 

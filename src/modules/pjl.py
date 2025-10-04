@@ -150,6 +150,29 @@ class pjl(printer):
         "Recursively list all files"
         self.fswalk(arg, "find")
 
+    def help_find(self):
+        """Show help for find command"""
+        print()
+        print("find - Recursively list all files in the printer's file system")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  Walks through the entire directory tree starting from the specified")
+        print("  path and lists all files and directories found.")
+        print()
+        print("USAGE:")
+        print("  find [path]")
+        print()
+        print("EXAMPLES:")
+        print("  find                     # List all files from root")
+        print("  find 0:/                 # List all files on volume 0")
+        print("  find /webServer          # Find files in webServer directory")
+        print()
+        print("NOTES:")
+        print("  - May take time on large filesystems")
+        print("  - Shows full path for each file")
+        print("  - Useful for discovering hidden files")
+        print()
+
     def do_upload(self, arg):
         "Upload file to printer: upload <local_file> [remote_path]"
         if not arg:
@@ -174,6 +197,30 @@ class pjl(printer):
             output().info(f"Uploaded {local_file} to {remote_path}")
         except Exception as e:
             output().errmsg(f"Upload failed: {e}")
+
+    def help_upload(self):
+        """Show help for upload command"""
+        print()
+        print("upload - Upload a local file to the printer")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  Transfers a file from the local system to the printer's file system")
+        print("  using PJL FSUPLOAD command. Supports any file type.")
+        print()
+        print("USAGE:")
+        print("  upload <local_file> [remote_path]")
+        print()
+        print("EXAMPLES:")
+        print("  upload config.txt                # Upload to root with same name")
+        print("  upload /path/file.cfg 0:/file.cfg  # Upload to specific location")
+        print("  upload backdoor.ps 1:/backdoor.ps  # Upload to volume 1")
+        print()
+        print("NOTES:")
+        print("  - Local file must exist and be readable")
+        print("  - Remote path is optional (uses basename if omitted)")
+        print("  - File size is automatically calculated")
+        print("  - Use volume prefix (0:, 1:) for specific volumes")
+        print()
 
     def do_download(self, arg):
         "Download file from printer: download <remote_file> [local_path]"
@@ -200,12 +247,60 @@ class pjl(printer):
         except Exception as e:
             output().errmsg(f"Download failed: {e}")
 
+    def help_download(self):
+        """Show help for download command"""
+        print()
+        print("download - Download a file from the printer")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  Retrieves a file from the printer's file system and saves it")
+        print("  locally using PJL FSDOWNLOAD command. Supports any file type.")
+        print()
+        print("USAGE:")
+        print("  download <remote_file> [local_path]")
+        print()
+        print("EXAMPLES:")
+        print("  download config.cfg                # Download to current directory")
+        print("  download 0:/passwd /tmp/passwd     # Download with different name")
+        print("  download 1:/backup.cfg backup.cfg  # Download from volume 1")
+        print()
+        print("NOTES:")
+        print("  - Remote file must exist and be readable")
+        print("  - Local path is optional (uses basename if omitted)")
+        print("  - File is saved as binary to preserve integrity")
+        print("  - Use for exfiltrating configuration files")
+        print()
+
     def do_pjl_delete(self, arg):
         "Delete remote file using PJL: pjl_delete <file>"
         if not arg:
             output().errmsg("Usage: pjl_delete <file>")
             return
         self.cmd("@PJL FSDELETE NAME=\"" + arg + "\"")
+
+    def help_pjl_delete(self):
+        """Show help for pjl_delete command"""
+        print()
+        print("pjl_delete - Delete a file from the printer using PJL")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  Removes a file from the printer's file system using the")
+        print("  PJL FSDELETE command. Permanent operation - cannot be undone.")
+        print()
+        print("USAGE:")
+        print("  pjl_delete <file>")
+        print()
+        print("EXAMPLES:")
+        print("  pjl_delete old.log           # Delete file from current directory")
+        print("  pjl_delete 0:/tmp/temp.cfg   # Delete specific file")
+        print("  pjl_delete /webServer/test   # Delete file from webServer")
+        print()
+        print("NOTES:")
+        print("  - File is permanently deleted")
+        print("  - Cannot be undone")
+        print("  - Use with caution")
+        print("  - May be used to remove backdoors or logs")
+        print()
 
     def do_copy(self, arg):
         "Copy remote file: copy <source> <destination>"
@@ -228,6 +323,30 @@ class pjl(printer):
         except Exception as e:
             output().errmsg(f"Copy failed: {e}")
 
+    def help_copy(self):
+        """Show help for copy command"""
+        print()
+        print("copy - Copy a file on the printer")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  Creates a duplicate of a file in the printer's file system")
+        print("  by downloading the source and uploading it to the destination.")
+        print()
+        print("USAGE:")
+        print("  copy <source> <destination>")
+        print()
+        print("EXAMPLES:")
+        print("  copy config.cfg config.bak    # Backup configuration")
+        print("  copy 0:/file.txt 1:/file.txt  # Copy between volumes")
+        print("  copy passwd passwd.original   # Save original passwd file")
+        print()
+        print("NOTES:")
+        print("  - Source file must exist and be readable")
+        print("  - Destination will be overwritten if it exists")
+        print("  - Uses download + upload internally")
+        print("  - Useful for creating backups")
+        print()
+
     def do_move(self, arg):
         "Move remote file: move <source> <destination>"
         if not arg:
@@ -248,6 +367,30 @@ class pjl(printer):
         except Exception as e:
             output().errmsg(f"Move failed: {e}")
 
+    def help_move(self):
+        """Show help for move command"""
+        print()
+        print("move - Move/rename a file on the printer")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  Moves a file from one location to another on the printer.")
+        print("  Effectively renames the file by copying and deleting the original.")
+        print()
+        print("USAGE:")
+        print("  move <source> <destination>")
+        print()
+        print("EXAMPLES:")
+        print("  move old.cfg new.cfg          # Rename file")
+        print("  move 0:/file.txt 1:/file.txt  # Move between volumes")
+        print("  move /tmp/test /backup/test   # Move to different directory")
+        print()
+        print("NOTES:")
+        print("  - Source file is deleted after successful copy")
+        print("  - Destination will be overwritten if it exists")
+        print("  - Use copy if you want to keep the original")
+        print("  - Original file is permanently removed")
+        print()
+
     def do_touch(self, arg):
         "Update remote file timestamp, or create it if missing: touch <file>"
         if not arg:
@@ -260,6 +403,30 @@ class pjl(printer):
             output().info(f"Touched {arg}")
         except Exception as e:
             output().errmsg(f"Touch failed: {e}")
+
+    def help_touch(self):
+        """Show help for touch command"""
+        print()
+        print("touch - Create an empty file or update timestamp")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  Creates a new empty file on the printer or updates the")
+        print("  timestamp of an existing file (if supported by the printer).")
+        print()
+        print("USAGE:")
+        print("  touch <file>")
+        print()
+        print("EXAMPLES:")
+        print("  touch newfile.txt           # Create empty file")
+        print("  touch 0:/marker             # Create marker file")
+        print("  touch /tmp/test.log         # Create empty log")
+        print()
+        print("NOTES:")
+        print("  - Creates a zero-length file")
+        print("  - File is created if it doesn't exist")
+        print("  - Some printers may update timestamp instead")
+        print("  - Useful for creating placeholder files")
+        print()
 
     def do_chmod(self, arg):
         "Change file permissions: chmod <permissions> <file>"
@@ -280,6 +447,30 @@ class pjl(printer):
         except Exception as e:
             output().errmsg(f"Chmod failed: {e}")
 
+    def help_chmod(self):
+        """Show help for chmod command"""
+        print()
+        print("chmod - Change file permissions")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  Attempts to change file permissions on the printer using")
+        print("  PJL FSSETATTR command. Support varies by printer model.")
+        print()
+        print("USAGE:")
+        print("  chmod <permissions> <file>")
+        print()
+        print("EXAMPLES:")
+        print("  chmod 644 config.cfg        # Set read/write for owner")
+        print("  chmod 755 script.sh         # Set executable permissions")
+        print("  chmod 0 protected.txt       # Remove all permissions")
+        print()
+        print("NOTES:")
+        print("  - Not all printers support chmod")
+        print("  - Permission format may vary by printer")
+        print("  - Use permissions command to test access")
+        print("  - Some printers ignore this command")
+        print()
+
     def do_permissions(self, arg):
         "Test file permissions on remote device"
         if not arg:
@@ -296,6 +487,30 @@ class pjl(printer):
         except Exception as e:
             output().errmsg(f"Permission test failed: {e}")
 
+    def help_permissions(self):
+        """Show help for permissions command"""
+        print()
+        print("permissions - Test file permissions")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  Tests whether a file is accessible on the printer by")
+        print("  attempting to query it using PJL FSQUERY command.")
+        print()
+        print("USAGE:")
+        print("  permissions <file>")
+        print()
+        print("EXAMPLES:")
+        print("  permissions config.cfg      # Test if file is accessible")
+        print("  permissions /etc/passwd     # Test sensitive file access")
+        print("  permissions 0:/protected    # Test protected file")
+        print()
+        print("NOTES:")
+        print("  - Reports if file is accessible or not")
+        print("  - Useful for permission enumeration")
+        print("  - Does not show specific permission bits")
+        print("  - Part of security testing toolkit")
+        print()
+
     def do_rmdir(self, arg):
         "Remove remote directory: rmdir <directory>"
         if not arg:
@@ -303,10 +518,59 @@ class pjl(printer):
             return
         self.cmd("@PJL FSDELETE NAME=\"" + arg + "\"")
 
+    def help_rmdir(self):
+        """Show help for rmdir command"""
+        print()
+        print("rmdir - Remove a directory")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  Deletes a directory from the printer's file system using")
+        print("  PJL FSDELETE command. Directory must be empty.")
+        print()
+        print("USAGE:")
+        print("  rmdir <directory>")
+        print()
+        print("EXAMPLES:")
+        print("  rmdir olddir                # Remove empty directory")
+        print("  rmdir 0:/tmp                # Remove tmp directory")
+        print("  rmdir /backup               # Remove backup folder")
+        print()
+        print("NOTES:")
+        print("  - Directory must be empty")
+        print("  - Use pjl_delete to remove files first")
+        print("  - Operation cannot be undone")
+        print("  - Some printers may not support this")
+        print()
+
     def do_mirror(self, arg):
         "Mirror remote filesystem locally"
         print("Mirroring " + c.SEP + self.vpath(arg))
         self.fswalk(arg, "mirror")
+
+    def help_mirror(self):
+        """Show help for mirror command"""
+        print()
+        print("mirror - Mirror the printer's filesystem locally")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  Recursively downloads the entire directory tree from the printer")
+        print("  to create a local copy. Useful for forensics and backup.")
+        print()
+        print("USAGE:")
+        print("  mirror [path]")
+        print()
+        print("EXAMPLES:")
+        print("  mirror                      # Mirror entire filesystem")
+        print("  mirror 0:/                  # Mirror volume 0")
+        print("  mirror /webServer           # Mirror webServer directory only")
+        print()
+        print("NOTES:")
+        print("  - Creates local directory structure")
+        print("  - Downloads all accessible files")
+        print("  - May take considerable time")
+        print("  - Useful for offline analysis and forensics")
+        print("  - Preserves directory structure")
+        print()
 
     # --------------------------------------------------------------------
     # ℹ️ INFORMAÇÕES DO SISTEMA (3 comandos)
@@ -424,6 +688,30 @@ class pjl(printer):
         
         self.cmd("@PJL DISPLAY \"" + message + "\"")
 
+    def help_display(self):
+        """Show help for display command"""
+        print()
+        print("display - Set printer's display message")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  Changes the message shown on the printer's control panel display.")
+        print("  Useful for sending messages or testing display functionality.")
+        print()
+        print("USAGE:")
+        print("  display <message>")
+        print()
+        print("EXAMPLES:")
+        print("  display 'System Maintenance'     # Show maintenance message")
+        print("  display 'Printer hacked'         # Demonstration message")
+        print("  display 'Out of service'         # Service notice")
+        print()
+        print("NOTES:")
+        print("  - Message length limited by printer")
+        print("  - Some printers ignore this command")
+        print("  - Can be used for social engineering")
+        print("  - Display reverts after timeout or job")
+        print()
+
     def do_offline(self, arg):
         "Take printer offline and display message: offline <message>"
         if not arg:
@@ -437,10 +725,57 @@ class pjl(printer):
         
         self.cmd("@PJL OFFLINE \"" + message + "\"")
 
+    def help_offline(self):
+        """Show help for offline command"""
+        print()
+        print("offline - Take printer offline with custom message")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  Takes the printer offline and displays a custom message on the")
+        print("  control panel. Printer will not accept new jobs until brought back online.")
+        print()
+        print("USAGE:")
+        print("  offline <message>")
+        print()
+        print("EXAMPLES:")
+        print("  offline 'Under maintenance'      # Maintenance mode")
+        print("  offline 'Reserved for testing'   # Reserve printer")
+        print("  offline 'System upgrade'         # Upgrade notice")
+        print()
+        print("NOTES:")
+        print("  - Printer stops accepting jobs")
+        print("  - User must manually bring printer online")
+        print("  - Can be used for denial of service")
+        print("  - Some printers may ignore this command")
+        print()
+
     def do_restart(self, arg):
         "Restart printer"
         output().raw("Restarting printer...")
         self.cmd("@PJL RESET", False)
+
+    def help_restart(self):
+        """Show help for restart command"""
+        print()
+        print("restart - Restart the printer")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  Performs a soft reset of the printer, restarting the print")
+        print("  engine and reinitializing all settings. Clears current job queue.")
+        print()
+        print("USAGE:")
+        print("  restart")
+        print()
+        print("EXAMPLES:")
+        print("  restart                          # Restart printer")
+        print()
+        print("NOTES:")
+        print("  - All queued jobs will be lost")
+        print("  - Printer will be offline during restart")
+        print("  - Settings are preserved (not factory reset)")
+        print("  - Takes 30-60 seconds to complete")
+        print("  - Use reset for factory defaults")
+        print()
 
     def do_reset(self, arg):
         "Reset to factory defaults"
@@ -454,6 +789,31 @@ class pjl(printer):
             output().info("Printer reset to factory defaults")
         else:
             output().info("Reset cancelled")
+
+    def help_reset(self):
+        """Show help for reset command"""
+        print()
+        print("reset - Reset printer to factory defaults")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  Resets all printer settings to factory defaults. This is a")
+        print("  destructive operation that cannot be undone. All custom settings,")
+        print("  network configurations, and stored data will be lost.")
+        print()
+        print("USAGE:")
+        print("  reset")
+        print()
+        print("EXAMPLES:")
+        print("  reset                            # Reset to factory defaults")
+        print()
+        print("NOTES:")
+        print("  - Requires confirmation (type 'yes')")
+        print("  - All settings will be lost")
+        print("  - Network configuration will be reset")
+        print("  - Cannot be undone")
+        print("  - Use restart for simple reboot")
+        print("  - Printer will need reconfiguration")
+        print()
 
     def do_selftest(self, arg):
         "Perform various printer self-tests"
@@ -480,6 +840,34 @@ class pjl(printer):
         else:
             output().errmsg("Invalid choice")
 
+    def help_selftest(self):
+        """Show help for selftest command"""
+        print()
+        print("selftest - Perform printer self-tests")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  Runs various diagnostic tests on the printer to verify")
+        print("  functionality. Includes print test, network test, memory test.")
+        print()
+        print("USAGE:")
+        print("  selftest")
+        print()
+        print("TEST OPTIONS:")
+        print("  1. Print test page    - Tests print engine")
+        print("  2. Network test       - Tests network connectivity")
+        print("  3. Memory test        - Tests RAM integrity")
+        print("  4. All tests          - Runs complete diagnostic suite")
+        print()
+        print("EXAMPLES:")
+        print("  selftest                         # Interactive test selection")
+        print()
+        print("NOTES:")
+        print("  - Tests may take several minutes")
+        print("  - Test page will be printed for option 1")
+        print("  - Some printers have limited test support")
+        print("  - Useful for troubleshooting hardware issues")
+        print()
+
     def do_backup(self, arg):
         "Backup printer configuration"
         if not arg:
@@ -497,6 +885,30 @@ class pjl(printer):
                 output().errmsg("Failed to get configuration")
         except Exception as e:
             output().errmsg(f"Backup failed: {e}")
+
+    def help_backup(self):
+        """Show help for backup command"""
+        print()
+        print("backup - Backup printer configuration")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  Retrieves the current printer configuration and saves it to")
+        print("  a local file. Useful for backup before making changes.")
+        print()
+        print("USAGE:")
+        print("  backup <filename>")
+        print()
+        print("EXAMPLES:")
+        print("  backup config.backup             # Save configuration")
+        print("  backup printer_$(date).cfg       # Timestamped backup")
+        print("  backup /backups/printer.cfg      # Full path backup")
+        print()
+        print("NOTES:")
+        print("  - Saves current configuration to local file")
+        print("  - Does not include print jobs")
+        print("  - Use before making risky changes")
+        print("  - Use restore to apply backed up configuration")
+        print()
 
     def do_restore(self, arg):
         "Restore printer configuration from backup"
@@ -517,6 +929,30 @@ class pjl(printer):
             output().info(f"Configuration from {arg} loaded")
         except Exception as e:
             output().errmsg(f"Restore failed: {e}")
+
+    def help_restore(self):
+        """Show help for restore command"""
+        print()
+        print("restore - Restore printer configuration from backup")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  Loads a previously saved printer configuration from a backup")
+        print("  file. Note: automatic restoration may not be supported on all printers.")
+        print()
+        print("USAGE:")
+        print("  restore <filename>")
+        print()
+        print("EXAMPLES:")
+        print("  restore config.backup            # Restore from backup")
+        print("  restore /backups/printer.cfg     # Restore from path")
+        print()
+        print("NOTES:")
+        print("  - Backup file must exist")
+        print("  - Manual configuration may be required")
+        print("  - Not all settings may be restorable via PJL")
+        print("  - Test in safe environment first")
+        print("  - May require printer restart")
+        print()
 
     # --------------------------------------------------------------------
     # 🔒 SEGURANÇA E ACESSO (4 comandos)
@@ -543,6 +979,30 @@ class pjl(printer):
         except ValueError:
             output().errmsg("Invalid PIN format")
 
+    def help_lock(self):
+        """Show help for lock command"""
+        print()
+        print("lock - Lock printer control panel and disk access")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  Sets a PIN code to lock the printer's control panel settings")
+        print("  and restrict disk write access. Prevents unauthorized changes.")
+        print()
+        print("USAGE:")
+        print("  lock [PIN]")
+        print()
+        print("EXAMPLES:")
+        print("  lock 12345                       # Lock with PIN 12345")
+        print("  lock                             # Prompt for PIN")
+        print()
+        print("NOTES:")
+        print("  - PIN must be between 1 and 65535")
+        print("  - Remember the PIN - recovery may not be possible")
+        print("  - Use unlock command to remove lock")
+        print("  - Some printers don't support this feature")
+        print("  - Can be used for security or denial of service")
+        print()
+
     def do_unlock(self, arg):
         "Unlock control panel settings and disk write access"
         if not arg:
@@ -556,6 +1016,29 @@ class pjl(printer):
         
         self.cmd("@PJL SET LOCKPIN=0")
         output().info("Printer unlocked")
+
+    def help_unlock(self):
+        """Show help for unlock command"""
+        print()
+        print("unlock - Unlock printer control panel and disk access")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  Removes the PIN code lock from the printer, restoring normal")
+        print("  access to control panel and disk write operations.")
+        print()
+        print("USAGE:")
+        print("  unlock [PIN]")
+        print()
+        print("EXAMPLES:")
+        print("  unlock 12345                     # Unlock with PIN 12345")
+        print("  unlock                           # Prompt for PIN")
+        print()
+        print("NOTES:")
+        print("  - Correct PIN required (or try brute force)")
+        print("  - Setting PIN to 0 removes lock")
+        print("  - Use unlock_bruteforce for PIN recovery")
+        print("  - Some printers have limited unlock support")
+        print()
 
     def do_disable(self, arg):
         "Disable printer functionality"
@@ -592,6 +1075,33 @@ class pjl(printer):
         else:
             output().errmsg("Unknown NVRAM operation")
 
+    def help_nvram(self):
+        """Show help for nvram command"""
+        print()
+        print("nvram - Access and manipulate NVRAM")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  Accesses the printer's non-volatile RAM (NVRAM) which stores")
+        print("  settings, passwords, and configuration data.")
+        print()
+        print("USAGE:")
+        print("  nvram <dump|set|get> [options]")
+        print()
+        print("OPERATIONS:")
+        print("  dump  - Dump entire NVRAM contents")
+        print("  set   - Set NVRAM value (not implemented)")
+        print("  get   - Get NVRAM value (not implemented)")
+        print()
+        print("EXAMPLES:")
+        print("  nvram dump                       # Dump all NVRAM")
+        print()
+        print("NOTES:")
+        print("  - May contain sensitive information")
+        print("  - Passwords may be stored in NVRAM")
+        print("  - Useful for information disclosure")
+        print("  - Some data may be encrypted")
+        print()
+
     # --------------------------------------------------------------------
     # 💥 ATAQUES E TESTES (4 comandos)
     # --------------------------------------------------------------------
@@ -626,6 +1136,34 @@ class pjl(printer):
         except (EOFError, KeyboardInterrupt):
             output().info("Command cancelled")
 
+    def help_destroy(self):
+        """Show help for destroy command"""
+        print()
+        print("destroy - Attempt to cause physical damage to NVRAM")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  **DESTRUCTIVE ATTACK** - Attempts to cause physical damage")
+        print("  to the printer's NVRAM by repeatedly writing invalid data.")
+        print("  May permanently damage the printer.")
+        print()
+        print("USAGE:")
+        print("  destroy")
+        print()
+        print("EXAMPLES:")
+        print("  destroy                          # Execute destructive attack")
+        print()
+        print("WARNINGS:")
+        print("  ⚠️  MAY CAUSE PERMANENT HARDWARE DAMAGE")
+        print("  ⚠️  CANNOT BE UNDONE")
+        print("  ⚠️  FOR RESEARCH PURPOSES ONLY")
+        print("  ⚠️  REQUIRES EXPLICIT CONFIRMATION")
+        print()
+        print("NOTES:")
+        print("  - Use only in authorized testing")
+        print("  - May brick the printer")
+        print("  - Requires 'yes' confirmation")
+        print()
+
     def do_flood(self, arg):
         "Flood user input, may reveal buffer overflows: flood <size>"
         size = conv().int(arg) or 10000  # buffer size
@@ -636,11 +1174,57 @@ class pjl(printer):
         self.cmd("@PJL DISPLAY " + c.QUOTE + flood_data + c.QUOTE, False)
         output().info("Flood command sent")
 
+    def help_flood(self):
+        """Show help for flood command"""
+        print()
+        print("flood - Flood printer input to test for buffer overflows")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  Sends a large amount of data to test for buffer overflow")
+        print("  vulnerabilities in the printer's input handling.")
+        print()
+        print("USAGE:")
+        print("  flood [size]")
+        print()
+        print("EXAMPLES:")
+        print("  flood                            # Flood with 10000 bytes")
+        print("  flood 50000                      # Flood with 50000 bytes")
+        print("  flood 100000                     # Large flood test")
+        print()
+        print("NOTES:")
+        print("  - Default size is 10000 bytes")
+        print("  - May crash or hang the printer")
+        print("  - Used to discover buffer overflow vulnerabilities")
+        print("  - Printer may need restart after flooding")
+        print()
+
     def do_hold(self, arg):
         "Enable job retention"
         self.chitchat("Enabling job retention...")
         self.cmd("@PJL SET JOBRETENTION=ON")
         output().info("Job retention enabled")
+
+    def help_hold(self):
+        """Show help for hold command"""
+        print()
+        print("hold - Enable job retention on the printer")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  Enables job retention mode, causing print jobs to be held")
+        print("  in memory rather than printed immediately.")
+        print()
+        print("USAGE:")
+        print("  hold")
+        print()
+        print("EXAMPLES:")
+        print("  hold                             # Enable job retention")
+        print()
+        print("NOTES:")
+        print("  - Jobs are held until manually released")
+        print("  - Can be used to capture print jobs")
+        print("  - Use capture command to retrieve held jobs")
+        print("  - May fill up printer memory")
+        print()
 
     def do_format(self, arg):
         "Initialize printer's mass storage file system"
@@ -651,6 +1235,33 @@ class pjl(printer):
             output().info("File system formatted")
         else:
             output().info("Format cancelled")
+
+    def help_format(self):
+        """Show help for format command"""
+        print()
+        print("format - Initialize/format printer's file system")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  **DESTRUCTIVE** - Formats the printer's mass storage device,")
+        print("  erasing all stored files, configurations, and data.")
+        print()
+        print("USAGE:")
+        print("  format")
+        print()
+        print("EXAMPLES:")
+        print("  format                           # Format file system")
+        print()
+        print("WARNINGS:")
+        print("  ⚠️  ALL DATA WILL BE LOST")
+        print("  ⚠️  CANNOT BE UNDONE")
+        print("  ⚠️  REQUIRES CONFIRMATION")
+        print()
+        print("NOTES:")
+        print("  - Erases all files and directories")
+        print("  - Cannot be undone")
+        print("  - Requires 'yes' confirmation")
+        print("  - Use for cleanup or anti-forensics")
+        print()
 
     # --------------------------------------------------------------------
     # 🌐 REDE E CONECTIVIDADE (5 comandos)
@@ -693,6 +1304,27 @@ class pjl(printer):
         else:
             output().info("Direct print information not available")
 
+    def help_direct(self):
+        """Show help for direct command"""
+        print()
+        print("direct - Show direct-print configuration")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  Displays the printer's direct-print configuration, showing")
+        print("  how the printer handles direct port printing.")
+        print()
+        print("USAGE:")
+        print("  direct")
+        print()
+        print("EXAMPLES:")
+        print("  direct                           # Show direct-print config")
+        print()
+        print("NOTES:")
+        print("  - Shows direct printing settings")
+        print("  - Not all printers support this")
+        print("  - Useful for understanding print flow")
+        print()
+
     def do_execute(self, arg):
         "Execute arbitrary PJL command: execute <command>"
         if not arg:
@@ -703,6 +1335,31 @@ class pjl(printer):
         result = self.cmd(arg)
         if result:
             print(result)
+
+    def help_execute(self):
+        """Show help for execute command"""
+        print()
+        print("execute - Execute arbitrary PJL command")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  Sends a raw PJL command directly to the printer without")
+        print("  interpretation. Useful for testing custom commands.")
+        print()
+        print("USAGE:")
+        print("  execute <command>")
+        print()
+        print("EXAMPLES:")
+        print("  execute @PJL INFO STATUS         # Get status")
+        print("  execute @PJL SET TIMEOUT=90      # Set timeout")
+        print("  execute @PJL INQUIRE COPIES      # Query setting")
+        print()
+        print("NOTES:")
+        print("  - Command is sent as-is")
+        print("  - No validation performed")
+        print("  - Use for testing custom PJL commands")
+        print("  - Requires knowledge of PJL syntax")
+        print("  - May crash printer if invalid")
+        print()
 
 
     # --------------------------------------------------------------------

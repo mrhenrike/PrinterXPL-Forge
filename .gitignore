@@ -20,6 +20,10 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+env/
+venv/
+.env
+.venv
 
 # Backup folders
 old-files-backup/

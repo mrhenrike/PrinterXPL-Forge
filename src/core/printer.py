@@ -1259,82 +1259,69 @@ class printer(cmd.Cmd, object):
         # Sort commands alphabetically
         commands.sort()
         
-        # Command descriptions (generic + module-specific)
+        # Command descriptions (matching help exactly)
         descriptions = {
-            # Generic commands (always available)
-            "exit": "Exit the shell",
-            "debug": "Toggle debug output",
-            "loop": "Run command repeatedly",
-            "discover": "Scan for network printers",
-            "open": "Connect to new target",
-            "close": "Disconnect from printer",
-            "timeout": "Change network timeout",
-            "reconnect": "Reconnect to printer",
-            "pwd": "Print current directory",
-            "chvol": "Change current volume",
-            "traversal": "Set path traversal root",
-            "cd": "Change directory",
-            "download": "Download file from printer",
-            "upload": "Upload file to printer",
-            "append": "Append to remote file",
-            "delete": "Delete remote file",
-            "cat": "Print remote file contents",
-            "edit": "Edit remote file",
-            "fuzz": "Launch filesystem fuzzing",
-            "print": "Print file through device",
-            "convert": "Convert file format",
-            "support": "Show printer support matrix",
-            "cve": "Search for CVEs",
-            "load": "Load commands from file",
-            "help": "Show help information",
-            
-            # PJL-specific commands (if in PJL mode)
+            # Filesystem commands
             "ls": "List directory contents",
             "mkdir": "Create directory",
-            "find": "Find files and directories",
-            "pjl_delete": "Delete file using PJL",
+            "find": "Find files recursively",
+            "upload": "Upload file to printer",
+            "download": "Download file from printer",
+            "delete": "Delete file",
             "copy": "Copy file",
-            "move": "Move/rename file",
-            "touch": "Create empty file",
+            "move": "Move file",
+            "touch": "Create/update file",
             "chmod": "Change file permissions",
-            "permissions": "Show file permissions",
-            "rmdir": "Remove directory",
-            "mirror": "Mirror directory structure",
-            "id": "Show printer identification",
+            "permissions": "Test file permissions",
+            "mirror": "Mirror filesystem",
+            
+            # System commands
+            "id": "Show comprehensive printer identification and system information",
             "variables": "Show environment variables",
-            "printenv": "Show specific environment variable",
+            "printenv": "Show specific variable",
+            
+            # Control commands
             "set": "Set environment variable",
-            "display": "Display message on printer panel",
+            "display": "Set display message",
             "offline": "Take printer offline",
             "restart": "Restart printer",
-            "reset": "Reset printer",
-            "selftest": "Run printer self-test",
-            "backup": "Backup printer settings",
-            "restore": "Restore printer settings",
-            "lock": "Lock printer panel",
-            "unlock": "Unlock printer panel",
-            "disable": "Disable printer feature",
-            "nvram": "Access NVRAM settings",
-            "destroy": "Destroy printer firmware (DANGEROUS)",
-            "flood": "Flood printer with data",
-            "hold": "Hold print job",
-            "format": "Format printer storage",
-            "network": "Show network configuration",
-            "direct": "Send raw data to port",
-            "execute": "Execute raw PJL command",
-            "pagecount": "Show/set page counter",
+            "reset": "Reset to factory defaults",
+            "selftest": "Perform self-tests",
+            "backup": "Backup configuration",
+            "restore": "Restore configuration",
+            
+            # Security commands
+            "lock": "Lock printer with PIN",
+            "unlock": "Unlock printer",
+            "disable": "Disable functionality",
+            "nvram": "Access NVRAM",
+            
+            # Attack commands
+            "destroy": "Cause physical damage",
+            "flood": "Flood with data",
+            "hold": "Enable job retention",
+            "format": "Format filesystem",
+            
+            # Network commands
+            "network": "Show comprehensive network information including WiFi",
+            "direct": "Show direct print config",
+            "execute": "Execute arbitrary PJL command",
+            "load": "Load commands from file",
+            
+            # Monitoring commands
+            "pagecount": "Manipulate page counter",
             "status": "Toggle status messages"
         }
         
         # Categorize commands (matching help categories exactly)
         categories = {
-            "filesystem": ["ls", "mkdir", "find", "upload", "download", "pjl_delete", "copy", "move", "touch", "chmod", "permissions", "rmdir", "mirror", "download", "upload", "append", "cat", "edit"],
-            "system": ["id", "variables", "printenv", "set", "pwd", "chvol", "traversal", "cd"],
-            "control": ["display", "offline", "restart", "reset", "selftest", "backup", "restore", "open", "close", "reconnect"],
+            "filesystem": ["ls", "mkdir", "find", "upload", "download", "delete", "copy", "move", "touch", "chmod", "permissions", "mirror"],
+            "system": ["id", "variables", "printenv"],
+            "control": ["set", "display", "offline", "restart", "reset", "selftest", "backup", "restore"],
             "security": ["lock", "unlock", "disable", "nvram"],
-            "attacks": ["destroy", "flood", "hold", "format", "fuzz"],
-            "network": ["network", "direct", "execute", "discover", "timeout"],
-            "monitoring": ["load", "pagecount", "help", "status", "exit", "debug", "loop", "print", "convert", "support", "cve"]
+            "attacks": ["destroy", "flood", "hold", "format"],
+            "network": ["network", "direct", "execute", "load"],
+            "monitoring": ["pagecount", "status"]
         }
         
         # Display commands by category

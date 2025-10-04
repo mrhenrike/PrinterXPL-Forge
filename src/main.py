@@ -150,10 +150,22 @@ def main() -> None:
 
     # Verify host OS compatibility early.
     os_type = get_os()
-    if os_type not in ("linux", "windows", "wsl"):
+    supported_os = ("linux", "windows", "wsl", "darwin", "bsd")
+    if os_type not in supported_os:
         output().errmsg(f"[!] Unsupported OS: {os_type!r}.")
-        output().message("    This tool currently supports Linux, WSL or Windows only.")
+        output().message("    This tool currently supports Linux, WSL, Windows, macOS, and BSD.")
         sys.exit(1)
+    
+    # Show OS detection result in non-quiet mode
+    if not args.quiet:
+        os_names = {
+            "linux": "Linux",
+            "wsl": "Windows Subsystem for Linux (WSL)",
+            "windows": "Windows",
+            "darwin": "macOS",
+            "bsd": "BSD"
+        }
+        output().message(f">> Detected OS: {os_names.get(os_type, os_type)}")
 
     # Basic startup message
     if not args.quiet:

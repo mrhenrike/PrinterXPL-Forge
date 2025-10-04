@@ -4,58 +4,58 @@ flowchart TB
 
   %% User Interface Layer
   subgraph UIL["USER INTERFACE LAYER"]
-    U["USER\nCommand: ls /etc/passwd\nMode: auto\nOptions: -d -s -q -i -o"]
-    RSLT["RESULT\n/etc/passwd downloaded\nSuccessfully"]
+  U["👤 USER\nCommand: ls /etc/passwd\nMode: auto\nOptions: -d -s -q -i -o"]
+  RSLT["📄 RESULT\n/etc/passwd downloaded\n✅ Successfully"]
   end
 
   %% Application Entry Point
   subgraph EP["APPLICATION ENTRY POINT"]
-    MAIN["main.py (Entry Point)\n- argparse: Parse CLI\n- get_os(): Detect OS\n- capabilities(): Detect language\n- shell_map[mode]: Select module"]
+    MAIN["🚪 main.py (Entry Point)\n• argparse: Parse CLI\n• get_os(): Detect OS\n• capabilities(): Detect language\n• shell_map[mode]: Select module"]
   end
 
   %% Language Translation Layer
   subgraph LTL["LANGUAGE TRANSLATION LAYER"]
-    PJL["PJL MODULE (pjl.py)\n54 Commands\nTranslates: ls → @PJL FSDIRLIST...\nUses: codebook.py, const.PJL_VOL"]
-    PS["POSTSCRIPT MODULE (ps.py)\n40 Commands\nTranslates: ls → filenameforall\nUses: operators.py, payloads/"]
-    PCL["PCL MODULE (pcl.py)\n15 Commands\nTranslates: ls → List macros (virtual)\nUses: Macro tracking, const.ESC"]
+    PJL["🧭 PJL MODULE (pjl.py)\n54 Commands\nTranslates: ls → @PJL FSDIRLIST...\nUses: codebook.py, const.PJL_VOL"]
+    PS["🖋️ POSTSCRIPT MODULE (ps.py)\n40 Commands\nTranslates: ls → filenameforall\nUses: operators.py, payloads/"]
+    PCL["📦 PCL MODULE (pcl.py)\n15 Commands\nTranslates: ls → List macros (virtual)\nUses: Macro tracking, const.ESC"]
   end
 
   %% Base Printer Class
   subgraph BPC["BASE PRINTER CLASS (printer.py)"]
-  CORE["CORE FUNCTIONALITY (1,304 lines)\n• do_open/close: Connection\n• do_upload/download: File transfer\n• do_cd/pwd/chvol: Navigation\n• cmd_with_retry: Retry (3x)\n• setup_signal_handlers: Ctrl+C\n• onecmd: Timeout wrapper\n• fuzz/mirror: Advanced ops"]
+    CORE["⚙️ CORE FUNCTIONALITY (1,304 lines)\n• do_open/close: Connection\n• do_upload/download: File transfer\n• do_cd/pwd/chvol: Navigation\n• cmd_with_retry: Retry (3x)\n• setup_signal_handlers: Ctrl+C\n• onecmd: Timeout wrapper\n• fuzz/mirror: Advanced ops"]
   end
 
   %% Discovery / Capabilities / Fuzzer
   subgraph DCF["DISCOVERY / CAPABILITIES / FUZZER"]
-    DISC["DISCOVERY (discovery.py)\nSNMP Scan\n17 OIDs\nMulti-OS"]
-    CAP["CAPABILITIES (capabilities.py)\nIPP / HTTP / SNMP"]
-    FZZ["FUZZER (fuzzer.py)\n254 paths\n31 names\nTraversal"]
+    DISC["🔎 DISCOVERY (discovery.py)\nSNMP Scan\n17 OIDs\nMulti-OS"]
+    CAP["🧩 CAPABILITIES (capabilities.py)\nIPP / HTTP / SNMP"]
+    FZZ["🧪 FUZZER (fuzzer.py)\n254 paths\n31 names\nTraversal"]
   end
 
   %% Utility Engines Layer
   subgraph UEL["UTILITY ENGINES LAYER"]
-    HLP["HELPER UTILITIES (helper.py - 705 lines)\noutput() conv() file() conn() log()\nColors, Filesize, Read/Write, Socket, Timeout, Debug"]
-    CBK["CODEBOOK (codebook.py)\n378 Codes\nget_errors()"]
-    OPS["OPERATORS (operators.py)\n371 Operators\n16 Categories"]
-    PAY["PAYLOADS (payloads/)\n5 Templates\nload_payload()"]
-    FZ2["FUZZER (fuzzer.py)\n381 Vectors\n4 Methods"]
+    HLP["🧰 HELPER UTILITIES (helper.py - 705 lines)\noutput() conv() file() conn() log()\nColors, Filesize, Read/Write, Socket, Timeout, Debug"]
+    CBK["📚 CODEBOOK (codebook.py)\n378 Codes\nget_errors()"]
+    OPS["🧮 OPERATORS (operators.py)\n371 Operators\n16 Categories"]
+    PAY["📦 PAYLOADS (payloads/)\n5 Templates\nload_payload()"]
+    FZ2["🧪 FUZZER (fuzzer.py)\n381 Vectors\n4 Methods"]
   end
 
   %% Network Protocol Layer
   subgraph NPL["NETWORK PROTOCOL LAYER"]
-    ROUTE["Protocol Selection & Routing"]
-    RAW["RAW :9100"]
-    LPD["LPD :515"]
-    IPP["IPP :631"]
-    SMB["SMB :445"]
+    ROUTE["🕹️ Protocol Selection & Routing"]
+    RAW["🔌 RAW :9100"]
+    LPD["📮 LPD :515"]
+    IPP["🌐 IPP :631"]
+    SMB["🧷 SMB :445"]
   end
 
   %% TCP/IP and Target
-  TCP["TCP/IP STACK (socket)"]
-  PRN["TARGET PRINTER\nPJL/PS/PCL Interpreters\nFilesystem (0:,1:,/etc,/webServer)\nNVRAM, Job Queue, Network Stack, Control Panel"]
+  TCP["🌐 TCP/IP STACK (socket)"]
+  PRN["🖨️ TARGET PRINTER\nPJL/PS/PCL Interpreters\nFilesystem (0:,1:,/etc,/webServer)\nNVRAM, Job Queue, Network Stack, Control Panel"]
 
   %% Flows
-  U --> MAIN
+  U -->|👆 Click| MAIN
   MAIN --> PJL
   MAIN --> PS
   MAIN --> PCL
@@ -70,14 +70,14 @@ flowchart TB
   CORE --> FZ2
   PS --> OPS
   PS --> PAY
-  CORE --> ROUTE
+  CORE -->|➡️ Send| ROUTE
   ROUTE --> RAW
   ROUTE --> LPD
   ROUTE --> IPP
   ROUTE --> SMB
-  RAW --> TCP --> PRN
+  RAW -->|➡️| TCP -->|➡️| PRN
   LPD --> TCP
   IPP --> TCP
   SMB --> TCP
-  PRN --> RSLT
+  PRN -->|⬅️ Receive| RSLT
 

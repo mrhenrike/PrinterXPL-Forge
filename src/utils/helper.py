@@ -5,6 +5,7 @@ from __future__ import print_function
 
 # python standard library
 from socket import socket
+import socket as socket_module
 import sys
 import os
 import re
@@ -454,18 +455,25 @@ class conn(object):
 
     # open connection
     def open(self, target, port=9100):
-        # target is a character device
-        if os.path.exists(target) \
-                and stat.S_ISCHR(os.stat(target).st_mode):
-            self._file = os.open(target, os.O_RDWR)
-        # treat target as ipv4 socket
-        else:
-            m = re.search('^(.+?):([0-9]+)$', target)
-            if m:
-                [target, port] = m.groups()
-                port = int(port)
+        try:
+            # target is a character device
+            if os.path.exists(target) \
+                    and stat.S_ISCHR(os.stat(target).st_mode):
+                self._file = os.open(target, os.O_RDWR)
+                return self
+            # treat target as ipv4 socket
+            else:
+                m = re.search('^(.+?):([0-9]+)$', target)
+                if m:
+                    [target, port] = m.groups()
+                    port = int(port)
+                # If no port specified in target, use default port parameter
 
-            self._sock.connect((target, port))
+                self._sock.connect((target, port))
+                return self
+        except Exception as e:
+            output().errmsg(f"Failed to connect to {target}: {str(e)}")
+            return None
 
     # close connection
     def close(self, *arg):
@@ -534,27 +542,51 @@ class conn(object):
         sleep = 0.01  # pause in recv loop
         limit = 3.0  # max watchdog overrun
         wd = 0.0  # watchdog timeout counter
+        max_timeout = 30.0  # maximum timeout in seconds
         r = re.compile(delimiter, re.DOTALL)
         s = re.compile("^\x04?\x0d?\x0a?" + delimiter, re.DOTALL)
+        wd_old = 0
+        bytes_received = 0
+        
+        # Set socket timeout to prevent infinite blocking (30 seconds as requested)
+        if hasattr(self, '_sock') and self._sock:
+            self._sock.settimeout(30.0)  # 30 second timeout
+        
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         while not r.search(data):
+            # Check for maximum timeout
+            if wd > max_timeout:
+                output().errmsg("Maximum timeout reached", "timeout exceeded")
+                break
+                
             try:
                 new_data = self.recv(4096)  # receive actual data
-                if new_data is None:
-                    output().errmsg("Connection lost while receiving data")
-                    break
+                if new_data is None or new_data == "":
+                    # No data received, check if we should continue waiting
+                    if wd > limit and bytes_received == 0:
+                        output().errmsg("No data received within timeout period")
+                        break
+                    time.sleep(sleep)
+                    wd += sleep
+                    continue
+                    
                 data += new_data
+                bytes_received = len(data)
+                
+            except socket_module.timeout:
+                output().errmsg("Socket timeout while receiving data")
+                break
             except Exception as e:
                 output().errmsg(f"Error receiving data: {str(e)}")
                 break
                 
             if self.past(limit, wd):
-                wd_old, bytes = wd, len(data)
+                wd_old, bytes_received = wd, len(data)
             wd += sleep       # workaround for endless loop w/o socket timeout
             time.sleep(sleep)  # happens on some devices - python socket error?
             # timeout plus it seems we are not receiving data anymore
-            if wd > self._sock.gettimeout() and wd >= wd_old + limit:
-                if len(data) == bytes:
+            if hasattr(self, '_sock') and self._sock and wd > self._sock.gettimeout() and wd >= wd_old + limit:
+                if len(data) == bytes_received:
                     output().errmsg("Receiving data failed", "watchdog timeout")
                     break
             # visual feedback on large/slow data transfers

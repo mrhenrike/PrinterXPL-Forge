@@ -23,7 +23,7 @@ class capabilities():
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     # set defaults
     support = False
-    # be quick and dirty
+    # default timeout - can be overridden in __init__
     timeout = 1.5
     # set pret.py directory
     rundir = os.path.dirname(os.path.realpath(__file__)) + os.path.sep
@@ -40,7 +40,10 @@ class capabilities():
   └──────┴───────────────────────┴───────────────────────────┘
   '''
 
-    def __init__(self, args):
+    def __init__(self, args, timeout=None):
+        # allow custom timeout to be passed
+        if timeout is not None:
+            self.timeout = timeout
         # skip this in unsafe mode
         if not args.safe:
             return

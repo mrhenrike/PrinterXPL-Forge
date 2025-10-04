@@ -349,7 +349,7 @@ class printer(cmd.Cmd, object):
         if not arg:
             arg = eval(input("Target: "))
         self.target = arg
-        self.conn = conn().open(arg, mode)
+        self.conn = conn(self.mode, self.debug, self.quiet).open(arg, mode)
         if self.conn:
             self.on_connect(mode)
             self.set_defaults(True)
@@ -452,7 +452,7 @@ class printer(cmd.Cmd, object):
         output().message(msg)
         if self.conn:
             self.conn.close()
-        self.conn = conn().open(self.target)
+        self.conn = conn(self.mode, self.debug, self.quiet).open(self.target)
         if self.conn:
             self.on_connect("")
             self.set_defaults(True)

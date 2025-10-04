@@ -5,14 +5,43 @@ PostScript Operators Database
 ===============================
 This module contains a comprehensive list of PostScript operators organized by category.
 
-CURRENT STATUS: Reserved for future use
-WILL BE USED BY: PostScript module (src/modules/ps.py) in v2.4.0
-NOT CURRENTLY IMPORTED: This is intentional - awaiting PS module implementation
+CURRENT STATUS: Reserved for future use in v2.4.0
+================================================
+⚠️ THIS MODULE IS INTENTIONALLY NOT IMPORTED ANYWHERE
+⚠️ IT IS RESERVED FOR THE POSTSCRIPT MODULE (ps.py) PLANNED FOR v2.4.0
+⚠️ DO NOT REMOVE - THIS IS NOT UNUSED CODE
 
 Contains 400+ PostScript operators including:
 - Standard operators (file, exec, run, etc.)
 - Proprietary operators (Brother, HP, etc.)
 - Security-relevant operators for testing
+- 16 categories covering all PS functionality
+
+PLANNED USAGE (v2.4.0):
+=======================
+from utils.operators import operators
+
+class ps(printer):
+    def __init__(self, args):
+        super().__init__(args)
+        self.ops = operators()
+        
+    def do_enumerate_operators(self, arg):
+        '''Test which PostScript operators are available'''
+        for category, ops in self.ops.oplist.items():
+            print(f"\\n{category}")
+            for op in ops:
+                result = self.test_operator(op)
+                # Display result
+
+SECURITY TESTING:
+=================
+This module enables testing for:
+- File system access (file, deletefile, renamefile)
+- Code execution (exec, run, cvx)
+- Information disclosure (product, version, serialnumber)
+- Authentication bypass (setpassword, getpassword)
+- Device control (devformat, devmount, devdismount)
 
 DO NOT REMOVE: Required for upcoming PostScript security testing module
 """

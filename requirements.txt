@@ -1,19 +1,19 @@
-# (minimum versions are examples - should be adjusted according to real project dependencies)
-argparse
-python-nmap>=0.7.1
-fpdf2>=2.6.1
-pyyaml>=6.0
-termcolor>=2.4.0
+# PrinterReaper v2.3.0 - Core Dependencies
+# Updated: 2025-10-04
+# All dependencies are actively used in the codebase
 
-# HTTP/IPP/HTTPS capabilities
-requests>=2.0
-urllib3>=1.25
+# HTTP/HTTPS requests for capabilities and CVE checks
+requests>=2.31.0
 
-# SNMP support (discovery e capabilities via pysnmp)
-pysnmp>=4.4
-pyasn1>=0.4
+# Network utilities (SSL warnings disable)
+urllib3>=2.0.0
 
-# Console UI (opcional, apenas se usar console.py)
-npyscreen>=4.10
+# SNMP support for printer discovery and capabilities
+pysnmp-lextudio>=5.0.31
 
-# (nenhuma outra dependência de terceiros)
+# Terminal colors (cross-platform support)
+colorama>=0.4.6
+
+# Optional dependencies (for future features)
+# npyscreen>=4.10  # Console UI (src/core/console.py - not integrated yet)
+# win_unicode_console>=0.5  # Windows Unicode support (optional, used in helper.py)

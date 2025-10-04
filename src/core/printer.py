@@ -4,7 +4,6 @@
 # python standard library
 import re
 import os
-import csv, itertools 
 import sys
 import cmd
 import glob

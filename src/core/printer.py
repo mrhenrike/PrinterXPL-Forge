@@ -85,8 +85,8 @@ class printer(cmd.Cmd, object):
         # run pret cmds from file
         if args.load:
             self.do_load(args.load)
-        # input loop
-        self.cmdloop()
+        # input loop with interruption handling
+        self.cmdloop_with_interruption()
 
     def setup_signal_handlers(self):
         """Setup signal handlers for graceful interruption"""
@@ -104,35 +104,46 @@ class printer(cmd.Cmd, object):
             # Stop current command
             self.interrupted = True
             output().warning("\n[!] Command interrupted. Stopping current operation...")
-            
-            # Wait a moment for command to stop
-            time.sleep(0.5)
-            
-            # Ask if user wants to exit
-            try:
-                response = input("\nDo you want to exit PrinterReaper? (y/N): ").strip().lower()
-                if response in ['y', 'yes']:
-                    output().info("Exiting PrinterReaper...")
-                    sys.exit(0)
-                else:
-                    output().info("Continuing...")
-                    self.interrupted = False
-                    self.current_command = None
-            except (EOFError, KeyboardInterrupt):
-                output().info("Exiting PrinterReaper...")
-                sys.exit(0)
+            self.current_command = None
         else:
-            # No command running, ask directly
+            # No command running, set flag for next input
+            self.interrupted = True
+            output().warning("\n[!] Interruption detected. Press Enter to continue or type 'exit' to quit.")
+
+    def cmdloop_with_interruption(self):
+        """Custom cmdloop that handles interruptions gracefully"""
+        while True:
             try:
-                response = input("\nDo you want to exit PrinterReaper? (y/N): ").strip().lower()
-                if response in ['y', 'yes']:
-                    output().info("Exiting PrinterReaper...")
-                    sys.exit(0)
-                else:
-                    output().info("Continuing...")
+                if self.interrupted:
+                    # Handle interruption
+                    self.interrupted = False
+                    continue
+                
+                # Get input with proper handling
+                line = input(self.prompt)
+                
+                # Check for interruption after input
+                if self.interrupted:
+                    self.interrupted = False
+                    continue
+                
+                # Process command
+                if line.strip():
+                    self.onecmd(line)
+                    
             except (EOFError, KeyboardInterrupt):
-                output().info("Exiting PrinterReaper...")
-                sys.exit(0)
+                # Handle EOF and KeyboardInterrupt gracefully
+                if self.interrupted:
+                    self.interrupted = False
+                    continue
+                else:
+                    output().info("\nExiting PrinterReaper...")
+                    break
+            except Exception as e:
+                if self.debug:
+                    traceback.print_exc()
+                output().errmsg(f"Error: {e}")
+                continue
 
     def set_defaults(self, newtarget):
         self.fuzz = False

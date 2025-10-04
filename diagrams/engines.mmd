@@ -1,0 +1,18 @@
+%% PrinterReaper v2.4.2 - Engines
+%% Generates: diagrams/png/engines.png
+flowchart TB
+  subgraph Engines
+    D["Discovery Engine<br/>discovery.py<br/>SNMP 17 OIDs"]
+    C["Capability Engine<br/>capabilities.py<br/>IPP/HTTP/SNMP"]
+    T["Translation Engine<br/>pjl.py / ps.py / pcl.py"]
+    F["Fuzzer Engine<br/>fuzzer.py<br/>381 vectors"]
+    P["Payload Engine<br/>payloads/*.ps"]
+    E["Error Handling<br/>codebook.py<br/>378 codes"]
+    O["Operators Engine<br/>operators.py<br/>371 ops"]
+  end
+  D --> C --> T
+  T --> F
+  T --> P
+  T --> O
+  T --> E
+

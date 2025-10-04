@@ -393,7 +393,9 @@ class printer(cmd.Cmd, object):
     def do_timeout(self, arg, quiet=False):
         "Change the network timeout"
         if not arg:
-            arg = eval(input("Timeout: "))
+            # Show current timeout if no argument provided
+            output().message(f"Current timeout: {self.timeout} seconds")
+            return
         self.timeout = conv().int(arg)
         if not quiet:
             output().message(f"Timeout set to {self.timeout} seconds")
@@ -983,7 +985,11 @@ class printer(cmd.Cmd, object):
     def do_fuzz(self, arg):
         "Launch file-system fuzzing"
         if not arg:
-            arg = eval(input("Fuzz path: "))
+            try:
+                arg = eval(input("Fuzz path: "))
+            except (EOFError, KeyboardInterrupt):
+                output().errmsg("Fuzz cancelled - no path provided")
+                return
         self.fuzz_path()
 
     def fuzz_path(self):

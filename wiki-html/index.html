@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PrinterReaper - Complete Printer Penetration Testing Toolkit. Support for PJL, PostScript, PCL with 109 commands.">
+    <title>PrinterReaper v2.4.1 - Complete Printer Penetration Testing Toolkit</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        header .tagline {
+            font-size: 1.3em;
+            opacity: 0.9;
+        }
+        
+        .version {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        
+        nav {
+            background: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        nav li {
+            margin: 0 15px;
+        }
+        
+        nav a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+        
+        nav a:hover {
+            color: #764ba2;
+        }
+        
+        .section {
+            background: white;
+            margin: 30px 0;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        h3 {
+            color: #764ba2;
+            margin: 25px 0 15px 0;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .feature-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            transition: transform 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature-card h3 {
+            color: white;
+            margin-top: 0;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .stat-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+        
+        .stat-number {
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-weight: 600;
+        }
+        
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        
+        pre code {
+            background: none;
+            padding: 0;
+            color: #f8f8f2;
+        }
+        
+        .command-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .command-table th,
+        .command-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .command-table th {
+            background: #667eea;
+            color: white;
+        }
+        
+        .command-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        
+        .badge-success { background: #28a745; color: white; }
+        .badge-warning { background: #ffc107; color: #333; }
+        .badge-danger { background: #dc3545; color: white; }
+        .badge-info { background: #17a2b8; color: white; }
+        
+        .download-btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.3s;
+            margin: 10px 5px;
+        }
+        
+        .download-btn:hover {
+            background: #764ba2;
+        }
+        
+        footer {
+            background: #2d2d2d;
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+            margin-top: 60px;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🔥 PrinterReaper</h1>
+        <p class="tagline">Complete Printer Penetration Testing Toolkit</p>
+        <span class="version">v2.4.1</span>
+        <p style="margin-top: 20px; font-size: 1.1em;">
+            <strong>109 Commands | 3 Languages | 4 Protocols | 5 Payloads</strong>
+        </p>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#installation">Installation</a></li>
+            <li><a href="#usage">Usage</a></li>
+            <li><a href="#commands">Commands</a></li>
+            <li><a href="#documentation">Documentation</a></li>
+            <li><a href="#download">Download</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <!-- Overview Section -->
+        <section id="overview" class="section">
+            <h2>📊 Overview</h2>
+            <p>PrinterReaper v2.4.1 is the <strong>most complete printer penetration testing toolkit</strong> available, offering unparalleled coverage of printer languages and network protocols.</p>
+            
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-number">109</div>
+                    <div class="stat-label">Total Commands</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">3</div>
+                    <div class="stat-label">Printer Languages</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">4</div>
+                    <div class="stat-label">Network Protocols</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">95%</div>
+                    <div class="stat-label">Printer Coverage</div>
+                </div>
+            </div>
+
+            <div class="success-box">
+                <strong>✅ QA Tested:</strong> 100% pass rate on 37 automated tests. Production-ready!
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="section">
+            <h2>✨ Features</h2>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3>📜 PostScript Module</h3>
+                    <p><strong>40 commands</strong></p>
+                    <p>Complete PostScript exploitation with operator enumeration, dictionary dumping, and print job manipulation.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3>🔧 PJL Module</h3>
+                    <p><strong>54 commands</strong></p>
+                    <p>Full PJL support with filesystem access, NVRAM manipulation, and job control.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3>🖨️ PCL Module</h3>
+                    <p><strong>15 commands</strong></p>
+                    <p>PCL support with virtual filesystem via macros for legacy device testing.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3>🌐 Network Protocols</h3>
+                    <p><strong>4 protocols</strong></p>
+                    <p>RAW (9100), LPD (515), IPP (631), and SMB (445/139) support.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3>💣 Attack Payloads</h3>
+                    <p><strong>5 payloads</strong></p>
+                    <p>Pre-built PostScript attacks: banner, loop, erase, storm, exfil.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3>📚 Complete Docs</h3>
+                    <p><strong>14-page wiki</strong></p>
+                    <p>Comprehensive documentation with examples, tutorials, and guides.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Installation Section -->
+        <section id="installation" class="section">
+            <h2>📦 Installation</h2>
+            
+            <h3>Quick Install</h3>
+            <pre><code># Clone repository
+git clone https://github.com/mrhenrike/PrinterReaper.git
+cd PrinterReaper
+
+# Install dependencies
+pip3 install -r requirements.txt
+
+# Verify installation
+python3 printer-reaper.py --version</code></pre>
+
+            <h3>Supported Platforms</h3>
+            <ul>
+                <li>✅ Linux (Ubuntu, Debian, Fedora, Arch)</li>
+                <li>✅ Windows 10/11</li>
+                <li>✅ WSL (Windows Subsystem for Linux)</li>
+                <li>✅ macOS (Monterey and later)</li>
+                <li>✅ BSD (FreeBSD, OpenBSD, NetBSD)</li>
+            </ul>
+        </section>
+
+        <!-- Usage Section -->
+        <section id="usage" class="section">
+            <h2>🚀 Usage</h2>
+            
+            <h3>Discover Printers</h3>
+            <pre><code># Automatic SNMP discovery
+python3 printer-reaper.py
+
+# Output:
+Discovered printers:
+192.168.1.100    HP LaserJet 4250
+192.168.1.105    Brother MFC-7860DW</code></pre>
+
+            <h3>Connect to Printer</h3>
+            <pre><code># Auto-detect best language
+python3 printer-reaper.py 192.168.1.100 auto
+
+# Or specify language manually
+python3 printer-reaper.py 192.168.1.100 pjl   # PJL mode
+python3 printer-reaper.py 192.168.1.100 ps    # PostScript
+python3 printer-reaper.py 192.168.1.100 pcl   # PCL</code></pre>
+
+            <h3>Execute Commands</h3>
+            <pre><code>192.168.1.100:/> id              # Identify printer
+192.168.1.100:/> ls              # List files
+192.168.1.100:/> network         # Get network info
+192.168.1.100:/> download /etc/passwd    # Download file
+192.168.1.100:/> help upload     # Get help on command</code></pre>
+        </section>
+
+        <!-- Commands Section -->
+        <section id="commands" class="section">
+            <h2>📋 Commands</h2>
+            
+            <table class="command-table">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>PJL</th>
+                        <th>PostScript</th>
+                        <th>PCL</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>📁 Filesystem</td>
+                        <td>12</td>
+                        <td>4</td>
+                        <td>3</td>
+                        <td><strong>19</strong></td>
+                    </tr>
+                    <tr>
+                        <td>ℹ️ Information</td>
+                        <td>8</td>
+                        <td>8</td>
+                        <td>2</td>
+                        <td><strong>18</strong></td>
+                    </tr>
+                    <tr>
+                        <td>⚙️ Control</td>
+                        <td>8</td>
+                        <td>5</td>
+                        <td>3</td>
+                        <td><strong>16</strong></td>
+                    </tr>
+                    <tr>
+                        <td>🔒 Security</td>
+                        <td>4</td>
+                        <td>5</td>
+                        <td>0</td>
+                        <td><strong>9</strong></td>
+                    </tr>
+                    <tr>
+                        <td>💥 Attacks</td>
+                        <td>8</td>
+                        <td>6</td>
+                        <td>2</td>
+                        <td><strong>16</strong></td>
+                    </tr>
+                    <tr>
+                        <td>🌐 Network</td>
+                        <td>3</td>
+                        <td>0</td>
+                        <td>0</td>
+                        <td><strong>3</strong></td>
+                    </tr>
+                    <tr>
+                        <td>📊 Monitoring</td>
+                        <td>2</td>
+                        <td>1</td>
+                        <td>0</td>
+                        <td><strong>3</strong></td>
+                    </tr>
+                    <tr style="background: #f8f9fa; font-weight: bold;">
+                        <td><strong>TOTAL</strong></td>
+                        <td><strong>54</strong></td>
+                        <td><strong>40</strong></td>
+                        <td><strong>15</strong></td>
+                        <td><strong>109</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Key Commands</h3>
+            <ul>
+                <li><code>id</code> - Identify printer model and firmware</li>
+                <li><code>ls</code> - List directory contents</li>
+                <li><code>download</code> - Download files from printer</li>
+                <li><code>upload</code> - Upload files to printer</li>
+                <li><code>network</code> - Show network configuration</li>
+                <li><code>nvram</code> - Access NVRAM (PJL)</li>
+                <li><code>enumerate_operators</code> - Test PostScript operators</li>
+                <li><code>payload</code> - Execute attack payloads</li>
+                <li><code>capture</code> - Capture print jobs</li>
+                <li><code>mirror</code> - Mirror entire filesystem</li>
+            </ul>
+        </section>
+
+        <!-- Protocols Section -->
+        <section id="protocols" class="section">
+            <h2>🌐 Network Protocols</h2>
+            
+            <table class="command-table">
+                <thead>
+                    <tr>
+                        <th>Protocol</th>
+                        <th>Port</th>
+                        <th>Status</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>RAW</strong></td>
+                        <td>9100</td>
+                        <td><span class="badge badge-success">Full</span></td>
+                        <td>Default protocol (AppSocket/JetDirect)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>LPD</strong></td>
+                        <td>515</td>
+                        <td><span class="badge badge-success">Full</span></td>
+                        <td>Line Printer Daemon (RFC 1179)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>IPP</strong></td>
+                        <td>631</td>
+                        <td><span class="badge badge-success">Full</span></td>
+                        <td>Internet Printing Protocol (RFC 2910/2911)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SMB</strong></td>
+                        <td>445/139</td>
+                        <td><span class="badge badge-info">Basic</span></td>
+                        <td>Server Message Block (Windows)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Documentation Section -->
+        <section id="documentation" class="section">
+            <h2>📚 Documentation</h2>
+            
+            <h3>GitHub Wiki (14 Pages)</h3>
+            <p>Complete documentation available at: <a href="https://github.com/mrhenrike/PrinterReaper/wiki">PrinterReaper Wiki</a></p>
+            
+            <ul>
+                <li><a href="https://github.com/mrhenrike/PrinterReaper/wiki/Installation">Installation Guide</a> - Setup for all platforms</li>
+                <li><a href="https://github.com/mrhenrike/PrinterReaper/wiki/Quick-Start">Quick Start</a> - 5-minute tutorial</li>
+                <li><a href="https://github.com/mrhenrike/PrinterReaper/wiki/Commands-Reference">Commands Reference</a> - All 109 commands</li>
+                <li><a href="https://github.com/mrhenrike/PrinterReaper/wiki/PJL-Commands">PJL Commands</a> - Detailed PJL documentation</li>
+                <li><a href="https://github.com/mrhenrike/PrinterReaper/wiki/Security-Testing">Security Testing</a> - Professional testing workflows</li>
+                <li><a href="https://github.com/mrhenrike/PrinterReaper/wiki/Examples">Examples</a> - 19 real-world scenarios</li>
+                <li><a href="https://github.com/mrhenrike/PrinterReaper/wiki/FAQ">FAQ</a> - Frequently asked questions</li>
+            </ul>
+
+            <h3>In-Shell Help</h3>
+            <p>Every command has comprehensive help:</p>
+            <pre><code>> help              # List all commands
+> help upload       # Detailed help for specific command</code></pre>
+        </section>
+
+        <!-- Examples Section -->
+        <section id="examples" class="section">
+            <h2>💡 Examples</h2>
+            
+            <h3>Example 1: File Exfiltration (PJL)</h3>
+            <pre><code>$ python3 printer-reaper.py 192.168.1.100 pjl
+
+192.168.1.100:/> ls /etc
+-  834  passwd
+-  156  hosts
+
+192.168.1.100:/> download /etc/passwd
+Downloaded passwd to ./passwd</code></pre>
+
+            <h3>Example 2: Print Job Manipulation (PostScript)</h3>
+            <pre><code>$ python3 printer-reaper.py 192.168.1.100 ps
+
+192.168.1.100:ps> cross "CONFIDENTIAL"
+Text will be added to all printed pages
+
+192.168.1.100:ps> replace "Public" "Top Secret"
+Will replace 'Public' with 'Top Secret'</code></pre>
+
+            <h3>Example 3: Operator Enumeration (PostScript)</h3>
+            <pre><code>192.168.1.100:ps> enumerate_operators
+
+Testing 400+ PostScript operators...
+✅ file operator supported
+✅ exec operator supported
+✅ deletefile operator supported</code></pre>
+        </section>
+
+        <!-- Download Section -->
+        <section id="download" class="section">
+            <h2>⬇️ Download</h2>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="https://github.com/mrhenrike/PrinterReaper/archive/refs/heads/master.zip" class="download-btn">
+                    📦 Download Latest (v2.4.1)
+                </a>
+                <a href="https://github.com/mrhenrike/PrinterReaper" class="download-btn">
+                    🔗 View on GitHub
+                </a>
+                <a href="https://github.com/mrhenrike/PrinterReaper/wiki" class="download-btn">
+                    📚 Read Wiki
+                </a>
+            </div>
+
+            <h3>Requirements</h3>
+            <ul>
+                <li>Python 3.8 or higher</li>
+                <li>Network connectivity to target printers</li>
+                <li>SNMP tools (optional, for discovery)</li>
+            </ul>
+        </section>
+
+        <!-- Legal Notice -->
+        <section id="legal" class="section">
+            <div class="warning-box">
+                <h3>⚠️ Legal Notice</h3>
+                <p><strong>IMPORTANT:</strong> PrinterReaper is intended <strong>solely for authorized security testing</strong>.</p>
+                <ul style="margin-top: 10px;">
+                    <li>✅ Run only against devices you own or have written permission to test</li>
+                    <li>❌ Unauthorized use may violate laws and regulations</li>
+                    <li>⚖️ The authors disclaim all liability for misuse or damage</li>
+                </ul>
+                <p style="margin-top: 10px;"><strong>By using PrinterReaper, you accept full responsibility for your actions.</strong></p>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p><strong>PrinterReaper v2.4.1</strong></p>
+        <p>Complete Printer Penetration Testing Toolkit</p>
+        <p style="margin-top: 20px;">Made with ❤️ for the security community</p>
+        <p style="margin-top: 10px;">
+            <a href="https://github.com/mrhenrike/PrinterReaper" style="color: #667eea;">GitHub</a> |
+            <a href="https://github.com/mrhenrike/PrinterReaper/wiki" style="color: #667eea;">Wiki</a> |
+            <a href="https://github.com/mrhenrike/PrinterReaper/issues" style="color: #667eea;">Issues</a>
+        </p>
+        <p style="margin-top: 20px; font-size: 0.9em; opacity: 0.7;">
+            &copy; 2025 PrinterReaper Development Team. MIT License.
+        </p>
+    </footer>
+</body>
+</html>
+

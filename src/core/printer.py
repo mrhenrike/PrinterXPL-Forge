@@ -19,6 +19,8 @@ import subprocess
 import traceback
 import requests
 import time
+import signal
+import threading
 
 # local pret classes
 from utils.helper import log, output, conv, file, item, conn, const as c
@@ -51,6 +53,11 @@ class printer(cmd.Cmd, object):
     traversal = ""
     # can be changed
     editor = "vim"  # set to nano/edit/notepad/leafpad/whatever
+    
+    # Interruption control
+    interrupted = False
+    current_command = None
+    command_thread = None
 
     # --------------------------------------------------------------------
     def __init__(self, args):
@@ -59,6 +66,9 @@ class printer(cmd.Cmd, object):
         self.debug = args.debug  # debug mode
         self.quiet = args.quiet  # quiet mode
         self.mode = args.mode    # command mode
+
+        # Setup signal handlers for graceful interruption
+        self.setup_signal_handlers()
 
         # connect to device
         self.do_open(args.target, "init")
@@ -77,6 +87,52 @@ class printer(cmd.Cmd, object):
             self.do_load(args.load)
         # input loop
         self.cmdloop()
+
+    def setup_signal_handlers(self):
+        """Setup signal handlers for graceful interruption"""
+        def signal_handler(signum, frame):
+            self.handle_interruption()
+        
+        # Handle SIGINT (Ctrl+C) and SIGTERM
+        signal.signal(signal.SIGINT, signal_handler)
+        if hasattr(signal, 'SIGTERM'):
+            signal.signal(signal.SIGTERM, signal_handler)
+
+    def handle_interruption(self):
+        """Handle interruption (Ctrl+C, ESC, etc.)"""
+        if self.current_command:
+            # Stop current command
+            self.interrupted = True
+            output().warning("\n[!] Command interrupted. Stopping current operation...")
+            
+            # Wait a moment for command to stop
+            time.sleep(0.5)
+            
+            # Ask if user wants to exit
+            try:
+                response = input("\nDo you want to exit PrinterReaper? (y/N): ").strip().lower()
+                if response in ['y', 'yes']:
+                    output().info("Exiting PrinterReaper...")
+                    sys.exit(0)
+                else:
+                    output().info("Continuing...")
+                    self.interrupted = False
+                    self.current_command = None
+            except (EOFError, KeyboardInterrupt):
+                output().info("Exiting PrinterReaper...")
+                sys.exit(0)
+        else:
+            # No command running, ask directly
+            try:
+                response = input("\nDo you want to exit PrinterReaper? (y/N): ").strip().lower()
+                if response in ['y', 'yes']:
+                    output().info("Exiting PrinterReaper...")
+                    sys.exit(0)
+                else:
+                    output().info("Continuing...")
+            except (EOFError, KeyboardInterrupt):
+                output().info("Exiting PrinterReaper...")
+                sys.exit(0)
 
     def set_defaults(self, newtarget):
         self.fuzz = False
@@ -126,20 +182,33 @@ class printer(cmd.Cmd, object):
     # --------------------------------------------------------------------
     # catch-all wrapper to guarantee continuation on unhandled exceptions
     def onecmd(self, line):
+        # Set current command for interruption tracking
+        self.current_command = line.strip()
+        self.interrupted = False
+        
         try:
-            return cmd.Cmd.onecmd(self, line)
+            result = cmd.Cmd.onecmd(self, line)
+            # Clear current command on successful completion
+            self.current_command = None
+            return result
         except (ConnectionResetError, BrokenPipeError, OSError) as e:
             output().errmsg("Connection lost - printer may have disconnected")
+            self.current_command = None
             return False
         except socket.timeout as e:
             output().errmsg("Command timed out - printer may be busy")
+            self.current_command = None
             return False
         except Exception as e:
             # Only show traceback in debug mode
             if hasattr(self, 'debug') and self.debug:
                 traceback.print_exc()
             output().errmsg(f"Command failed: {str(e)}")
+            self.current_command = None
             return False
+        finally:
+            # Always clear current command
+            self.current_command = None
 
     # ====================================================================
 

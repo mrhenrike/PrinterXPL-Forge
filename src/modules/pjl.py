@@ -5,6 +5,7 @@ import re
 import os
 import random
 import posixpath
+import time
 
 from core.printer import printer
 from utils.codebook import codebook
@@ -592,14 +593,25 @@ class pjl(printer):
         output().warning("Warning: This command tries to cause physical damage to the")
         output().warning("printer's NVRAM. Use with caution!")
         
-        confirm = input("Are you sure you want to continue? (yes/no): ")
-        if confirm.lower() == 'yes':
-            # This is a destructive command - be very careful
-            output().warning("Executing destructive command...")
-            self.cmd("@PJL SET NVRAM=0", False)
-            output().warning("Destructive command executed")
-        else:
-            output().info("Destructive command cancelled")
+        try:
+            confirm = input("Are you sure you want to continue? (yes/no): ")
+            if confirm.lower() == 'yes':
+                # This is a destructive command - be very careful
+                output().warning("Executing destructive command...")
+                
+                # Check for interruption during execution
+                for i in range(10):  # Simulate long operation
+                    if hasattr(self, 'interrupted') and self.interrupted:
+                        output().warning("Command interrupted by user")
+                        return
+                    time.sleep(0.1)  # Small delay to allow interruption
+                
+                self.cmd("@PJL SET NVRAM=0", False)
+                output().warning("Destructive command executed")
+            else:
+                output().info("Destructive command cancelled")
+        except (EOFError, KeyboardInterrupt):
+            output().info("Command cancelled")
 
     def do_flood(self, arg):
         "Flood user input, may reveal buffer overflows: flood <size>"

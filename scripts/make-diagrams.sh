@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 OUT_DIR=${1:-diagrams/png}
+CONFIG=diagrams/mermaid-config.json
+SCALE=${SCALE:-2}
 
 echo "Generating PNG diagrams to $OUT_DIR"
 mkdir -p "$OUT_DIR"
@@ -15,7 +17,7 @@ for f in diagrams/*.mmd; do
   base=$(basename "$f" .mmd)
   out="$OUT_DIR/$base.png"
   echo "  -> $f -> $out"
-  npx -y @mermaid-js/mermaid-cli --quiet -i "$f" -o "$out"
+  npx -y @mermaid-js/mermaid-cli --quiet -i "$f" -o "$out" --configFile "$CONFIG" --scale "$SCALE"
 done
 
 echo "Done."

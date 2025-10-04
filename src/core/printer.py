@@ -1240,3 +1240,124 @@ class printer(cmd.Cmd, object):
         print("Executes commands from a text file line by line.")
         print("Lines starting with # are treated as comments and ignored.")
         print()
+
+    def do_list_all(self, arg):
+        """Hidden command to list all available commands (does not appear in help)"""
+        print("\n" + "="*70)
+        print(f"PrinterReaper {self.mode.upper()} - Complete Command List")
+        print("="*70)
+        
+        # Get all command methods that are actually implemented
+        commands = []
+        for attr_name in dir(self):
+            if attr_name.startswith('do_') and not attr_name.startswith('do_list_all'):
+                command_name = attr_name[3:]  # Remove 'do_' prefix
+                # Only include commands that have help methods (indicating they're real commands)
+                if hasattr(self, f'help_{command_name}') or command_name in ['exit', 'debug', 'loop', 'discover', 'open', 'close', 'timeout', 'reconnect', 'pwd', 'chvol', 'traversal', 'cd', 'get', 'put', 'append', 'delete', 'cat', 'edit', 'fuzz', 'print', 'convert', 'support', 'cve', 'load']:
+                    commands.append(command_name)
+        
+        # Sort commands alphabetically
+        commands.sort()
+        
+        # Command descriptions (generic + module-specific)
+        descriptions = {
+            # Generic commands (always available)
+            "exit": "Exit the shell",
+            "debug": "Toggle debug output",
+            "loop": "Run command repeatedly",
+            "discover": "Scan for network printers",
+            "open": "Connect to new target",
+            "close": "Disconnect from printer",
+            "timeout": "Change network timeout",
+            "reconnect": "Reconnect to printer",
+            "pwd": "Print current directory",
+            "chvol": "Change current volume",
+            "traversal": "Set path traversal root",
+            "cd": "Change directory",
+            "get": "Download file from printer",
+            "put": "Upload file to printer",
+            "append": "Append to remote file",
+            "delete": "Delete remote file",
+            "cat": "Print remote file contents",
+            "edit": "Edit remote file",
+            "fuzz": "Launch filesystem fuzzing",
+            "print": "Print file through device",
+            "convert": "Convert file format",
+            "support": "Show printer support matrix",
+            "cve": "Search for CVEs",
+            "load": "Load commands from file",
+            "help": "Show help information",
+            
+            # PJL-specific commands (if in PJL mode)
+            "ls": "List directory contents",
+            "mkdir": "Create directory",
+            "find": "Find files and directories",
+            "upload": "Upload file to printer",
+            "download": "Download file from printer",
+            "pjl_delete": "Delete file using PJL",
+            "copy": "Copy file",
+            "move": "Move/rename file",
+            "touch": "Create empty file",
+            "chmod": "Change file permissions",
+            "permissions": "Show file permissions",
+            "rmdir": "Remove directory",
+            "mirror": "Mirror directory structure",
+            "id": "Show printer identification",
+            "variables": "Show environment variables",
+            "printenv": "Show specific environment variable",
+            "set": "Set environment variable",
+            "display": "Display message on printer panel",
+            "offline": "Take printer offline",
+            "restart": "Restart printer",
+            "reset": "Reset printer",
+            "selftest": "Run printer self-test",
+            "backup": "Backup printer settings",
+            "restore": "Restore printer settings",
+            "lock": "Lock printer panel",
+            "unlock": "Unlock printer panel",
+            "disable": "Disable printer feature",
+            "nvram": "Access NVRAM settings",
+            "destroy": "Destroy printer firmware (DANGEROUS)",
+            "flood": "Flood printer with data",
+            "hold": "Hold print job",
+            "format": "Format printer storage",
+            "network": "Show network configuration",
+            "direct": "Send raw data to port",
+            "execute": "Execute raw PJL command",
+            "pagecount": "Show/set page counter",
+            "status": "Toggle status messages"
+        }
+        
+        # Categorize commands
+        categories = {
+            "Filesystem": ["ls", "mkdir", "find", "upload", "download", "pjl_delete", "copy", "move", "touch", "chmod", "permissions", "rmdir", "mirror", "get", "put", "append", "cat", "edit"],
+            "System Information": ["id", "variables", "printenv", "set", "pwd", "chvol", "traversal", "cd"],
+            "Control": ["display", "offline", "restart", "reset", "selftest", "backup", "restore", "open", "close", "reconnect"],
+            "Security": ["lock", "unlock", "disable", "nvram"],
+            "Attacks": ["destroy", "flood", "hold", "format", "fuzz"],
+            "Network": ["network", "direct", "execute", "discover", "timeout"],
+            "Utilities": ["load", "pagecount", "help", "status", "exit", "debug", "loop", "print", "convert", "support", "cve"]
+        }
+        
+        # Display commands by category
+        for category, cmd_list in categories.items():
+            print(f"\n{category}:")
+            print("-" * 50)
+            for cmd in cmd_list:
+                if cmd in commands:
+                    desc = descriptions.get(cmd, "No description available")
+                    print(f"  {cmd:<15} - {desc}")
+        
+        # Show any uncategorized commands
+        uncategorized = [cmd for cmd in commands if not any(cmd in cat_list for cat_list in categories.values())]
+        if uncategorized:
+            print(f"\nOther Commands:")
+            print("-" * 50)
+            for cmd in uncategorized:
+                desc = descriptions.get(cmd, "No description available")
+                print(f"  {cmd:<15} - {desc}")
+        
+        print(f"\nTotal Commands: {len(commands)}")
+        print("="*70)
+        print("Note: This is a hidden command and does not appear in help.")
+        print("="*70 + "\n")

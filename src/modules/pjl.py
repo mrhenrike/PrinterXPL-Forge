@@ -96,12 +96,14 @@ class pjl(printer):
         print("PrinterReaper PJL v2.0 - Complete Command List")
         print("="*70)
         
-        # Get all command methods
+        # Get all command methods that are actually implemented
         commands = []
         for attr_name in dir(self):
             if attr_name.startswith('do_') and not attr_name.startswith('do_list_all'):
                 command_name = attr_name[3:]  # Remove 'do_' prefix
-                commands.append(command_name)
+                # Only include commands that have help methods (indicating they're real commands)
+                if hasattr(self, f'help_{command_name}') or command_name in ['exit', 'debug', 'loop', 'discover', 'open', 'close', 'timeout', 'reconnect', 'pwd', 'chvol', 'traversal', 'cd', 'get', 'put', 'append', 'delete', 'cat', 'edit', 'fuzz', 'print', 'convert', 'support', 'cve']:
+                    commands.append(command_name)
         
         # Sort commands alphabetically
         commands.sort()
@@ -113,7 +115,7 @@ class pjl(printer):
             "find": "Find files and directories",
             "upload": "Upload file to printer",
             "download": "Download file from printer",
-            "delete": "Delete file",
+            "pjl_delete": "Delete file using PJL",
             "copy": "Copy file",
             "move": "Move/rename file",
             "touch": "Create empty file",
@@ -146,18 +148,40 @@ class pjl(printer):
             "load": "Load commands from file",
             "pagecount": "Show/set page counter",
             "help": "Show help information",
-            "status": "Toggle status messages"
+            "status": "Toggle status messages",
+            "exit": "Exit the shell",
+            "debug": "Toggle debug output",
+            "loop": "Run command repeatedly",
+            "discover": "Scan for network printers",
+            "open": "Connect to new target",
+            "close": "Disconnect from printer",
+            "timeout": "Change network timeout",
+            "reconnect": "Reconnect to printer",
+            "pwd": "Print current directory",
+            "chvol": "Change current volume",
+            "traversal": "Set path traversal root",
+            "cd": "Change directory",
+            "get": "Download file from printer",
+            "put": "Upload file to printer",
+            "append": "Append to remote file",
+            "cat": "Print remote file contents",
+            "edit": "Edit remote file",
+            "fuzz": "Launch filesystem fuzzing",
+            "print": "Print file through device",
+            "convert": "Convert file format",
+            "support": "Show printer support matrix",
+            "cve": "Search for CVEs"
         }
         
         # Categorize commands
         categories = {
-            "Filesystem": ["ls", "mkdir", "find", "upload", "download", "delete", "copy", "move", "touch", "chmod", "permissions", "rmdir", "mirror"],
-            "System Information": ["id", "variables", "printenv", "set"],
-            "Control": ["display", "offline", "restart", "reset", "selftest", "backup", "restore"],
+            "Filesystem": ["ls", "mkdir", "find", "upload", "download", "pjl_delete", "copy", "move", "touch", "chmod", "permissions", "rmdir", "mirror", "get", "put", "append", "cat", "edit"],
+            "System Information": ["id", "variables", "printenv", "set", "pwd", "chvol", "traversal", "cd"],
+            "Control": ["display", "offline", "restart", "reset", "selftest", "backup", "restore", "open", "close", "reconnect"],
             "Security": ["lock", "unlock", "disable", "nvram"],
-            "Attacks": ["destroy", "flood", "hold", "format"],
-            "Network": ["network", "direct", "execute"],
-            "Utilities": ["load", "pagecount", "help", "status"]
+            "Attacks": ["destroy", "flood", "hold", "format", "fuzz"],
+            "Network": ["network", "direct", "execute", "discover", "timeout"],
+            "Utilities": ["load", "pagecount", "help", "status", "exit", "debug", "loop", "print", "convert", "support", "cve"]
         }
         
         # Display commands by category
@@ -283,10 +307,10 @@ class pjl(printer):
         except Exception as e:
             output().errmsg(f"Download failed: {e}")
 
-    def do_delete(self, arg):
-        "Delete remote file: delete <file>"
+    def do_pjl_delete(self, arg):
+        "Delete remote file using PJL: pjl_delete <file>"
         if not arg:
-            output().errmsg("Usage: delete <file>")
+            output().errmsg("Usage: pjl_delete <file>")
             return
         self.cmd("@PJL FSDELETE NAME=\"" + arg + "\"")
 
@@ -396,8 +420,8 @@ class pjl(printer):
     # --------------------------------------------------------------------
 
     def do_id(self, *args):
-        "Show comprehensive printer identification and system information"
-        print("Printer Identification & System Information:")
+        "Show comprehensive printer identification and system information (PJL-specific)"
+        print("PJL Printer Identification & System Information:")
         print("=" * 60)
         
         # Get basic ID
@@ -771,27 +795,6 @@ class pjl(printer):
         if result:
             print(result)
 
-    def do_load(self, arg):
-        "Run commands from file: load <filename>"
-        if not arg:
-            output().errmsg("Usage: load <filename>")
-            return
-        
-        if not os.path.exists(arg):
-            output().errmsg(f"File not found: {arg}")
-            return
-        
-        try:
-            with open(arg, 'r') as f:
-                commands = f.readlines()
-            
-            for cmd in commands:
-                cmd = cmd.strip()
-                if cmd and not cmd.startswith('#'):
-                    output().info(f"Executing: {cmd}")
-                    self.onecmd(cmd)
-        except Exception as e:
-            output().errmsg(f"Load failed: {e}")
 
     # --------------------------------------------------------------------
     # 📊 MONITORAMENTO (2 comandos)

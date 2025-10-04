@@ -1,0 +1,16 @@
+%% PrinterReaper v2.4.2 - Command Execution Flow (13 steps)
+%% Generates: diagrams/png/command_flow.png
+flowchart TD
+  A["User Input<br/>download /etc/passwd<br/>mode=pjl"] --> B["main.py<br/>cmd parsing"]
+  B --> C["pjl.py<br/>parse args"]
+  C --> D["Build PJL command<br/>UEL + FSDOWNLOAD + delimiter"]
+  D --> E["Protocol wrapping<br/>RAW/LPD/IPP/SMB"]
+  E --> F["TCP/IP send<br/>connect:9100"]
+  F --> G["Printer executes<br/>PJL interpreter"]
+  G --> H["Receive until delimiter<br/>conn.recv_until"]
+  H --> I["Error handling<br/>codebook lookup"]
+  I --> J["Process data<br/>strip UEL/delim"]
+  J --> K["Write file<br/>exfiltrated/passwd"]
+  K --> L["Output success<br/>colored messages"]
+  L --> M["Prompt ready"]
+

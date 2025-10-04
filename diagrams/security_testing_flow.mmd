@@ -1,0 +1,8 @@
+%% PrinterReaper v2.4.2 - Security Testing Workflow
+%% Generates: diagrams/png/security_testing_flow.png
+flowchart TD
+  R["Recon<br/>SNMP discovery"] --> A["Assessment<br/>fs access / traversal"]
+  A --> X["Exploitation<br/>exfil / payloads / lock"]
+  X --> P["Post-Exploitation<br/>mirror / backup / cleanup"]
+  P --> REP["Reporting<br/>QA report / evidence"]
+

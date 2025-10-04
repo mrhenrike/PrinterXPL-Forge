@@ -1,0 +1,14 @@
+%% PrinterReaper v2.4.2 - Multi-Protocol Stack
+%% Generates: diagrams/png/protocol_stack.png
+flowchart LR
+  U["User Command"] --> R["Protocol Router<br/>helper.conn"]
+  R --> RAW["RAW :9100"]
+  R --> LPD["LPD :515"]
+  R --> IPP["IPP :631"]
+  R --> SMB["SMB :445"]
+  RAW --> TCP["TCP/IP"]
+  LPD --> TCP
+  IPP --> TCP
+  SMB --> TCP
+  TCP --> P["Target Printer"]
+

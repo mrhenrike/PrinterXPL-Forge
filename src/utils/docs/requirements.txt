@@ -1,0 +1,12 @@
+# PrinterReaper - Online Discovery Module Dependencies
+# Install with: pip install -r requirements_discovery.txt
+
+# Shodan API
+shodan>=1.31.0
+
+# Censys API
+censys>=2.2.0
+
+# Additional utilities (if not already installed)
+requests>=2.31.0
+

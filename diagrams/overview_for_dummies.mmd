@@ -7,17 +7,24 @@ flowchart LR
   classDef io fill:#fce4ec,stroke:#e91e63,color:#880e4f,stroke-width:2
   classDef printer fill:#ede7f6,stroke:#673ab7,color:#311b92,stroke-width:2
 
-  U["User<br/><b>command</b><br/><code>ls</code>"]:::user -->|CLI| ATT["Attacker<br/><b>Shell</b><br/>pjl / ps / pcl"]:::app
+  %% Legend
+  subgraph LEG[Legend]
+    L1["👆 Click / type"]:::user
+    L2["➡️ Send to printer"]:::app
+    L3["⬅️ Receive from printer"]:::printer
+  end
+
+  U["👤 User<br/><b>command</b><br/><code>ls</code>"]:::user -->|👆 CLI| ATT["🛠️ Attacker<br/><b>Shell</b><br/>pjl / ps / pcl"]:::app
 
   subgraph PR["<b>PRINTERREAPER</b>"]
     direction TB
-    ATT --> CONN["Connector<br/><small>RAW • LPD • IPP • SMB</small>"]:::block
-    ATT --> TR["Translator<br/><small>PJL • PostScript • PCL</small>"]:::block
+    ATT -->|➡️| CONN["🔌 Connector<br/><small>RAW • LPD • IPP • SMB</small>"]:::block
+    ATT -->|🔄| TR["🔡 Translator<br/><small>PJL • PostScript • PCL</small>"]:::block
     TR --> FZ["Fuzzer"]:::io
-    ATT --> LG["Logging"]:::block
-    ATT --> SC["Scripting / Payloads"]:::io
+    ATT --> LG["📝 Logging"]:::block
+    ATT --> SC["📦 Scripting / Payloads"]:::io
   end
 
-  CONN --> PRT["<b>Printer</b>"]:::printer
-  PRT -->|Response| RES["Result<br/><small>.../device.html<br/>.../java.login.config</small>"]:::user
+  CONN -->|➡️ Send| PRT["🖨️ <b>Printer</b>"]:::printer
+  PRT -->|⬅️ Response| RES["📄 Result<br/><small>.../device.html<br/>.../java.login.config</small>"]:::user
 

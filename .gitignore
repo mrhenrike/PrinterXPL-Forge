@@ -51,3 +51,6 @@ logs/
 *.temp
 test_*.py
 *_test.py
+
+# Sample files (not for public repository)
+sample*

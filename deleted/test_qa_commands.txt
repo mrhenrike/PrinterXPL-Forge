@@ -1,0 +1,67 @@
+# QA Test Commands for PrinterReaper v2.2.14
+# Testing all functionality systematically
+
+# 1. Test help system
+help
+help exit
+help open
+help close
+help id
+help pwd
+help ls
+help download
+help upload
+help print
+help debug
+help timeout
+help append
+help traversal
+help chvol
+
+# 2. Test system information
+id
+pwd
+timeout
+chvol 1:
+chvol 0:
+
+# 3. Test filesystem navigation
+ls
+cd /
+pwd
+upload LICENSE
+cat LICENSE
+append "testeQA" LICENSE
+append LICENSE 'New entry'
+cat LICENSE
+download LICENSE LICENSE.down
+
+
+
+# 4. Test file operations (safe commands)
+ls
+cat /etc/passwd
+cat /etc/hosts
+
+# 5. Test printing
+print "Hello PrinterReaper Test"
+
+# 6. Test utility commands
+debug
+timeout 5
+
+# 7. Test connection management
+close
+open 15.204.211.244
+reconnect
+
+mirror /
+fuzz
+print 'Hello World'
+convert LICENSE
+
+support
+cve
+
+# 8. Exit gracefully
+exit

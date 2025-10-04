@@ -22,13 +22,13 @@ wheels/
 MANIFEST
 env/
 venv/
+.env/
+.venv/
 .env
 .venv
 
-# Backup folders
-old-files-backup/
-old-sources/
-deleted/
+# Backup folders (keep structure but ignore contents)
+# deleted/ folder tracked for archival purposes
 
 # IDE
 .vscode/
@@ -53,8 +53,19 @@ logs/
 # Temporary files
 *.tmp
 *.temp
-test_*.py
-*_test.py
 
 # Sample files (not for public repository)
 sample*
+
+# Test results and outputs
+tests/qa_report_*.json
+tests/*_output.log
+exfiltrated/*
+*.pcap
+
+# Discovery results
+discovery_results*/
+*_results/
+
+# HTTP server logs
+*.server.log

@@ -1,14 +1,14 @@
-# PrinterReaper v2.4.0 - *Complete Printer Penetration Testing Toolkit*
+# PrinterReaper v2.4.2 - *Complete Printer Penetration Testing Toolkit*
 
 **Is your printer safe from the void? Find out before someone else does…**
 
-PrinterReaper v2.4.0 is the **most complete printer penetration testing toolkit** available, with support for **all three major printer languages** (PJL, PostScript, PCL) and **four network protocols** (RAW, LPD, IPP, SMB). Test, exploit, and secure network printers with 109 commands across 7 categories.
+PrinterReaper v2.4.2 is the **most complete printer penetration testing toolkit** available, with support for **all three major printer languages** (PJL, PostScript, PCL) and **four network protocols** (RAW, LPD, IPP, SMB). Test, exploit, and secure network printers with 109 commands across 7 categories.
 
 > **TL;DR:** PrinterReaper is your complete toolkit for discovering and exploiting printer vulnerabilities. **Connect. Scan. Exploit. Exfiltrate. Repeat.**
 
 ---
 
-## 🎯 What's New in v2.4.0
+## 🎯 What's New in v2.4.2
 
 - **📜 PostScript Module** - 40+ commands for PS exploitation
 - **🖨️ PCL Module** - 15 commands with virtual filesystem
@@ -562,7 +562,7 @@ PrinterReaper v2.4.0
 
 ## 🔬 Testing & QA
 
-PrinterReaper v2.4.0 has been comprehensively tested:
+PrinterReaper v2.4.2 has been comprehensively tested:
 
 - ✅ **37 automated tests** - 100% pass rate
 - ✅ **All modules tested** - Zero import errors
@@ -571,6 +571,12 @@ PrinterReaper v2.4.0 has been comprehensively tested:
 - ✅ **operators.py validated** - 371 operators loaded
 
 See [QA_REPORT_v2.4.0.md](QA_REPORT_v2.4.0.md) for detailed test results.
+
+### Recent Updates
+
+**v2.4.2** (Oct 2025) - HTML Wiki for website deployment  
+**v2.4.1** (Oct 2025) - QA tested, 100% pass rate, documentation updates  
+**v2.4.0** (Oct 2025) - Complete toolkit: 3 languages, 4 protocols, 5 payloads
 
 ---
 
@@ -678,7 +684,7 @@ If you find PrinterReaper useful, please star the repository!
 
 <div align="center">
 
-**PrinterReaper v2.4.0**  
+**PrinterReaper v2.4.2**  
 *Complete Printer Penetration Testing Toolkit*
 
 **109 Commands | 3 Languages | 4 Protocols | 5 Payloads**

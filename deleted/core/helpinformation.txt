@@ -1,0 +1,221 @@
+
+def help_info(self):
+    output().message('Show information: info <category>" + c.EOL)
+    output().message('  info config,  info filesys,  info id")
+    output().message('  info memory,  info pagecount, info status")
+    output().message('  info ustatus, info variables, info log")
+    output().message('  info prodinfo, info supplies, info tracking")
+    output().message('")
+
+def help_nvram(self):
+    output().message('NVRAM operations:  nvram <operation>")
+    output().message('  nvram dump [all]         - Dump (all) NVRAM to local file.")
+    output().message('  nvram read addr          - Read single byte from address.")
+    output().message('  nvram write addr value   - Write single byte to address.")
+
+
+
+
+
+
+def help_destroy(self):
+    "Attack NVRAM: may physically damage printer"
+    output().message('destroy")
+    output().message('  Continuously write to NVRAM to induce wear-out.")
+    output().message('  WARNING: this is destructive. CTRL+C to abort.")
+
+def help_env(self):
+    "Show all PJL environment variables"
+    output().message('env")
+    output().message('  Alias for: info variables")
+
+
+
+
+
+
+
+def help_reset(self):
+    "Factory-reset the device"
+    output().message('reset")
+    output().message('  Restore factory defaults (incl. TCP/IP).")
+    output().message('  WARNING: may lose connectivity. CTRL+C to abort.")
+
+
+
+
+
+def help_df(self):
+    "Show remote file system volumes"
+    output().message('df")
+    output().message('  Alias for: info filesys")
+
+
+
+def help_ls(self):
+    "List remote directory contents"
+    output().message('ls <remote_dir>")
+    output().message('  Show all files and subdirs under <remote_dir>.")
+    output().message('Example: ls 0:/jobs/")
+
+def help_pagecount(self):
+    "View or set the printer's page counter"
+    output().message('pagecount         # display current counter")
+    output().message('pagecount <num>   # set hardware counter to <num>")
+
+def help_restart(self):
+    "Restart the printer via PML"
+    output().message('restart")
+    output().message('  Sends power-cycle PML command. Only works on some HP models.")
+
+
+
+
+
+def help_direct(self):
+    "Show direct-print configuration"
+    output().message('direct")
+    output().message('  Display direct-print SSID, channel, and IPv4 settings.")
+
+def help_find(self):
+    "Recursively list all files under a directory"
+    output().message('find <remote_dir>")
+    output().message('  Walk the remote filesystem under <remote_dir>.")
+
+def help_hold(self):
+    "Enable job retention"
+    output().message('hold")
+    output().message('  Turn on retention of print jobs on the device.")
+
+
+
+
+
+def help_selftest(self):
+    "Run the printer’s built-in self-test suite"
+    output().message('selftest")
+    output().message('  Print various test and configuration pages.")
+
+
+
+
+
+def help_disable(self):
+    "Toggle printing functionality"
+    output().message('disable   # disable printing")
+    output().message('enable    # re-enable printing")
+
+def help_flood(self):
+    "Flood parser with long inputs (fuzzing)"
+    output().message('flood <size>")
+    output().message('  Send oversized PJL inputs of length <size> to detect overflows.")
+
+def help_id(self):
+    "Show model identification"
+    output().message('id")
+    output().message('  Issue an INFO ID and print device model lines.")
+
+def help_mkdir(self):
+    "Create a remote directory"
+    output().message('mkdir <remote_dir>")
+    output().message('  Create the specified directory on the printer filesystem.")
+
+def help_printenv(self):
+    "Show one PJL environment variable"
+    output().message('printenv <VAR>")
+    output().message('  Show the current value of VAR from INFO VARIABLES.")
+
+def help_set(self):
+    "Set a PJL environment variable"
+    output().message('set <VAR>=<VALUE>")
+    output().message('  Change an environment parameter (e.g. DUPLEXIMAGEADJUST=1)")
+
+def help_unlock(self):
+    "Unlock control panel and disk"
+    output().message('unlock [PIN]")
+    output().message('  Remove password/CD lock; with PIN to attempt brute-force cracking.")
+
+
+
+
+
+def help_format(self):
+    "Initialize/reset remote filesystem volume"
+    output().message('format")
+    output().message('  Erase stored jobs and user data on current volume.")
+
+def help_info(self):
+    "Show PJL INFO categories"
+    output().message('info <category>")
+    output().message('  Supported categories:")
+    output().message('    config, filesys, id, memory, pagecount, status, ustatus, variables")
+
+def help_network(self):
+    "Show summarized network info"
+    output().message('network")
+    output().message('  Display IPv4, mask, gateway, HW address, DHCP/WINS, and host name.")
+
+def help_product(self):
+    "Show grouped product info"
+    output().message('product")
+    output().message('  Display model, serial, firmware, memory and pagecount blocks.")
+
+def help_site(self):
+    "Send an arbitrary PJL site command"
+    output().message('site <PJL_command>")
+    output().message('  Execute a custom PJL command string.")
+    output().message('Example: site "@PJL SET TIMEOUT=30"')
+
+def help_version(self):
+    "Show firmware version or serial"
+    output().message('version")
+    output().message('  Alias for: info config (VERSION|SERIAL|MODEL)")
+
+
+
+def help_display(self):
+    "Change the printer’s front-panel display message"
+    output().message('display <"message">')
+    output().message('  Set the device ready-message text.")
+
+def help_free(self):
+    "Show free memory"
+    output().message('free")
+    output().message('  Alias for: info memory")
+
+
+
+def help_nvram(self):
+    "Inspect or dump printer NVRAM"
+    output().message('nvram dump [all]     # dump entire NVRAM")
+    output().message('nvram read <addr>    # read one byte")
+    output().message('nvram write <addr> <val>  # write one byte")
+
+
+
+def help_status(self):
+    "Toggle unsolicited PJL status messages"
+    output().message('status")
+    output().message('  Enable/disable INFO STATUS feedback on every command.")
+
+def help_wifi(self):
+    "Display Wi-Fi parameters"
+    output().message('wifi")
+    output().message('  Show SSID, authentication mode and 802.11 status.")
+
+
+
+
+
+
+
+def help_lock(self):
+    "Lock control panel and disk"
+    output().message('lock <PIN>")
+    output().message('  Set a control-panel password and disable disk writes.")
+
+def help_offline(self):
+    "Take the printer offline"
+    output().message('offline <message>")
+    output().message('  Display <message> on LCD and reject new jobs.")
+

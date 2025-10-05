@@ -8,7 +8,7 @@ try:
     from version import get_version_string
     VERSION = get_version_string()
 except:
-    VERSION = "2.4.2"  # Fallback version
+    VERSION = "2.5.1"  # Fallback version
 
 setup(
     name="PrinterReaper",

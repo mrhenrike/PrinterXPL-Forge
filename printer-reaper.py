@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-PrinterReaper v2.4.2 - Complete Printer Penetration Testing Toolkit
+PrinterReaper v2.5.1 - Complete Printer Penetration Testing Toolkit
 ==================================================================
 Main entry point supporting:
 - PJL (Printer Job Language) - 54 commands

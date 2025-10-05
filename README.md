@@ -673,7 +673,7 @@ If you find PrinterReaper useful, please star the repository!
 
 <div align="center">
 
-**PrinterReaper v2.4.2**  
+**PrinterReaper v2.5.1**  
 *Complete Printer Penetration Testing Toolkit*
 
 **109 Commands | 3 Languages | 4 Protocols | 5 Payloads**

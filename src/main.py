@@ -29,15 +29,17 @@ VERSION: str = get_version_string()
 # --------------------------------------------------------------------------- #
 # Argument parsing
 # --------------------------------------------------------------------------- #
-def get_args() -> argparse.Namespace:
-    """Return parsed CLI arguments."""
+def build_parser() -> argparse.ArgumentParser:
+    """Build and return the argparse parser (shared by CLI and help)."""
     parser = argparse.ArgumentParser(
         prog=APP_NAME.lower(),
         description=f"{APP_NAME} - Advanced Printer Penetration Testing Toolkit",
     )
-    parser.add_argument("target", help="Printer IP address or hostname")
+    # Make positionals optional to allow --discover-* without target/mode
+    parser.add_argument("target", nargs='?', help="Printer IP address or hostname")
     parser.add_argument(
         "mode",
+        nargs='?',
         choices=["pjl", "ps", "pcl", "auto"],
         help="Printer language to abuse (PJL, PostScript, PCL, or auto-detect)",
     )
@@ -69,6 +71,24 @@ def get_args() -> argparse.Namespace:
         help="Automatically detect supported printer languages",
         action="store_true",
     )
+    # Discovery helpers
+    parser.add_argument(
+        "--discover-local",
+        action="store_true",
+        help="Run local SNMP discovery to find printers on your networks",
+    )
+    parser.add_argument(
+        "--discover-online",
+        action="store_true",
+        help="Run online discovery via Shodan/Censys (requires API keys)",
+    )
+    return parser
+
+
+def get_args() -> argparse.Namespace:
+    """Return parsed CLI arguments."""
+    parser = build_parser()
+    return parser.parse_args()
     parser.add_argument(
         "--version",
         action="version",
@@ -119,7 +139,7 @@ def intro(quiet: bool) -> None:
         "",
         "",
         "",
-        f"{APP_NAME} :: Vulnerability & Offensive Intrusion Device for PRINTers",
+        f"{APP_NAME} :: Advanced Printer Penetration Testing Toolkit",
         f"Version {VERSION}",
         "Author : Andre Henrique",
         "Contact: X / LinkedIn @mrhenrike",
@@ -140,12 +160,45 @@ def intro(quiet: bool) -> None:
 # --------------------------------------------------------------------------- #
 def main() -> None:
     """Main program flow."""
-    # If called without any arguments, drop to printer discovery helper.
+    # If called without any arguments, show an extended help/quick-start
     if len(sys.argv) == 1:
-        discovery(usage=True)
+        parser = build_parser()
+        parser.print_help()
+        print()
+        print("Quick Start:")
+        print("  python src/main.py 15.204.211.244 auto --safe   # Auto-detect language and run")
+        print("  python src/main.py 15.204.211.244 pjl            # Force PJL shell")
+        print("  python src/main.py 15.204.211.244 ps             # Force PostScript shell")
+        print("  python src/main.py 15.204.211.244 pcl            # Force PCL shell")
+        print()
+        print("Discovery:")
+        print("  python src/main.py --discover-local               # SNMP scan local networks")
+        print("  python -m src.utils.discovery_online              # Online discovery (Shodan/Censys)")
+        print("       or: python src/main.py --discover-online")
+        print()
+        print("Examples:")
+        print("  printerreaper 15.204.211.244 auto --debug --log session.log")
+        print("  printerreaper 192.168.1.100 pjl -s -o raw.log")
+        print()
         sys.exit(0)
 
     args = get_args()
+
+    # Handle discovery shortcuts that do not require positionals
+    if args.discover_local:
+        discovery(usage=True)
+        sys.exit(0)
+
+    if args.discover_online:
+        try:
+            from utils.discovery_online import OnlineDiscoveryManager
+            mgr = OnlineDiscoveryManager()
+            mgr.discover(max_results_per_query=25)
+            mgr.export_results()
+        except Exception as e:
+            output().errmsg(f"Online discovery failed: {e}")
+        finally:
+            sys.exit(0)
 
     # Show banner first (respects --quiet).
     intro(args.quiet)
@@ -174,6 +227,15 @@ def main() -> None:
         print()
         output().green(f">> Starting {APP_NAME} (Advanced Printer Penetration Testing)")
         print()
+
+    # Validate required positionals (unless using discovery flags)
+    if not args.target or not args.mode:
+        parser = build_parser()
+        parser.print_help()
+        print()
+        print("Tip: Use --discover-local or --discover-online for discovery workflows.")
+        print()
+        sys.exit(0)
 
     # Auto-detect printer language support if mode is 'auto'
     if args.mode == 'auto':

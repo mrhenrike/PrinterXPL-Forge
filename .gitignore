@@ -62,6 +62,7 @@ tests/qa_report_*.json
 tests/*_output.log
 exfiltrated/*
 *.pcap
+wiki-html/
 
 # Discovery results
 discovery_results*/
@@ -69,3 +70,9 @@ discovery_results*/
 
 # HTTP server logs
 *.server.log
+
+# Large asset caches (generated or external)
+reports/
+*.tmp.html
+*.cache
+*.bak

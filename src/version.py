@@ -3,8 +3,8 @@
 Version information for PrinterReaper
 """
 
-__version__ = "2.4.2"
-__version_info__ = (2, 4, 2)
+__version__ = "2.5.0"
+__version_info__ = (2, 5, 0)
 
 def get_version():
     """Get the current version string"""

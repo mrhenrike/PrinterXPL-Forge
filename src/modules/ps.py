@@ -30,6 +30,72 @@ class ps(printer):
         self.prompt = f"{self.target}:ps> "
 
     # --------------------------------------------------------------------
+    # Help overview (category-based, PJL-style)
+    # --------------------------------------------------------------------
+    def do_help(self, arg):
+        """Show help for commands (PostScript)"""
+        topic = (arg or "").strip()
+        if topic:
+            # Delegate to base generic help for specific topics
+            return super().do_help(topic)
+
+        # Categories aligned with README
+        categories = {
+            "filesystem": [
+                "ls", "get", "put", "delete", "cat"
+            ],
+            "information": [
+                "id", "version", "devices", "uptime", "date", "dicts", "dump", "known", "search", "pagecount"
+            ],
+            "control": [
+                "config", "restart", "reset", "hold", "display"
+            ],
+            "security": [
+                "lock", "unlock", "disable", "enumerate_operators", "test_file_access", "permissions", "chmod"
+            ],
+            "attacks": [
+                "destroy", "hang", "overlay", "cross", "replace", "capture", "payload"
+            ],
+            "advanced": [
+                "exec_ps"
+            ],
+        }
+
+        # Flatten to include only implemented names
+        implemented = {name for name in dir(self) if name.startswith("do_")}
+        def exists(cmd):
+            return f"do_{cmd}" in implemented
+
+        # Print header
+        print()
+        print("PrinterReaper - PostScript Commands")
+        print("=" * 70)
+        print("Available command categories:")
+        total = 0
+        for cat, cmds in categories.items():
+            avail = [c for c in cmds if exists(c)]
+            total += len(avail)
+            label = cat.ljust(13)
+            print(f"  {label}- {len(avail)} commands")
+        print()
+        print(f"Total: {total} PostScript commands available")
+        print("Use 'help <command>' for specific details")
+        print()
+        # Optional: list commands per category in columns
+        for cat, cmds in categories.items():
+            avail = [c for c in cmds if exists(c)]
+            if not avail:
+                continue
+            print(cat.capitalize() + ":")
+            print("-" * 70)
+            colw = max(len(x) for x in avail) + 2
+            cols = max(1, 70 // colw)
+            for i in range(0, len(avail), cols):
+                row = avail[i:i+cols]
+                print("".join(x.ljust(colw) for x in row))
+            print()
+
+    # --------------------------------------------------------------------
     # Low-level PostScript send/receive
     
     def cmd(self, str_send, wait=True, crop=True, binary=False):

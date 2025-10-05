@@ -7,6 +7,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.5.1] - 2025-10-05
+
+### Added
+- **PRET Assets Integration** - Complete import of legacy PRET assets
+  - 8 PostScript Type 1 fonts in `src/assets/fonts/`
+  - 3 SNMP MIBs in `src/assets/mibs/` (HOST-RESOURCES, Printer, SNMPv2)
+  - 4 EPS overlay samples in `src/assets/overlays/`
+  - 5 test pages (PS/PCL) in `tests/fixtures/pretpages/`
+- **New Commands**:
+  - `assets` - List all bundled assets (fonts, MIBs, overlays, testpages)
+  - `overlay_list` (PS) - Preview overlay files with title extraction
+- **Tools**:
+  - `tools/release_notes.py` - Generate release notes from git commits
+  - `tools/db_merge.py` - Merge PRET model databases
+- **União Geek Branding** - Logotype and links in README and wiki
+
+### Changed
+- **Repository Cleanup** - Removed 116+ archived files from public tracking
+  - Untracked `deleted/` folder (90K+ lines)
+  - Removed `wiki-html/`, `src/utils/docs/`, test outputs
+  - Enhanced `.gitignore` with status reports, summaries, and temp files
+- **Documentation**:
+  - README.md updated to v2.5.1 with overview diagram
+  - Wiki footer updated with União Geek branding
+  - All wiki links corrected (yourusername → mrhenrike)
+- **Help System**:
+  - PS `overlay` help now references asset directories
+  - Enhanced help messages with asset locations
+
+### Fixed
+- PS/PCL help now standardized with categories and command counts
+- Repository structure optimized for public consumption
+
+---
+
+## [2.5.0] - 2025-10-05
+
+### Added
+- **Startup UX** - Running without args shows extended help, quick-start, and discovery options
+- **Discovery Flags**:
+  - `--discover-local` - Run local SNMP discovery
+  - `--discover-online` - Run online discovery (Shodan/Censys)
+- **Help Standardization** - PS/PCL shells now show categorized help (PJL-style)
+- Test fixtures: Simple testpages in `tests/fixtures/testpages/`
+- Example overlay in `src/payloads/assets/overlays/notice.eps`
+
+### Changed
+- `main.py` CLI refactored for better UX
+- `target` and `mode` arguments now optional (for discovery workflows)
+- Help output enhanced with quick-start examples
+
+### Fixed
+- `help` command now works in PS and PCL shells (not just PJL)
+- Generic `do_help` added to base `printer.py` class
+
+---
+
 ## [2.4.2] - 2025-10-04
 
 ### Added

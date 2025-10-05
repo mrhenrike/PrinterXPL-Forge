@@ -1,7 +1,7 @@
 # 📚 PrinterReaper Wiki - Complete Documentation
 
-**Version**: 2.4.2  
-**Last Updated**: October 4, 2025  
+**Version**: 2.5.1  
+**Last Updated**: October 5, 2025  
 **Total Pages**: 14
 
 ---
@@ -141,10 +141,11 @@ See [Contributing](Contributing.md) for details.
 5. [Troubleshooting](Troubleshooting.md) - Problem solving
 
 ### External Resources
-- [GitHub Repository](https://github.com/yourusername/PrinterReaper)
-- [Issue Tracker](https://github.com/yourusername/PrinterReaper/issues)
-- [Changelog](https://github.com/yourusername/PrinterReaper/blob/master/CHANGELOG.md)
+- [GitHub Repository](https://github.com/mrhenrike/PrinterReaper)
+- [Issue Tracker](https://github.com/mrhenrike/PrinterReaper/issues)
+- [Changelog](https://github.com/mrhenrike/PrinterReaper/blob/master/diagrams/CHANGELOG.md)
 - [HP PJL Reference](http://h10032.www1.hp.com/ctg/Manual/bpl13208.pdf)
+- [Hacking Printers Wiki](http://hacking-printers.net)
 
 ---
 
@@ -160,10 +161,18 @@ Wiki feedback welcome!
 
 <div align="center">
 
-**PrinterReaper Wiki v2.3.4**  
+**PrinterReaper Wiki v2.5.1**  
 *Complete documentation for advanced printer penetration testing*
 
 **→ [Start Reading](Home.md)**
+
+---
+
+### Powered by União Geek
+
+[![União Geek](../img/logotype-uniaogeek-2.png)](https://www.uniaogeek.com.br)
+
+**[www.uniaogeek.com.br](https://www.uniaogeek.com.br)** | **[Blog](https://www.uniaogeek.com.br/blog)**
 
 </div>
 

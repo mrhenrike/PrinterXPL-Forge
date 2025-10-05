@@ -28,6 +28,62 @@ class pcl(printer):
         self.macros = {}  # Track macros for virtual filesystem
 
     # --------------------------------------------------------------------
+    # Help overview (category-based, PJL-style)
+    # --------------------------------------------------------------------
+    def do_help(self, arg):
+        """Show help for commands (PCL)"""
+        topic = (arg or "").strip()
+        if topic:
+            # Delegate to base generic help for specific topics
+            return super().do_help(topic)
+
+        categories = {
+            "information": [
+                "id", "info", "selftest"
+            ],
+            "virtualfs": [
+                "ls", "put", "get", "delete"
+            ],
+            "control": [
+                "reset", "formfeed", "copies"
+            ],
+            "attacks": [
+                "flood", "execute"
+            ],
+        }
+
+        implemented = {name for name in dir(self) if name.startswith("do_")}
+        def exists(cmd):
+            return f"do_{cmd}" in implemented
+
+        print()
+        print("PrinterReaper - PCL Commands")
+        print("=" * 70)
+        print("Available command categories:")
+        total = 0
+        for cat, cmds in categories.items():
+            avail = [c for c in cmds if exists(c)]
+            total += len(avail)
+            label = cat.ljust(13)
+            print(f"  {label}- {len(avail)} commands")
+        print()
+        print(f"Total: {total} PCL commands available")
+        print("Use 'help <command>' for specific details")
+        print()
+        for cat, cmds in categories.items():
+            avail = [c for c in cmds if exists(c)]
+            if not avail:
+                continue
+            print(cat.capitalize() + ":")
+            print("-" * 70)
+            colw = max(len(x) for x in avail) + 2
+            cols = max(1, 70 // colw)
+            for i in range(0, len(avail), cols):
+                row = avail[i:i+cols]
+                print("".join(x.ljust(colw) for x in row))
+            print()
+
+    # --------------------------------------------------------------------
     # Low-level PCL send/receive
     
     def cmd(self, str_send, wait=True, crop=True, binary=False):

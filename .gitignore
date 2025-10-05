@@ -27,8 +27,8 @@ venv/
 .env
 .venv
 
-# Backup folders (keep structure but ignore contents)
-# deleted/ folder tracked for archival purposes
+# Backup folders and archival
+deleted/
 
 # IDE
 .vscode/
@@ -60,9 +60,19 @@ sample*
 # Test results and outputs
 tests/qa_report_*.json
 tests/*_output.log
+tests/qa_test_*.txt
 exfiltrated/*
 *.pcap
 wiki-html/
+
+# Status reports and internal docs
+*_STATUS_*.md
+*_REPORT_*.md
+*_SUMMARY_*.md
+*_NOTES_*.md
+ARCHITECTURE_*.md
+ARCHITECTURE_*.txt
+src/utils/docs/
 
 # Discovery results
 discovery_results*/

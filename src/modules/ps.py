@@ -543,7 +543,71 @@ class ps(printer):
         print("ASSETS:")
         print("  - Overlays: src/assets/overlays/*.eps")
         print("  - Fonts:    src/assets/fonts/*.pfa")
-        print("  Use 'assets' to list available files.")
+        print("  Use 'assets' or 'overlay_list' to list available files.")
+        print()
+
+    def do_overlay_list(self, *arg):
+        "List available overlay files with preview"
+        base = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        overlays_dirs = [
+            os.path.join(base, "src", "assets", "overlays"),
+            os.path.join(base, "src", "payloads", "assets", "overlays"),
+        ]
+        
+        output().blue("Available Overlay Files:")
+        print("=" * 70)
+        
+        total = 0
+        for overlay_dir in overlays_dirs:
+            if not os.path.isdir(overlay_dir):
+                continue
+            
+            files = sorted([f for f in os.listdir(overlay_dir) if f.endswith('.eps')])
+            if not files:
+                continue
+            
+            print(f"\nDirectory: {overlay_dir}")
+            print("-" * 70)
+            
+            for filename in files:
+                full_path = os.path.join(overlay_dir, filename)
+                size = os.path.getsize(full_path)
+                
+                # Try to extract title/description from EPS header
+                try:
+                    with open(full_path, 'r', encoding='latin-1') as f:
+                        header = ''.join([f.readline() for _ in range(10)])
+                        title_match = re.search(r'%%Title:\s*(.+)', header)
+                        title = title_match.group(1).strip() if title_match else "No title"
+                except:
+                    title = "Unable to read"
+                
+                print(f"  {filename:<30} {conv().filesize(size):<10} {title}")
+                total += 1
+        
+        print()
+        print(f"Total: {total} overlay files available")
+        print("Use: overlay <path> to apply an overlay")
+        print()
+
+    def help_overlay_list(self):
+        """Show help for overlay_list command"""
+        print()
+        print("overlay_list - List available overlay files with preview")
+        print("=" * 60)
+        print("DESCRIPTION:")
+        print("  Lists all available EPS overlay files bundled with PrinterReaper.")
+        print("  Shows filename, size, and title/description extracted from EPS header.")
+        print()
+        print("USAGE:")
+        print("  overlay_list")
+        print()
+        print("EXAMPLES:")
+        print("  overlay_list                 # Show all available overlays")
+        print()
+        print("SEE ALSO:")
+        print("  - overlay <file.eps>         # Apply an overlay")
+        print("  - assets                     # List all bundled assets")
         print()
 
     def do_cross(self, arg):

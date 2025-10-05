@@ -537,8 +537,13 @@ class ps(printer):
         print("  overlay <file.eps>")
         print()
         print("EXAMPLES:")
-        print("  overlay logo.eps             # Add logo to all pages")
-        print("  overlay watermark.eps        # Add watermark")
+        print("  overlay src/payloads/assets/overlays/notice.eps")
+        print("  overlay src/assets/overlays/smiley.eps")
+        print()
+        print("ASSETS:")
+        print("  - Overlays: src/assets/overlays/*.eps")
+        print("  - Fonts:    src/assets/fonts/*.pfa")
+        print("  Use 'assets' to list available files.")
         print()
 
     def do_cross(self, arg):

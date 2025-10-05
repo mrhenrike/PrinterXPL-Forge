@@ -1312,6 +1312,49 @@ class printer(cmd.Cmd, object):
         print("  - Useful for automation and scripting")
         print()
 
+    # ====================================================================
+    # ASSETS COMMANDS
+    # ====================================================================
+    def do_assets(self, arg):
+        """List bundled assets (fonts, MIBs, overlays, test pages)"""
+        base = os.path.join(os.path.dirname(os.path.dirname(__file__)))
+        def p(*parts):
+            return os.path.abspath(os.path.join(base, *parts))
+
+        locations = [
+            ("Fonts", p("assets", "fonts")),
+            ("MIBs", p("assets", "mibs")),
+            ("Overlays", p("assets", "overlays")),
+            ("TestPages", os.path.abspath(os.path.join(base, os.pardir, "tests", "fixtures", "pretpages"))),
+            ("TestPages", os.path.abspath(os.path.join(base, os.pardir, "tests", "fixtures", "testpages"))),
+        ]
+
+        for title, folder in locations:
+            if not os.path.isdir(folder):
+                continue
+            output().blue(f"{title}: {folder}")
+            try:
+                files = sorted(os.listdir(folder))
+            except Exception as e:
+                output().errmsg(f"Cannot list {folder}")
+                continue
+            for f in files:
+                print(f"  - {f}")
+            print()
+
+    def help_assets(self):
+        """List bundled assets (fonts, MIBs, overlays, test pages)"""
+        print()
+        print("assets - List bundled assets (fonts, MIBs, overlays, test pages)")
+        print("=" * 50)
+        print("DESCRIPTION:")
+        print("  Displays where asset files are stored in this repository and")
+        print("  prints their filenames for quick reference.")
+        print()
+        print("USAGE:")
+        print("  assets")
+        print()
+
 
     # ====================================================================
     # COMMUNICATION METHODS

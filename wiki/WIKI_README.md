@@ -1,6 +1,6 @@
 # 📚 PrinterReaper Wiki - Complete Documentation
 
-**Version**: 2.5.1  
+**Version**: 2.5.3  
 **Last Updated**: October 5, 2025  
 **Total Pages**: 14
 
@@ -161,7 +161,7 @@ Wiki feedback welcome!
 
 <div align="center">
 
-**PrinterReaper Wiki v2.5.1**  
+**PrinterReaper Wiki v2.5.3**  
 *Complete documentation for advanced printer penetration testing*
 
 **→ [Start Reading](Home.md)**

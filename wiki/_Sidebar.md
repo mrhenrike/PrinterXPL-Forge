@@ -40,6 +40,6 @@
 
 ---
 
-**Version 2.5.1**  
+**Version 2.5.3**  
 *feast on paper, harvest vulnerabilities*
 

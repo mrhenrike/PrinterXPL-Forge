@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.5.3] - 2025-10-05
+
+### Added
+- **Official Website** - https://www.uniaogeek.com.br/printer-reaper/
+- **União Geek Branding** - Logotype and links across all documentation
+- Version consistency - All .md files updated to v2.5.3
+
+### Changed
+- README.md enhanced with oficial website links
+- Wiki footer standardized with União Geek branding
+- CHANGELOG.md now includes v2.5.0-2.5.3 entries
+
+### Fixed
+- Version synchronization across all documentation
+- Link consistency in wiki pages
+
+---
+
 ## [2.5.1] - 2025-10-05
 
 ### Added

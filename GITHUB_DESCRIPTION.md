@@ -54,10 +54,43 @@ security-research
 
 ## 📋 Suggested GitHub About Format
 
-**Description (max 350 chars)**:
+**IF LIMITED TO 350 CHARS:**
+
+**OPTION 1 (Recommended - 321 chars)**:
 ```
-PrinterReaper v2.5.3 - Complete printer penetration testing toolkit. 109 commands, 3 languages (PJL/PS/PCL), 4 protocols. Automated discovery, file exfiltration, NVRAM access, attack payloads. Modern Python 3.8+ toolkit for offensive printer security testing.
+Complete printer penetration testing toolkit with 109 commands across PJL, PostScript & PCL. 4 network protocols, automated discovery, file exfiltration, NVRAM access, attack payloads. Modern Python 3.8+ offensive security tool. Official site: uniaogeek.com.br/printer-reaper
 ```
+
+**OPTION 2 (Shorter - 287 chars)**:
+```
+Advanced printer pentesting: 109 commands, 3 languages (PJL/PS/PCL), 4 protocols. Automated discovery, file ops, NVRAM access, attack payloads. Modern Python 3.8+ toolkit for offensive printer security. Site: uniaogeek.com.br/printer-reaper
+```
+
+**OPTION 3 (Technical - 298 chars)**:
+```
+Printer penetration testing toolkit: PJL/PostScript/PCL support, 109 commands, RAW/LPD/IPP/SMB protocols. Features: automated discovery, filesystem access, NVRAM extraction, job capture, attack payloads. Python 3.8+. uniaogeek.com.br/printer-reaper
+```
+
+---
+
+**IF LIMITED TO 40 CHARS (Very Restrictive):**
+
+**Ultra-Short (40 chars)**:
+```
+Complete printer penetration toolkit
+```
+
+**Alternative (37 chars)**:
+```
+Printer pentest: PJL/PS/PCL toolkit
+```
+
+**Alternative 2 (39 chars)**:
+```
+Advanced printer exploitation toolkit
+```
+
+---
 
 **Website**: 
 ```

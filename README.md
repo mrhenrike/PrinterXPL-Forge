@@ -1,14 +1,16 @@
-# PrinterReaper v2.5.1 - *Complete Printer Penetration Testing Toolkit*
+# PrinterReaper v2.5.3 - *Complete Printer Penetration Testing Toolkit*
 
 **Is your printer safe from the void? Find out before someone else does…**
 
-PrinterReaper v2.5.1 is the **most complete printer penetration testing toolkit** available, with support for **all three major printer languages** (PJL, PostScript, PCL) and **four network protocols** (RAW, LPD, IPP, SMB). Test, exploit, and secure network printers with 109 commands across 7 categories.
+PrinterReaper v2.5.3 is the **most complete printer penetration testing toolkit** available, with support for **all three major printer languages** (PJL, PostScript, PCL) and **four network protocols** (RAW, LPD, IPP, SMB). Test, exploit, and secure network printers with 109 commands across 7 categories.
 
 > **TL;DR:** PrinterReaper is your complete toolkit for discovering and exploiting printer vulnerabilities. **Connect. Scan. Exploit. Exfiltrate. Repeat.**
 
+> **📍 Official Website**: [www.uniaogeek.com.br/printer-reaper](https://www.uniaogeek.com.br/printer-reaper/)
+
 ---
 
-## 🎯 What's New in v2.5.1
+## 🎯 What's New in v2.5.3
 
 - **🎨 Complete PRET Assets** - 8 PS fonts, 3 MIBs, 4 overlays, 5 testpages
 - **📋 New Commands** - `assets` (list bundled files), `overlay_list` (preview overlays)
@@ -545,7 +547,7 @@ Complete documentation at: [PrinterReaper Wiki](https://github.com/mrhenrike/Pri
 
 ## 🔬 Testing & QA
 
-PrinterReaper v2.5.1 has been comprehensively tested:
+PrinterReaper v2.5.3 has been comprehensively tested:
 
 - ✅ **37 automated tests** - 100% pass rate
 - ✅ **All modules tested** - Zero import errors
@@ -556,6 +558,7 @@ PrinterReaper v2.5.1 has been comprehensively tested:
 
 ### Recent Updates
 
+**v2.5.3** (Oct 2025) - Complete assets, branding, enhanced docs, production-ready  
 **v2.5.1** (Oct 2025) - PRET assets, overlay_list, release tools, repo cleanup  
 **v2.5.0** (Oct 2025) - Startup UX, discovery flags, fixtures, overlays  
 **v2.4.2** (Oct 2025) - HTML Wiki for website deployment  
@@ -628,8 +631,10 @@ PrinterReaper is released under the MIT License.
 
 ## 📞 Support
 
+- **Official Website**: [www.uniaogeek.com.br/printer-reaper](https://www.uniaogeek.com.br/printer-reaper/)
 - **GitHub Issues**: Bug reports and feature requests
 - **GitHub Wiki**: Complete documentation
+- **Blog**: [www.uniaogeek.com.br/blog](https://www.uniaogeek.com.br/blog)
 - **Contact**: X / LinkedIn @mrhenrike
 
 ---
@@ -668,7 +673,7 @@ If you find PrinterReaper useful, please star the repository!
 
 <div align="center">
 
-**PrinterReaper v2.5.1**  
+**PrinterReaper v2.5.3**  
 *Complete Printer Penetration Testing Toolkit*
 
 **109 Commands | 3 Languages | 4 Protocols | 5 Payloads**

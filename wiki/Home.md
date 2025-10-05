@@ -4,11 +4,13 @@
 
 > *"Is your printer safe from the void? Find out before someone else does…"*
 
+> **📍 Official Website**: [www.uniaogeek.com.br/printer-reaper](https://www.uniaogeek.com.br/printer-reaper/)
+
 ---
 
 ## 🎯 What is PrinterReaper?
 
-PrinterReaper v2.5.1 is a **complete, powerful toolkit** for **penetration testing network printers**, supporting **PJL, PostScript, and PCL** with **4 network protocols**. It enables security professionals to discover, assess, and exploit printer vulnerabilities through an intuitive command-line interface.
+PrinterReaper v2.5.3 is a **complete, powerful toolkit** for **penetration testing network printers**, supporting **PJL, PostScript, and PCL** with **4 network protocols**. It enables security professionals to discover, assess, and exploit printer vulnerabilities through an intuitive command-line interface.
 
 ### Key Features
 
@@ -217,7 +219,7 @@ This wiki is organized into the following sections:
 
 <div align="center">
 
-**PrinterReaper v2.5.1**  
+**PrinterReaper v2.5.3**  
 *Complete Printer Penetration Testing Toolkit*
 
 **109 Commands | 3 Languages | 4 Protocols | 5 Payloads**

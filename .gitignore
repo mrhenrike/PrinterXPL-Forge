@@ -86,3 +86,6 @@ reports/
 *.tmp.html
 *.cache
 *.bak
+
+# GitHub metadata (internal use only)
+GITHUB_DESCRIPTION.md

@@ -1,14 +1,20 @@
-# PrinterReaper v2.4.2 - *Complete Printer Penetration Testing Toolkit*
+# PrinterReaper v2.5.0 - *Complete Printer Penetration Testing Toolkit*
 
 **Is your printer safe from the void? Find out before someone else does…**
 
-PrinterReaper v2.4.2 is the **most complete printer penetration testing toolkit** available, with support for **all three major printer languages** (PJL, PostScript, PCL) and **four network protocols** (RAW, LPD, IPP, SMB). Test, exploit, and secure network printers with 109 commands across 7 categories.
+PrinterReaper v2.5.0 is the **most complete printer penetration testing toolkit** available, with support for **all three major printer languages** (PJL, PostScript, PCL) and **four network protocols** (RAW, LPD, IPP, SMB). Test, exploit, and secure network printers with 109 commands across 7 categories.
 
 > **TL;DR:** PrinterReaper is your complete toolkit for discovering and exploiting printer vulnerabilities. **Connect. Scan. Exploit. Exfiltrate. Repeat.**
 
 ---
 
-## 🎯 What's New in v2.4.2
+## 🎯 What's New in v2.5.0
+
+- Startup UX: sem parâmetros → help estendido, quick-start e discovery
+- Discovery: flags `--discover-local` e `--discover-online`
+- Help PS/PCL: cabeçalhos com categorias e contagem (estilo PJL)
+- Test fixtures: testpages PS/PCL em `tests/fixtures/testpages/`
+- Overlays: exemplo `notice.eps` em `src/payloads/assets/overlays/`
 
 - **📜 PostScript Module** - 40+ commands for PS exploitation
 - **🖨️ PCL Module** - 15 commands with virtual filesystem
@@ -39,8 +45,14 @@ python3 printer-reaper.py --version
 ### Discover Printers
 
 ```bash
-# Automatic network discovery
+# Automatic network discovery (extended help + options)
 python3 printer-reaper.py
+
+# Local SNMP discovery
+python3 printer-reaper.py --discover-local
+
+# Online discovery (Shodan/Censys)
+python3 printer-reaper.py --discover-online
 
 # Output:
 Discovered printers:
@@ -436,31 +448,7 @@ Complete documentation at: [PrinterReaper Wiki](https://github.com/mrhenrike/Pri
 
 ## 🏗️ Architecture
 
-```
-PrinterReaper v2.4.0
-├── 3 Printer Languages
-│   ├── PJL (54 commands) - Modern HP, Brother, Epson
-│   ├── PostScript (40 commands) - Advanced exploitation
-│   └── PCL (15 commands) - Legacy devices
-│
-├── 4 Network Protocols
-│   ├── RAW (Port 9100) - Default, fastest
-│   ├── LPD (Port 515) - Legacy, queue-based
-│   ├── IPP (Port 631) - Modern, HTTP-based
-│   └── SMB (Ports 445/139) - Windows printing
-│
-├── 5 Attack Payloads
-│   ├── banner.ps - Custom messages
-│   ├── loop.ps - Infinite loop DoS
-│   ├── erase.ps - Page erase
-│   ├── storm.ps - Print storm
-│   └── exfil.ps - Data exfiltration
-│
-└── Complete Toolkit
-    ├── 109 total commands
-    ├── ~95% printer coverage
-    └── Professional-grade features
-```
+![Overview](diagrams/png/overview_for_dummies.png)
 
 ---
 
@@ -562,7 +550,7 @@ PrinterReaper v2.4.0
 
 ## 🔬 Testing & QA
 
-PrinterReaper v2.4.2 has been comprehensively tested:
+PrinterReaper v2.5.0 has been comprehensively tested:
 
 - ✅ **37 automated tests** - 100% pass rate
 - ✅ **All modules tested** - Zero import errors
@@ -574,6 +562,7 @@ See [QA_REPORT_v2.4.0.md](QA_REPORT_v2.4.0.md) for detailed test results.
 
 ### Recent Updates
 
+**v2.5.0** (Oct 2025) - Startup UX, discovery flags, fixtures, overlays  
 **v2.4.2** (Oct 2025) - HTML Wiki for website deployment  
 **v2.4.1** (Oct 2025) - QA tested, 100% pass rate, documentation updates  
 **v2.4.0** (Oct 2025) - Complete toolkit: 3 languages, 4 protocols, 5 payloads
@@ -592,7 +581,7 @@ PrinterReaper/
 │
 ├── src/                      # Source code
 │   ├── main.py               # Entry point
-│   ├── version.py            # Version info (2.4.0)
+│   ├── version.py            # Version info (2.5.0)
 │   │
 │   ├── core/                 # Core modules
 │   │   ├── printer.py        # Base class

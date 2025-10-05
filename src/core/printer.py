@@ -199,6 +199,53 @@ class printer(cmd.Cmd, object):
             # Always clear current command
             self.current_command = None
 
+    # --------------------------------------------------------------------
+    # HELP SYSTEM (generic fallback)
+    # --------------------------------------------------------------------
+    def do_help(self, arg):
+        """Show help for commands (generic fallback for non-PJL shells)"""
+        # If a specific topic was requested, try dedicated help_<topic> first
+        topic = (arg or "").strip()
+        if topic:
+            method = getattr(self, f"help_{topic}", None)
+            if callable(method):
+                method()
+                return
+            # Fallback to showing the do_<topic> docstring if present
+            do_method = getattr(self, f"do_{topic}", None)
+            if callable(do_method) and (do_method.__doc__ or "").strip():
+                print()
+                print(f"{topic} - {do_method.__doc__}")
+                print()
+                return
+            output().errmsg(f"No help available for '{topic}'")
+            return
+
+        # No topic: dynamically list all available do_* commands for this shell
+        names = self.get_names()
+        commands = sorted({n[3:] for n in names if n.startswith("do_") and not n.startswith("do__")})
+
+        print()
+        title_mode = (self.mode or "shell").upper()
+        print(f"{title_mode} Commands - Available ({len(commands)})")
+        print("=" * 70)
+
+        # Pretty-print in columns
+        if not commands:
+            print("No commands available.")
+            print()
+            print("Use 'help <command>' for details.")
+            return
+
+        col_width = max(len(cmd) for cmd in commands) + 2
+        cols = max(1, 70 // col_width)
+        for i in range(0, len(commands), cols):
+            row = commands[i:i+cols]
+            print("".join(cmd.ljust(col_width) for cmd in row))
+        print()
+        print("Use 'help <command>' for details. Example: help download")
+        print()
+
     # ====================================================================
     # BASIC CONTROL COMMANDS
     # ====================================================================

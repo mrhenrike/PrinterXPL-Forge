@@ -1,4 +1,4 @@
-# PrinterReaper v2.5.1 - Core Dependencies
+# PrinterReaper v2.5.3 - Core Dependencies
 # Updated: October 5, 2025
 # All dependencies actively used in the codebase
 # Supports Python 3.8+

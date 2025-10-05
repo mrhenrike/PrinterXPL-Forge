@@ -1,28 +1,23 @@
-# PrinterReaper v2.5.0 - *Complete Printer Penetration Testing Toolkit*
+# PrinterReaper v2.5.1 - *Complete Printer Penetration Testing Toolkit*
 
 **Is your printer safe from the void? Find out before someone else does…**
 
-PrinterReaper v2.5.0 is the **most complete printer penetration testing toolkit** available, with support for **all three major printer languages** (PJL, PostScript, PCL) and **four network protocols** (RAW, LPD, IPP, SMB). Test, exploit, and secure network printers with 109 commands across 7 categories.
+PrinterReaper v2.5.1 is the **most complete printer penetration testing toolkit** available, with support for **all three major printer languages** (PJL, PostScript, PCL) and **four network protocols** (RAW, LPD, IPP, SMB). Test, exploit, and secure network printers with 109 commands across 7 categories.
 
 > **TL;DR:** PrinterReaper is your complete toolkit for discovering and exploiting printer vulnerabilities. **Connect. Scan. Exploit. Exfiltrate. Repeat.**
 
 ---
 
-## 🎯 What's New in v2.5.0
+## 🎯 What's New in v2.5.1
 
-- Startup UX: sem parâmetros → help estendido, quick-start e discovery
-- Discovery: flags `--discover-local` e `--discover-online`
-- Help PS/PCL: cabeçalhos com categorias e contagem (estilo PJL)
-- Test fixtures: testpages PS/PCL em `tests/fixtures/testpages/`
-- Overlays: exemplo `notice.eps` em `src/payloads/assets/overlays/`
-
-- **📜 PostScript Module** - 40+ commands for PS exploitation
-- **🖨️ PCL Module** - 15 commands with virtual filesystem
-- **🌐 Network Protocols** - RAW, LPD, IPP, and SMB support
-- **💣 Payload System** - 5 pre-built attack payloads
-- **🔧 operators.py Integration** - 400+ PostScript operators
-- **🎯 Smart Auto-Detect** - Automatically selects best language
-- **📚 Complete Documentation** - 100% command coverage
+- **🎨 Complete PRET Assets** - 8 PS fonts, 3 MIBs, 4 overlays, 5 testpages
+- **📋 New Commands** - `assets` (list bundled files), `overlay_list` (preview overlays)
+- **🧹 Clean Repository** - Removed 116+ archived files from public tracking
+- **🛠️ Release Tools** - `release_notes.py` to generate changelogs from commits
+- **🚀 Startup UX** - No args → extended help with quick-start and discovery
+- **🔍 Discovery Flags** - `--discover-local` and `--discover-online`
+- **📚 Help Standardized** - PS/PCL help with categories (PJL-style)
+- **🧪 Test Fixtures** - Real PS/PCL test pages for QA validation
 
 ---
 
@@ -550,18 +545,18 @@ Complete documentation at: [PrinterReaper Wiki](https://github.com/mrhenrike/Pri
 
 ## 🔬 Testing & QA
 
-PrinterReaper v2.5.0 has been comprehensively tested:
+PrinterReaper v2.5.1 has been comprehensively tested:
 
 - ✅ **37 automated tests** - 100% pass rate
 - ✅ **All modules tested** - Zero import errors
 - ✅ **All protocols validated** - Instantiation successful
 - ✅ **All payloads verified** - Template substitution working
 - ✅ **operators.py validated** - 371 operators loaded
-
-See [QA_REPORT_v2.4.0.md](QA_REPORT_v2.4.0.md) for detailed test results.
+- ✅ **PRET assets integrated** - Fonts, overlays, MIBs, testpages
 
 ### Recent Updates
 
+**v2.5.1** (Oct 2025) - PRET assets, overlay_list, release tools, repo cleanup  
 **v2.5.0** (Oct 2025) - Startup UX, discovery flags, fixtures, overlays  
 **v2.4.2** (Oct 2025) - HTML Wiki for website deployment  
 **v2.4.1** (Oct 2025) - QA tested, 100% pass rate, documentation updates  
@@ -681,5 +676,13 @@ If you find PrinterReaper useful, please star the repository!
 Made with ❤️ for the security community
 
 [Documentation](https://github.com/mrhenrike/PrinterReaper/wiki) | [Issues](https://github.com/mrhenrike/PrinterReaper/issues) | [Releases](https://github.com/mrhenrike/PrinterReaper/releases)
+
+---
+
+### Powered by União Geek
+
+[![União Geek](img/logotype-uniaogeek-2.png)](https://www.uniaogeek.com.br)
+
+**[www.uniaogeek.com.br](https://www.uniaogeek.com.br)** | **[Blog](https://www.uniaogeek.com.br/blog)**
 
 </div>

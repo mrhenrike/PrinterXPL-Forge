@@ -8,7 +8,7 @@
 
 ## 🎯 What is PrinterReaper?
 
-PrinterReaper v2.4.2 is a **focused, powerful toolkit** built exclusively for **PJL (Printer Job Language)** penetration testing of network printers and multifunction devices (MFPs). It enables security professionals to discover, assess, and exploit printer vulnerabilities through an intuitive command-line interface.
+PrinterReaper v2.5.1 is a **complete, powerful toolkit** for **penetration testing network printers**, supporting **PJL, PostScript, and PCL** with **4 network protocols**. It enables security professionals to discover, assess, and exploit printer vulnerabilities through an intuitive command-line interface.
 
 ### Key Features
 
@@ -217,10 +217,20 @@ This wiki is organized into the following sections:
 
 <div align="center">
 
-**PrinterReaper v2.3.4**  
-*Advanced Printer Penetration Testing Toolkit*
+**PrinterReaper v2.5.1**  
+*Complete Printer Penetration Testing Toolkit*
+
+**109 Commands | 3 Languages | 4 Protocols | 5 Payloads**
 
 Made with ❤️ for the security community
+
+---
+
+### Powered by União Geek
+
+[![União Geek](../img/logotype-uniaogeek-2.png)](https://www.uniaogeek.com.br)
+
+**[www.uniaogeek.com.br](https://www.uniaogeek.com.br)** | **[Blog](https://www.uniaogeek.com.br/blog)**
 
 </div>
 

@@ -33,12 +33,13 @@
 ---
 
 ### 🔗 External Links
-- [GitHub Repo](https://github.com/yourusername/PrinterReaper)
-- [Report Issue](https://github.com/yourusername/PrinterReaper/issues)
-- [Changelog](https://github.com/yourusername/PrinterReaper/blob/master/CHANGELOG.md)
+- [GitHub Repo](https://github.com/mrhenrike/PrinterReaper)
+- [Report Issue](https://github.com/mrhenrike/PrinterReaper/issues)
+- [Changelog](https://github.com/mrhenrike/PrinterReaper/blob/master/diagrams/CHANGELOG.md)
+- [União Geek](https://www.uniaogeek.com.br)
 
 ---
 
-**Version 2.4.2**  
-*feast on paper*
+**Version 2.5.1**  
+*feast on paper, harvest vulnerabilities*
 

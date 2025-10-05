@@ -170,7 +170,7 @@ Wiki feedback welcome!
 
 ### Powered by União Geek
 
-[![União Geek](../img/logotype-uniaogeek-2.png)](https://www.uniaogeek.com.br)
+<a href="https://www.uniaogeek.com.br"><img src="../img/logotype-uniaogeek-2.png" width="240" alt="União Geek"></a>
 
 **[www.uniaogeek.com.br](https://www.uniaogeek.com.br)** | **[Blog](https://www.uniaogeek.com.br/blog)**
 

@@ -53,28 +53,111 @@ def parse_selection(sel, max_index):
 def _get_local_networks(os_type):
     """
     Return a list of IPv4 /24 networks on UP, non-loopback,
-    non-link-local interfaces for Linux, WSL and Windows.
+    non-link-local interfaces.
+
+    Supports: Linux, WSL, Windows, macOS (darwin), BSD, Android (Termux).
     """
     raw = []
 
-    # Linux / WSL
-    if os_type in ('linux', 'wsl'):
-        try:
-            out = subprocess.check_output(
-                ['ip', '-o', '-f', 'inet', 'addr', 'show', 'up'],
-                text=True
-            )
-            for line in out.splitlines():
-                parts = line.split()
-                iface = parts[1].rstrip(':')
-                cidr  = next((p for p in parts if '/' in p), None)
-                if not cidr or iface == 'lo':
-                    continue
-                raw.append(ipaddress.ip_network(cidr, strict=False))
-        except Exception as e:
-            output().warning(f"Could not list Linux interfaces: {e}")
+    # ── Linux / WSL / Android (Termux) ───────────────────────────────────
+    if os_type in ('linux', 'wsl', 'android'):
+        # Try modern iproute2 'ip' command (Linux, Android)
+        if shutil.which('ip'):
+            try:
+                out = subprocess.check_output(
+                    ['ip', '-o', '-f', 'inet', 'addr', 'show'],
+                    text=True, stderr=subprocess.DEVNULL
+                )
+                for line in out.splitlines():
+                    parts = line.split()
+                    if len(parts) < 4:
+                        continue
+                    iface = parts[1].rstrip(':')
+                    cidr  = next((p for p in parts if '/' in p), None)
+                    if not cidr or iface in ('lo', 'lo0'):
+                        continue
+                    try:
+                        raw.append(ipaddress.ip_network(cidr, strict=False))
+                    except ValueError:
+                        pass
+            except Exception as e:
+                output().warning(f"Could not list interfaces via 'ip': {e}")
 
-    # Windows / WSL
+        # Fallback: ifconfig (older Linux distros, Android without ip)
+        if not raw and shutil.which('ifconfig'):
+            try:
+                out = subprocess.check_output(
+                    ['ifconfig'], text=True, stderr=subprocess.DEVNULL
+                )
+                for m in __import__('re').finditer(
+                    r'inet (?:addr:)?(\d+\.\d+\.\d+\.\d+).*?(?:Mask:|netmask )(\S+)',
+                    out, __import__('re').DOTALL
+                ):
+                    ip_str, mask_str = m.group(1), m.group(2)
+                    try:
+                        net = ipaddress.ip_network(f"{ip_str}/{mask_str}", strict=False)
+                        raw.append(net)
+                    except ValueError:
+                        pass
+            except Exception as e:
+                output().warning(f"Could not list interfaces via 'ifconfig': {e}")
+
+    # ── macOS (darwin) ────────────────────────────────────────────────────
+    if os_type == 'darwin':
+        # networksetup gives cleaner output than ifconfig on macOS
+        if shutil.which('networksetup'):
+            try:
+                # Get list of network services
+                svcs = subprocess.check_output(
+                    ['networksetup', '-listallnetworkservices'],
+                    text=True, stderr=subprocess.DEVNULL
+                ).splitlines()[1:]  # skip header line
+
+                for svc in svcs:
+                    svc = svc.strip()
+                    if not svc or svc.startswith('*'):
+                        continue
+                    try:
+                        info = subprocess.check_output(
+                            ['networksetup', '-getinfo', svc],
+                            text=True, stderr=subprocess.DEVNULL
+                        )
+                        ip_m = __import__('re').search(r'IP address: (\d+\.\d+\.\d+\.\d+)', info)
+                        mask_m = __import__('re').search(r'Subnet mask: (\d+\.\d+\.\d+\.\d+)', info)
+                        if ip_m and mask_m:
+                            ip_str, mask_str = ip_m.group(1), mask_m.group(1)
+                            net = ipaddress.ip_network(f"{ip_str}/{mask_str}", strict=False)
+                            raw.append(net)
+                    except Exception:
+                        continue
+            except Exception as e:
+                output().warning(f"Could not list macOS network services: {e}")
+
+        # Fallback: ifconfig (always present on macOS)
+        if not raw and shutil.which('ifconfig'):
+            try:
+                import re as _re
+                out = subprocess.check_output(
+                    ['ifconfig'], text=True, stderr=subprocess.DEVNULL
+                )
+                for m in _re.finditer(
+                    r'inet (\d+\.\d+\.\d+\.\d+) netmask (0x[0-9a-f]+|\d+\.\d+\.\d+\.\d+)',
+                    out
+                ):
+                    ip_str, mask_str = m.group(1), m.group(2)
+                    # macOS ifconfig uses hex netmasks (e.g. 0xffffff00)
+                    if mask_str.startswith('0x'):
+                        mask_int = int(mask_str, 16)
+                        mask_str = str(ipaddress.IPv4Address(mask_int))
+                    try:
+                        net = ipaddress.ip_network(f"{ip_str}/{mask_str}", strict=False)
+                        raw.append(net)
+                    except ValueError:
+                        pass
+            except Exception as e:
+                output().warning(f"Could not list macOS interfaces via ifconfig: {e}")
+
+    # ── Windows / WSL ─────────────────────────────────────────────────────
     if os_type in ('windows', 'wsl'):
         pwsh = shutil.which('powershell.exe') or shutil.which('pwsh.exe')
         if pwsh:
@@ -85,18 +168,46 @@ def _get_local_networks(os_type):
                     "| Where { $_.IPAddress -ne '127.0.0.1' } "
                     "| Select -ExpandProperty IPAddress"
                 ]
-                out = subprocess.check_output(cmd, text=True)
+                out = subprocess.check_output(
+                    cmd, text=True, stderr=subprocess.DEVNULL)
                 for ip in out.splitlines():
+                    ip = ip.strip()
+                    if not ip:
+                        continue
                     try:
                         raw.append(ipaddress.ip_network(f"{ip}/24", strict=False))
-                    except:
+                    except ValueError:
                         pass
             except Exception as e:
                 output().warning(f"Could not list Windows interfaces: {e}")
         else:
             output().warning("PowerShell not found; skipping Windows IPs.")
 
-    # dedupe and filter out loopback/link-local
+    # ── BSD ───────────────────────────────────────────────────────────────
+    if os_type == 'bsd':
+        if shutil.which('ifconfig'):
+            try:
+                import re as _re
+                out = subprocess.check_output(
+                    ['ifconfig'], text=True, stderr=subprocess.DEVNULL
+                )
+                for m in _re.finditer(
+                    r'inet (\d+\.\d+\.\d+\.\d+) netmask (0x[0-9a-f]+|\d+\.\d+\.\d+\.\d+)',
+                    out
+                ):
+                    ip_str, mask_str = m.group(1), m.group(2)
+                    if mask_str.startswith('0x'):
+                        mask_int = int(mask_str, 16)
+                        mask_str = str(ipaddress.IPv4Address(mask_int))
+                    try:
+                        net = ipaddress.ip_network(f"{ip_str}/{mask_str}", strict=False)
+                        raw.append(net)
+                    except ValueError:
+                        pass
+            except Exception as e:
+                output().warning(f"Could not list BSD interfaces: {e}")
+
+    # ── dedupe and filter loopback/link-local ────────────────────────────
     uniq = []
     for net in raw:
         na = net.network_address
@@ -132,12 +243,27 @@ class discovery:
             output().warning("This OS is not supported for SNMP-based discovery.")
             return
 
+        # macOS and Android are supported – just ensure the user knows the requirements
+        if os_type == 'darwin':
+            output().chitchat("macOS detected. Discovery requires: brew install net-snmp")
+        if os_type == 'android':
+            output().chitchat("Android/Termux detected. Discovery requires: pkg install net-snmp")
+
         if usage:
             print("No target given — discovering printers on local network.")
             print("Press CTRL+C at any time to cancel.\n")
 
         if not shutil.which('snmpget'):
-            output().warning("Please install 'snmpget' (e.g. apt install snmp).")
+            _install_hints = {
+                'linux':   "apt install snmp  OR  yum install net-snmp-utils",
+                'wsl':     "apt install snmp",
+                'darwin':  "brew install net-snmp",
+                'bsd':     "pkg install net-snmp",
+                'windows': "choco install net-snmp  OR  use WSL",
+                'android': "pkg install net-snmp  (Termux)",
+            }
+            hint = _install_hints.get(os_type, "install net-snmp for your OS")
+            output().warning(f"'snmpget' not found. Install with: {hint}")
             return
 
         networks = _get_local_networks(os_type)

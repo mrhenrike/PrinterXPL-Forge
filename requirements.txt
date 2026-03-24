@@ -1,20 +1,53 @@
-# PrinterReaper v2.5.3 - Core Dependencies
-# Updated: October 5, 2025
-# All dependencies actively used in the codebase
-# Supports Python 3.8+
+# PrinterReaper v3.0.0 - Dependencies
+# Python >= 3.8 required
+# Updated: 2026-03-24
+#
+# Install all (including optional):
+#   pip install -r requirements.txt
+#
+# ── Core (always required) ───────────────────────────────────────────────────
 
-# HTTP/HTTPS requests for capabilities and CVE checks
+# HTTP/HTTPS for capabilities detection and OSINT checks
 requests>=2.31.0
 
-# Network utilities (SSL warnings disable)
+# SSL warning suppression helper
 urllib3>=2.0.0
 
-# SNMP support for printer discovery and capabilities
-pysnmp-lextudio>=5.0.31
-
-# Terminal colors (cross-platform support)
+# Terminal colors (cross-platform: Windows, Linux, macOS)
 colorama>=0.4.6
 
-# Optional dependencies (for future features)
-# npyscreen>=4.10  # Console UI (src/core/console.py - not integrated yet)
-# win_unicode_console>=0.5  # Windows Unicode support (optional, used in helper.py)
+# ── SNMP (required for network discovery) ───────────────────────────────────
+# pysnmp-lextudio is the actively-maintained fork of pysnmp (Python 3.8+).
+# v5.x uses the hlapi synchronous API; the discovery module auto-selects the
+# best available backend (v5 hlapi → v4 oneliner → snmpget binary fallback).
+pysnmp-lextudio>=5.0.31
+
+# pyasn1 must be kept at < 0.6 while pysnmp-lextudio 5.x depends on the old API
+pyasn1>=0.4.8,<0.6
+
+# ── SMB Protocol (required for smb.py full implementation) ──────────────────
+# pysmb: pure-Python SMB1/SMB2 library used by protocols/smb.py
+pysmb>=1.2.9
+
+# impacket: low-level SMB3, Kerberos, and Windows protocol suite
+impacket>=0.12.0
+
+# ── OSINT / Online Discovery ─────────────────────────────────────────────────
+# Shodan API client (set SHODAN_API_KEY env var to enable)
+shodan>=1.28.0
+
+# Censys API client (set CENSYS_API_ID + CENSYS_API_SECRET env vars to enable)
+censys>=2.2.0
+
+# ── Testing ──────────────────────────────────────────────────────────────────
+pytest>=7.0.0
+pytest-timeout>=2.1.0
+
+# ── Optional extras ──────────────────────────────────────────────────────────
+# Uncomment the lines below to enable the corresponding features.
+
+# Rich terminal output for prettier tables/progress bars (used in discovery)
+# rich>=13.0.0
+
+# XlsxWriter for Excel export of discovery results (dependency of shodan)
+# XlsxWriter>=3.0.0

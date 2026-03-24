@@ -89,3 +89,7 @@ reports/
 
 # GitHub metadata (internal use only)
 GITHUB_DESCRIPTION.md
+config.yaml
+.ml_models/
+*.onnx
+

@@ -216,13 +216,17 @@ def _grab_ipp(host: str, timeout: float) -> dict:
                         printable = ''.join(c if 32 <= ord(c) < 127 else '|' for c in chunk)
                         result[f'ipp_attr_{attr_name.replace("-","_")}'] = printable[:80]
 
-                # Document formats
+                # Document formats — extract only valid MIME types from binary response
                 fmts = re.findall(
-                    r'(application/(?:postscript|pdf|pcl|vnd\.[^|]+)|image/(?:pwg-raster|jpeg)|text/plain)',
+                    r'(application/(?:postscript|pdf|pcl|vnd\.epson\.\w+|octet-stream)|'
+                    r'image/(?:pwg-raster|jpeg|png|urf)|text/plain)',
                     raw, re.I,
                 )
-                if fmts:
-                    result['ipp_doc_formats'] = list(dict.fromkeys(fmts))
+                # Filter to printable MIME types only (no binary artifacts)
+                clean_fmts = [f for f in dict.fromkeys(fmts)
+                              if all(32 <= ord(c) <= 127 for c in f) and len(f) < 60]
+                if clean_fmts:
+                    result['ipp_doc_formats'] = clean_fmts
 
                 # IPP version
                 result['ipp_version_raw'] = f'{r.content[0]}.{r.content[1]}'

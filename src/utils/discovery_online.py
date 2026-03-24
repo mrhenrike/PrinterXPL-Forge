@@ -22,14 +22,12 @@ try:
     SHODAN_AVAILABLE = True
 except ImportError:
     SHODAN_AVAILABLE = False
-    print("[!] Shodan module not installed. Run: pip install shodan")
 
 try:
     from censys.search import CensysHosts
     CENSYS_AVAILABLE = True
 except ImportError:
     CENSYS_AVAILABLE = False
-    print("[!] Censys module not installed. Run: pip install censys")
 
 
 class PrinterDatabase:
@@ -312,11 +310,21 @@ class CensysDiscovery:
 
 class OnlineDiscoveryManager:
     """Main manager for online printer discovery"""
-    
+
     def __init__(self, db_path: str = "src/core/db/pjl.dat",
                  shodan_key: Optional[str] = None,
                  censys_id: Optional[str] = None,
                  censys_secret: Optional[str] = None):
+        # Also load from config.yaml if available
+        try:
+            from utils.config import load_config, shodan_key as _sk, censys_credentials
+            load_config()
+            if not shodan_key:
+                shodan_key = _sk()
+            if not censys_id:
+                censys_id, censys_secret = censys_credentials()
+        except Exception:
+            pass
         
         self.printer_db = PrinterDatabase(db_path)
         

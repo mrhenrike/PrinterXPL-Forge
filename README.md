@@ -1,4 +1,4 @@
-# PrinterReaper v3.3.0 - *Complete Printer Penetration Testing Toolkit*
+# PrinterReaper v3.4.0 - *Complete Printer Penetration Testing Toolkit*
 
 **Is your printer safe from the void? Find out before someone else does…**
 
@@ -9,6 +9,18 @@ PrinterReaper v3.0.0 is the **most complete printer penetration testing toolkit*
 > **Official Website**: [www.uniaogeek.com.br/printer-reaper](https://www.uniaogeek.com.br/printer-reaper/)
 
 ---
+
+## What's New in v3.4.0
+
+- **`xpl/` exploit library** — standalone exploit modules per ExploitDB/CVE entry; each has `metadata.json` + `exploit.py` with `check()` + `run()` interface; 8 exploits shipped (EDB-15631, EDB-17636, EDB-20565, EDB-35151, EDB-45273, EDB-47850, CVE-2019-14308, CVE-2025-26508)
+- **`--xpl-list`** — list all available exploits sorted by severity (critical → info), with CVSS score, category, CVE
+- **`--xpl-check <ID>`** — non-destructive check if the target is vulnerable to a specific exploit
+- **`--xpl-run <ID>`** — execute an exploit in dry-run mode by default; add `--no-dry` for live exploitation
+- **`--xpl-update`** — rebuild `xpl/index.json` from loaded exploits (re-scan `xpl/`)
+- **`--xpl-fetch <EDB_ID>`** — download a raw exploit file from ExploitDB directly into `xpl/`
+- **Exploit auto-matching on `--scan`** — any scan now automatically matches and displays relevant exploits for the detected printer model/vendor/protocol/CVE
+- **`xpl/custom/`** — user drop-in directory with `TEMPLATE.py` for creating custom exploits
+- **`src/utils/exploit_manager.py`** — exploit loader, matcher, runner, index builder, ExploitDB downloader
 
 ## What's New in v3.3.0
 

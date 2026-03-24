@@ -1,0 +1,35 @@
+{
+  "id": "EDB-45273",
+  "source": "exploit-db",
+  "url": "https://www.exploit-db.com/exploits/45273",
+  "cve": "CVE-2017-2741",
+  "title": "HP Jetdirect - PJL Path Traversal to Arbitrary Code Execution",
+  "description": "Path traversal via PJL FSDOWNLOAD allows writing arbitrary files to the printer filesystem. By writing a shell script to /etc/profile.d/ and then restarting the printer via SNMP prtGeneralReset, an attacker achieves persistent arbitrary code execution as root.",
+  "type": "remote",
+  "category": "rce",
+  "protocol": "PJL+SNMP",
+  "port": 9100,
+  "severity": "critical",
+  "cvss": 9.8,
+  "date": "2018-08-27",
+  "author": "Jacob Baines / Matthew Kienow (Rapid7)",
+  "vendor": ["HP"],
+  "model_patterns": [
+    "PageWide", "OfficeJet Pro", "PageWide Managed", "PageWide Pro",
+    "OfficeJet Pro 8210", "OfficeJet Pro 8216", "OfficeJet Pro 8730",
+    "OfficeJet Pro 8740", "PageWide Pro 552", "PageWide Pro 577"
+  ],
+  "firmware_patterns": [],
+  "requires": ["port:9100", "port:161", "lang:PJL"],
+  "tags": ["rce", "traversal", "pjl", "snmp", "persistence", "root"],
+  "tested_on": [
+    "HP PageWide Pro MFP 577z",
+    "HP PageWide Pro 552dw",
+    "HP OfficeJet Pro 8730"
+  ],
+  "references": [
+    "https://nvd.nist.gov/vuln/detail/CVE-2017-2741",
+    "https://support.hp.com/lt-en/document/c05462914",
+    "https://www.tenable.com/blog/rooting-a-printer-from-security-bulletin-to-remote-code-execution"
+  ]
+}

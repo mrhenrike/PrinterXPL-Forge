@@ -210,6 +210,40 @@ def build_parser() -> argparse.ArgumentParser:
         default="",
         help="Attacker callback URL for XSP --exfil payloads",
     )
+    # ── Exploit module ─────────────────────────────────────────────────────────
+    parser.add_argument(
+        "--xpl-list",
+        action="store_true",
+        help="List all available exploits in xpl/ directory",
+    )
+    parser.add_argument(
+        "--xpl-check",
+        metavar="EXPLOIT_ID",
+        default=None,
+        help="Check if target is vulnerable to a specific exploit (non-destructive)",
+    )
+    parser.add_argument(
+        "--xpl-run",
+        metavar="EXPLOIT_ID",
+        default=None,
+        help="Run a specific exploit against the target (dry-run by default; add --no-dry to execute)",
+    )
+    parser.add_argument(
+        "--xpl-update",
+        action="store_true",
+        help="Rebuild xpl/index.json from loaded exploits and re-scan xpl/ directory",
+    )
+    parser.add_argument(
+        "--xpl-fetch",
+        metavar="EDB_ID",
+        default=None,
+        help="Download a raw exploit from ExploitDB by ID (e.g. --xpl-fetch 45273)",
+    )
+    parser.add_argument(
+        "--xpl",
+        action="store_true",
+        help="Run exploit matching after --scan: shows available exploits for detected printer",
+    )
     return parser
 
 
@@ -277,7 +311,32 @@ def _run_scan(args) -> None:
     )
     print_report(report)
 
-    # 3. Optional ML analysis
+    # 3. Exploit matching (always shown if exploits available; --xpl forces it)
+    xpl_active = getattr(args, 'xpl', False) or True  # always show on scan
+    try:
+        from utils.exploit_manager import get_matched_for_target, print_matched_exploits
+        all_cve_entries = report.specific_cves + report.vendor_cves + report.generic_cves
+        vuln_cves = []
+        for c in all_cve_entries:
+            if hasattr(c, 'cve_id'):
+                vuln_cves.append(c.cve_id)
+            elif hasattr(c, 'id'):
+                vuln_cves.append(c.id)
+            elif isinstance(c, dict):
+                vuln_cves.append(c.get('id', c.get('cve_id', '')))
+        matched_xpls = get_matched_for_target(
+            make=fp.make, model=fp.model, firmware=getattr(fp, 'firmware', '') or getattr(fp, 'firmware_version', ''),
+            open_ports=fp.open_ports, langs=fp.printer_langs,
+            cves=vuln_cves,
+        )
+        if matched_xpls:
+            print_matched_exploits(matched_xpls, target)
+        else:
+            output().message(f"  [xpl] No specific exploits matched for {fp.make} {fp.model}")
+    except Exception as exc:
+        output().warning(f"Exploit matching error: {exc}")
+
+    # 4. Optional ML analysis
     if use_ml:
         output().green(">> ML-Assisted Analysis:")
         try:
@@ -504,6 +563,96 @@ def _run_attack_modules(args) -> None:
         except Exception as exc:
             output().errmsg(f"Implant error: {exc}")
 
+    # ── Exploit module handlers ────────────────────────────────────────────────
+
+    # --xpl-list: list all exploits
+    if getattr(args, 'xpl_list', False):
+        try:
+            from utils.exploit_manager import load_all_exploits, print_exploit_list
+            xpls = load_all_exploits()
+            print_exploit_list(xpls, title=f'PrinterReaper Exploit Library ({len(xpls)} exploits)')
+        except Exception as exc:
+            output().errmsg(f"xpl-list error: {exc}")
+
+    # --xpl-update: rebuild index
+    if getattr(args, 'xpl_update', False):
+        try:
+            from utils.exploit_manager import load_all_exploits, update_index
+            xpls = load_all_exploits()
+            update_index(xpls)
+            output().green(f"[+] Exploit index updated ({len(xpls)} exploits)")
+        except Exception as exc:
+            output().errmsg(f"xpl-update error: {exc}")
+
+    # --xpl-fetch: download raw from ExploitDB
+    if getattr(args, 'xpl_fetch', None):
+        edb_id = args.xpl_fetch
+        output().green(f"\n>> Fetching EDB-{edb_id} from exploit-db.com ...")
+        try:
+            from utils.exploit_manager import fetch_exploit_db_raw
+            path = fetch_exploit_db_raw(edb_id)
+            if path:
+                output().green(f"[+] Saved to {path}")
+            else:
+                output().warning("Download failed — check EDB ID or connection")
+        except Exception as exc:
+            output().errmsg(f"xpl-fetch error: {exc}")
+
+    # --xpl-check: check if target is vulnerable to specific exploit
+    if getattr(args, 'xpl_check', None):
+        xpl_id = args.xpl_check
+        if not args.target:
+            output().errmsg("--xpl-check requires a target IP/host")
+        else:
+            output().green(f"\n>> Exploit Check: {xpl_id} against {target}")
+            try:
+                from utils.exploit_manager import load_all_exploits
+                xpls = {x.id.upper(): x for x in load_all_exploits()}
+                xpl  = xpls.get(xpl_id.upper())
+                if not xpl:
+                    output().errmsg(f"Exploit '{xpl_id}' not found in xpl/. Run --xpl-list.")
+                else:
+                    output().message(f"  [{xpl.severity.upper()}] {xpl.title}")
+                    vuln = xpl.check(target, timeout=timeout)
+                    if vuln:
+                        output().errmsg(f"[VULNERABLE] Target appears vulnerable to {xpl_id}")
+                        output().message(f"  Run with --xpl-run {xpl_id} to exploit")
+                    else:
+                        output().green(f"[OK] Target does not appear vulnerable to {xpl_id}")
+            except Exception as exc:
+                output().errmsg(f"xpl-check error: {exc}")
+
+    # --xpl-run: execute specific exploit
+    if getattr(args, 'xpl_run', None):
+        xpl_id  = args.xpl_run
+        dry     = not getattr(args, 'no_dry', False)
+        if not args.target:
+            output().errmsg("--xpl-run requires a target IP/host")
+        else:
+            output().green(
+                f"\n>> Running Exploit: {xpl_id} against {target} "
+                f"[{'DRY-RUN' if dry else 'LIVE EXPLOIT'}]"
+            )
+            if not dry:
+                output().warning(
+                    "[!] LIVE mode — ensure explicit written authorization before proceeding."
+                )
+            try:
+                from utils.exploit_manager import load_all_exploits, print_run_result
+                xpls = {x.id.upper(): x for x in load_all_exploits()}
+                xpl  = xpls.get(xpl_id.upper())
+                if not xpl:
+                    output().errmsg(f"Exploit '{xpl_id}' not found. Run --xpl-list.")
+                else:
+                    output().message(f"  Title    : {xpl.title}")
+                    output().message(f"  CVE      : {xpl.cve or 'N/A'}")
+                    output().message(f"  Severity : {xpl.severity.upper()} (CVSS {xpl.cvss})")
+                    output().message(f"  Protocol : {xpl.protocol} port {xpl.port}")
+                    result = xpl.run(target, timeout=timeout, dry_run=dry)
+                    print_run_result(result, xpl_id)
+            except Exception as exc:
+                output().errmsg(f"xpl-run error: {exc}")
+
     # ── Full attack matrix campaign ────────────────────────────────────────────
     if getattr(args, 'attack_matrix', False):
         dry   = not getattr(args, 'no_dry', False)
@@ -721,6 +870,40 @@ def main() -> None:
         finally:
             sys.exit(0)
 
+    # ── --xpl-list / --xpl-update / --xpl-fetch (no target needed) ─────────
+    if getattr(args, 'xpl_list', False):
+        try:
+            from utils.exploit_manager import load_all_exploits, print_exploit_list
+            xpls = load_all_exploits()
+            print_exploit_list(xpls, title=f'PrinterReaper Exploit Library ({len(xpls)} exploits)')
+        except Exception as exc:
+            output().errmsg(f"xpl-list error: {exc}")
+        sys.exit(0)
+
+    if getattr(args, 'xpl_update', False):
+        try:
+            from utils.exploit_manager import load_all_exploits, update_index
+            xpls = load_all_exploits()
+            update_index(xpls)
+            output().green(f"[+] Exploit index updated ({len(xpls)} exploits)")
+        except Exception as exc:
+            output().errmsg(f"xpl-update error: {exc}")
+        sys.exit(0)
+
+    if getattr(args, 'xpl_fetch', None):
+        edb_id = args.xpl_fetch
+        output().green(f"\n>> Fetching EDB-{edb_id} from exploit-db.com ...")
+        try:
+            from utils.exploit_manager import fetch_exploit_db_raw
+            path = fetch_exploit_db_raw(edb_id)
+            if path:
+                output().green(f"[+] Saved to {path}")
+            else:
+                output().warning("Download failed — check EDB ID or connection")
+        except Exception as exc:
+            output().errmsg(f"xpl-fetch error: {exc}")
+        sys.exit(0)
+
     # ── --scan / --scan-ml: reconnaissance without payloads ─────────────────
     scan_requested = getattr(args, 'scan', False) or getattr(args, 'scan_ml', False)
     if scan_requested:
@@ -733,7 +916,8 @@ def main() -> None:
     # ── Attack / audit dispatchers ────────────────────────────────────────────
     _needs_target = ('ipp', 'ipp_submit', 'pivot', 'storage', 'firmware',
                      'firmware_reset', 'payload', 'implant',
-                     'attack_matrix', 'network_map', 'xsp')
+                     'attack_matrix', 'network_map', 'xsp',
+                     'xpl_check', 'xpl_run')
     _any_attack = any(getattr(args, a.replace('-', '_'), None)
                       for a in _needs_target)
     if _any_attack:

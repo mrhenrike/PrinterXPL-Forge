@@ -1,0 +1,27 @@
+{
+  "id": "EDB-20565",
+  "source": "exploit-db",
+  "url": "https://www.exploit-db.com/exploits/20565",
+  "cve": "",
+  "title": "HP JetDirect - Remote LCD Display Modification / Social Engineering",
+  "description": "Allows an unauthenticated attacker to set arbitrary text on the printer LCD control panel via PJL DISPLAY or RDYMSG commands. Useful for social engineering attacks (e.g. 'PLEASE CALL IT SUPPORT: 555-1234') or as a proof-of-compromise indicator.",
+  "type": "remote",
+  "category": "social_engineering",
+  "protocol": "PJL",
+  "port": 9100,
+  "severity": "low",
+  "cvss": 3.5,
+  "date": "2012-09-21",
+  "author": "EDB contributors",
+  "vendor": ["HP"],
+  "model_patterns": [
+    "JetDirect", "LaserJet", "Color LaserJet", "PageWide", "OfficeJet"
+  ],
+  "firmware_patterns": ["G.08", "H.08", "J08"],
+  "requires": ["port:9100", "lang:PJL"],
+  "tags": ["pjl", "display", "social-engineering", "dos"],
+  "tested_on": [],
+  "references": [
+    "https://www.exploit-db.com/exploits/20565"
+  ]
+}

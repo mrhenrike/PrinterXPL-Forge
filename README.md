@@ -1,4 +1,4 @@
-# PrinterReaper v3.0.0 - *Complete Printer Penetration Testing Toolkit*
+# PrinterReaper v3.1.0 - *Complete Printer Penetration Testing Toolkit*
 
 **Is your printer safe from the void? Find out before someone else does…**
 
@@ -9,6 +9,14 @@ PrinterReaper v3.0.0 is the **most complete printer penetration testing toolkit*
 > **Official Website**: [www.uniaogeek.com.br/printer-reaper](https://www.uniaogeek.com.br/printer-reaper/)
 
 ---
+
+## What's New in v3.1.0
+
+- **`--scan` / `--scan-ml`** — passive reconnaissance mode: banner grabbing (HTTP/IPP/SNMP/PJL/LPD/WSD) + CVE lookup + attack surface assessment, with no payloads sent
+- **CVE scanner** — matches printer fingerprint against built-in EPSON/HP/Brother/Xerox/Ricoh CVE DB plus live NVD API lookup; scores exploitability and misconfigurations
+- **ML engine (scikit-learn)** — lightweight fingerprinting (< 5 MB model, < 50 MB RAM): predict make/brand from banner, detect language support, rank attack vectors by success probability; no GPU needed
+- **Config file** — `config.yaml` (gitignored) for API keys (Shodan, Censys, NVD), ML settings, and network timeouts; also reads env vars
+- **Shodan integration** — discovery_online reads key from config.yaml automatically; tested with real EPSON L3250 search
 
 ## What's New in v3.0.0
 
@@ -25,6 +33,7 @@ PrinterReaper v3.0.0 is the **most complete printer penetration testing toolkit*
 
 | Version | Date       | Highlights |
 |---------|------------|------------|
+| 3.1.0   | 2026-03-24 | --scan recon, CVE scanner, ML engine, config.yaml, Shodan integration |
 | 3.0.0   | 2026-03-24 | IPv6, SMB complete, pysnmp v5/v7, IPP/TLS, local discovery, 63 QA tests |
 | 2.5.3   | 2025-10-05 | PRET assets, overlay commands, discovery flags, clean repo |
 | 2.5.0   | 2025-09-01 | Cross-platform compatibility (Windows/Linux/macOS/Android) |
@@ -32,6 +41,29 @@ PrinterReaper v3.0.0 is the **most complete printer penetration testing toolkit*
 - **🧪 Test Fixtures** - Real PS/PCL test pages for QA validation
 
 ---
+
+## Reconnaissance (passive — no payloads sent)
+
+```bash
+# Full banner grab + CVE lookup + attack surface assessment
+python src/main.py 192.168.0.152 --scan
+
+# With ML-assisted fingerprinting and attack vector scoring
+python src/main.py 192.168.0.152 --scan-ml
+
+# Offline mode — built-in CVE DB only (no NVD API call)
+python src/main.py 192.168.0.152 --scan --no-nvd
+```
+
+Config file (`config.yaml` — gitignored, copy from `config.yaml.example`):
+```yaml
+shodan:
+  api_key: "YOUR_SHODAN_KEY"
+nvd:
+  api_key: ""          # optional for higher rate limits
+ml:
+  enabled: true
+```
 
 ## ⚡ Quick Start
 

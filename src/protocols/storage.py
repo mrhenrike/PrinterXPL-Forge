@@ -20,6 +20,11 @@ Operations:
   get_saved_jobs()— retrieve saved/queued print jobs
 """
 
+# Author    : Andre Henrique (@mrhenrike)
+# GitHub    : https://github.com/mrhenrike
+# LinkedIn  : https://linkedin.com/in/mrhenrike
+# X/Twitter : https://x.com/mrhenrike
+
 from __future__ import annotations
 
 import ftplib

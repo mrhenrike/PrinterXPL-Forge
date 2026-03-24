@@ -5,6 +5,11 @@ Fuzzer Module - Path and Data Fuzzing for Printer Security Testing
 Provides fuzzing vectors for file system testing, path traversal, and vulnerability discovery
 """
 
+# Author    : Andre Henrique (@mrhenrike)
+# GitHub    : https://github.com/mrhenrike
+# LinkedIn  : https://linkedin.com/in/mrhenrike
+# X/Twitter : https://x.com/mrhenrike
+
 class fuzzer():
     """
     Fuzzer class with static lists and dynamic generators for security testing

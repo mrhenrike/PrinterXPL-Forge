@@ -5,6 +5,11 @@ PrinterReaper - Advanced Printer Penetration Testing Toolkit
 Main entry point.
 """
 
+# Author    : Andre Henrique (@mrhenrike)
+# GitHub    : https://github.com/mrhenrike
+# LinkedIn  : https://linkedin.com/in/mrhenrike
+# X/Twitter : https://x.com/mrhenrike
+
 from __future__ import annotations
 
 import argparse

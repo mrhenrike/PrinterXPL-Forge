@@ -30,6 +30,11 @@ Attack surface extensions from printer position:
   - Pivot to cloud print services (Google Cloud Print, AirPrint relay)
 """
 
+# Author    : Andre Henrique (@mrhenrike)
+# GitHub    : https://github.com/mrhenrike
+# LinkedIn  : https://linkedin.com/in/mrhenrike
+# X/Twitter : https://x.com/mrhenrike
+
 from __future__ import annotations
 
 import ipaddress

@@ -8,6 +8,11 @@ Line Printer Daemon protocol (RFC 1179) on port 515
 Legacy protocol still widely supported by printers.
 """
 
+# Author    : Andre Henrique (@mrhenrike)
+# GitHub    : https://github.com/mrhenrike
+# LinkedIn  : https://linkedin.com/in/mrhenrike
+# X/Twitter : https://x.com/mrhenrike
+
 import socket
 import time
 

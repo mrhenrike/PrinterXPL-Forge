@@ -5,6 +5,11 @@ PrinterReaper v2.4.0 - Automated Test Runner
 Comprehensive testing suite for all modules and functions
 """
 
+# Author    : Andre Henrique (@mrhenrike)
+# GitHub    : https://github.com/mrhenrike
+# LinkedIn  : https://linkedin.com/in/mrhenrike
+# X/Twitter : https://x.com/mrhenrike
+
 import sys
 import os
 import json

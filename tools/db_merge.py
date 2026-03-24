@@ -5,6 +5,12 @@ Merge PRET model databases into PrinterReaper's model db with normalization.
 Usage:
   python tools/db_merge.py --pret deleted/PRET/db/pjl.dat --out src/core/db/pjl.dat
 """
+
+# Author    : Andre Henrique (@mrhenrike)
+# GitHub    : https://github.com/mrhenrike
+# LinkedIn  : https://linkedin.com/in/mrhenrike
+# X/Twitter : https://x.com/mrhenrike
+
 import argparse
 import re
 from pathlib import Path

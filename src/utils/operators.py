@@ -46,6 +46,11 @@ This module enables testing for:
 DO NOT REMOVE: Required for upcoming PostScript security testing module
 """
 
+# Author    : Andre Henrique (@mrhenrike)
+# GitHub    : https://github.com/mrhenrike
+# LinkedIn  : https://linkedin.com/in/mrhenrike
+# X/Twitter : https://x.com/mrhenrike
+
 class operators():
     '''
     ┌─────────────────────────────────────┐

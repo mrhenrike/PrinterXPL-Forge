@@ -3,6 +3,12 @@
 Quick self-test for help output across PS and PCL shells.
 Runs without connecting to a real printer (uses target='test').
 """
+
+# Author    : Andre Henrique (@mrhenrike)
+# GitHub    : https://github.com/mrhenrike
+# LinkedIn  : https://linkedin.com/in/mrhenrike
+# X/Twitter : https://x.com/mrhenrike
+
 from types import SimpleNamespace
 from src.modules.ps import ps
 from src.modules.pcl import pcl

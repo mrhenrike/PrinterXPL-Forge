@@ -244,6 +244,66 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Run exploit matching after --scan: shows available exploits for detected printer",
     )
+    # ── Brute force login ──────────────────────────────────────────────────────
+    parser.add_argument(
+        "--bruteforce",
+        action="store_true",
+        help=(
+            "Brute-force printer login using default vendor credentials. "
+            "Tests HTTP web admin, FTP, SNMP, Telnet. "
+            "Generates variations: normal, reverse, leet, CamelCase, UPPER."
+        ),
+    )
+    parser.add_argument(
+        "--bf-serial",
+        metavar="SERIAL",
+        default=None,
+        help=(
+            "Device serial number for brute-force (used as password for EPSON, HP, etc.). "
+            "Auto-detected from --scan if available. "
+            "Example: --bf-serial XAABT77481"
+        ),
+    )
+    parser.add_argument(
+        "--bf-mac",
+        metavar="MAC",
+        default=None,
+        help=(
+            "Device MAC address for brute-force (used for OKI, Brother, Kyocera KR2). "
+            "Example: --bf-mac AA:BB:CC:DD:EE:FF"
+        ),
+    )
+    parser.add_argument(
+        "--bf-vendor",
+        metavar="VENDOR",
+        default=None,
+        help=(
+            "Override vendor for credential selection (e.g. 'epson', 'hp', 'ricoh'). "
+            "Auto-detected from --scan if available."
+        ),
+    )
+    parser.add_argument(
+        "--bf-cred",
+        metavar="USER:PASS",
+        action="append",
+        default=[],
+        help=(
+            "Extra credential to test (can repeat). "
+            "Example: --bf-cred admin:MyPass --bf-cred root:"
+        ),
+    )
+    parser.add_argument(
+        "--bf-no-variations",
+        action="store_true",
+        help="Disable password variation generation (leet/reverse/camelcase). Faster but less thorough.",
+    )
+    parser.add_argument(
+        "--bf-delay",
+        metavar="SECS",
+        type=float,
+        default=0.3,
+        help="Delay in seconds between login attempts (default: 0.3s). Increase to avoid lockouts.",
+    )
     return parser
 
 
@@ -336,7 +396,21 @@ def _run_scan(args) -> None:
     except Exception as exc:
         output().warning(f"Exploit matching error: {exc}")
 
-    # 4. Optional ML analysis
+    # 4. Brute-force hint: show relevant credential count for this vendor
+    try:
+        from utils.default_creds import get_creds_for_vendor
+        bf_vendor_hint = (fp.make or '').lower().split()[0] if fp.make else 'generic'
+        vendor_creds = get_creds_for_vendor(bf_vendor_hint)
+        output().message(
+            f"  [bf] {len(vendor_creds)} default credential entries for '{bf_vendor_hint}'. "
+            f"Run: python src/main.py {target} --bruteforce "
+            + (f"--bf-serial <SERIAL> " if not fp.serial else f"--bf-serial {fp.serial} ")
+            + f"--bf-vendor {bf_vendor_hint}"
+        )
+    except Exception:
+        pass
+
+    # 5. Optional ML analysis
     if use_ml:
         output().green(">> ML-Assisted Analysis:")
         try:
@@ -653,6 +727,77 @@ def _run_attack_modules(args) -> None:
             except Exception as exc:
                 output().errmsg(f"xpl-run error: {exc}")
 
+    # ── Brute-force login ─────────────────────────────────────────────────────
+    if getattr(args, 'bruteforce', False):
+        from modules.login_bruteforce import bruteforce as bf_run, print_report as bf_print
+        from utils.default_creds import known_vendors
+
+        # Resolve vendor: CLI override > auto-detect from scan
+        bf_vendor = getattr(args, 'bf_vendor', None) or ''
+        bf_serial = getattr(args, 'bf_serial', None) or ''
+        bf_mac    = getattr(args, 'bf_mac', None) or ''
+        bf_delay  = getattr(args, 'bf_delay', 0.3)
+        bf_novary = getattr(args, 'bf_no_variations', False)
+
+        # Auto-detect vendor from fingerprint if not overridden
+        if not bf_vendor:
+            try:
+                from utils.banner_grabber import grab_all
+                fp = grab_all(target, timeout=5, verbose=False)
+                bf_vendor = (fp.make or '').lower().split()[0]
+                if not bf_serial and fp.serial:
+                    bf_serial = fp.serial
+                output().message(f"  [bf] Auto-detected vendor: {bf_vendor or 'unknown'}")
+                if bf_serial:
+                    output().message(f"  [bf] Serial from scan: {bf_serial}")
+            except Exception:
+                pass
+
+        if not bf_vendor:
+            bf_vendor = 'generic'
+
+        # Parse extra credentials from --bf-cred USER:PASS
+        extra_creds = []
+        for cred_str in getattr(args, 'bf_cred', []) or []:
+            if ':' in cred_str:
+                u, p = cred_str.split(':', 1)
+                extra_creds.append((u, p if p else None))
+            else:
+                extra_creds.append((cred_str, None))
+
+        output().green(
+            f"\n>> Brute Force Login: {target} | vendor={bf_vendor} | "
+            f"serial={bf_serial or '?'} | variations={'off' if bf_novary else 'on'}"
+        )
+
+        report = bf_run(
+            host              = target,
+            vendor            = bf_vendor,
+            serial            = bf_serial,
+            mac               = bf_mac,
+            open_ports        = None,
+            delay             = bf_delay,
+            enable_variations = not bf_novary,
+            stop_on_first     = True,
+            extra_creds       = extra_creds,
+            verbose           = True,
+        )
+        bf_print(report)
+
+        # Write to log
+        try:
+            import pathlib, datetime
+            log_dir = pathlib.Path('.log')
+            log_dir.mkdir(exist_ok=True)
+            with open(log_dir / 'terminal-output.log', 'a', encoding='utf-8') as f:
+                f.write(f"\n[{datetime.datetime.now().isoformat()}] "
+                        f"bruteforce {target} vendor={bf_vendor} "
+                        f"serial={bf_serial} found={len(report.found)}\n")
+                for r in report.found:
+                    f.write(f"  FOUND {r.protocol.upper()} {r.username!r}/{r.password_display()!r}\n")
+        except Exception:
+            pass
+
     # ── Full attack matrix campaign ────────────────────────────────────────────
     if getattr(args, 'attack_matrix', False):
         dry   = not getattr(args, 'no_dry', False)
@@ -917,7 +1062,7 @@ def main() -> None:
     _needs_target = ('ipp', 'ipp_submit', 'pivot', 'storage', 'firmware',
                      'firmware_reset', 'payload', 'implant',
                      'attack_matrix', 'network_map', 'xsp',
-                     'xpl_check', 'xpl_run')
+                     'xpl_check', 'xpl_run', 'bruteforce')
     _any_attack = any(getattr(args, a.replace('-', '_'), None)
                       for a in _needs_target)
     if _any_attack:

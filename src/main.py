@@ -98,6 +98,17 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Skip NVD API CVE lookup during --scan (faster, offline)",
     )
+    parser.add_argument(
+        "--config",
+        metavar="PATH",
+        default=None,
+        help="Path to config.json (default: config.json next to src/)",
+    )
+    parser.add_argument(
+        "--check-config",
+        action="store_true",
+        help="Show which API features are configured and exit",
+    )
     return parser
 
 
@@ -124,14 +135,21 @@ def _run_scan(args) -> None:
     Run banner grabbing + CVE scan + optional ML analysis on args.target.
     No payloads are sent — this is pure reconnaissance.
     """
-    from utils.config import load_config, nvd_key
+    from utils.config import load_config, nvd_key, feature_available, warn_missing
     from utils.banner_grabber import grab_all, print_fingerprint
     from utils.vuln_scanner import scan as vuln_scan, print_report
 
-    load_config()
+    load_config(path=getattr(args, 'config', None))
     target   = args.target
     use_nvd  = not getattr(args, 'no_nvd', False)
     use_ml   = getattr(args, 'scan_ml', False)
+
+    # Inform user about optional NVD key (works without, just rate-limited)
+    if use_nvd and not feature_available('nvd_lookup'):
+        output().warning(
+            "NVD API key not configured — using public rate limit (5 req/30s). "
+            "Add nvd.api_key to config.json for higher limits."
+        )
     timeout  = 5.0
 
     output().green(f"\n>> Reconnaissance scan: {target}")
@@ -290,14 +308,33 @@ def main() -> None:
         discovery(usage=True)
         sys.exit(0)
 
+    # ── Load config first (honors --config flag) ─────────────────────────────
+    try:
+        from utils.config import load_config, check_all_features, require_feature
+        load_config(path=getattr(args, 'config', None))
+    except Exception as _cfg_err:
+        pass  # config is optional — tool runs without it
+
+    # ── --check-config: print feature availability and exit ───────────────────
+    if getattr(args, 'check_config', False):
+        try:
+            from utils.config import check_all_features
+            check_all_features(print_report=True)
+        except Exception as exc:
+            print(f"[!] {exc}")
+        sys.exit(0)
+
     if args.discover_online:
         try:
-            from utils.config import load_config, shodan_key
+            from utils.config import shodan_key, require_feature
+            if not require_feature('shodan_search'):
+                sys.exit(1)
             from utils.discovery_online import OnlineDiscoveryManager
-            load_config()
             mgr = OnlineDiscoveryManager(shodan_key=shodan_key())
             mgr.discover(max_results_per_query=25)
             mgr.export_results()
+        except SystemExit:
+            pass
         except Exception as e:
             output().errmsg(f"Online discovery failed: {e}")
         finally:

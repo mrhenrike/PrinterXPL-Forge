@@ -12,44 +12,48 @@ import re
 import stat
 import time
 import datetime
-import importlib
 import traceback
 
 # third party modules
-try:  # unicode monkeypatch for windoze
+try:  # unicode monkeypatch for windoze (only needed on Python 2 / legacy Windows)
     import win_unicode_console
     win_unicode_console.enable()
-except:
-    msg = "Please install the 'win_unicode_console' module."
-    if os.name == 'nt':
-        print(msg)
+except Exception:
+    pass  # Optional module – not required on Python 3
 
-try:  # os independent color support
+try:  # os independent color support (preferred)
     from colorama import init, Fore, Back, Style
-    init()  # required to get colors on windoze
+    init(autoreset=False)  # required for ANSI on Windows via colorama
 except ImportError:
-    msg = "Please install the 'colorama' module for color support."
-    # poor man's colored output (ANSI)
+    # Fallback ANSI – works on Linux, macOS, BSD, Android/Termux,
+    # and on Windows 10 1511+ (ConEmu, Windows Terminal, VS Code terminal).
+    # On legacy Windows consoles (cmd.exe < Win10) ANSI isn't supported,
+    # but colorama should always be installed via requirements.txt.
+    _ANSI = sys.stdout.isatty()  # only emit colors when output is a tty
 
-    class Back():
-        BLUE = '\x1b[44m' if os.name == 'posix' else ''
-        CYAN = '\x1b[46m' if os.name == 'posix' else ''
-        GREEN = '\x1b[42m' if os.name == 'posix' else ''
-        MAGENTA = '\x1b[45m' if os.name == 'posix' else ''
-        RED = '\x1b[41m' if os.name == 'posix' else ''
+    class Back():  # type: ignore[no-redef]
+        BLUE    = '\x1b[44m' if _ANSI else ''
+        CYAN    = '\x1b[46m' if _ANSI else ''
+        GREEN   = '\x1b[42m' if _ANSI else ''
+        MAGENTA = '\x1b[45m' if _ANSI else ''
+        RED     = '\x1b[41m' if _ANSI else ''
+        YELLOW  = '\x1b[43m' if _ANSI else ''
 
-    class Fore():
-        BLUE = '\x1b[34m' if os.name == 'posix' else ''
-        CYAN = '\x1b[36m' if os.name == 'posix' else ''
-        MAGENTA = '\x1b[35m' if os.name == 'posix' else ''
-        YELLOW = '\x1b[33m' if os.name == 'posix' else ''
+    class Fore():  # type: ignore[no-redef]
+        BLUE    = '\x1b[34m' if _ANSI else ''
+        CYAN    = '\x1b[36m' if _ANSI else ''
+        MAGENTA = '\x1b[35m' if _ANSI else ''
+        YELLOW  = '\x1b[33m' if _ANSI else ''
+        RED     = '\x1b[31m' if _ANSI else ''
 
-    class Style():
-        DIM = '\x1b[2m' if os.name == 'posix' else ''
-        BRIGHT = '\x1b[1m' if os.name == 'posix' else ''
-        RESET_ALL = '\x1b[0m' if os.name == 'posix' else ''
-        NORMAL = '\x1b[22m' if os.name == 'posix' else ''
-    print(Back.RED + msg + Style.RESET_ALL)
+    class Style():  # type: ignore[no-redef]
+        DIM       = '\x1b[2m'  if _ANSI else ''
+        BRIGHT    = '\x1b[1m'  if _ANSI else ''
+        RESET_ALL = '\x1b[0m'  if _ANSI else ''
+        NORMAL    = '\x1b[22m' if _ANSI else ''
+
+    _msg = "Install 'colorama' for best color support: pip install colorama"
+    print(Back.RED + _msg + Style.RESET_ALL)
 
 # ----------------------------------------------------------------------
 
@@ -188,24 +192,42 @@ class output():
             print(Fore.RED + Style.BRIGHT + msg + info + Style.RESET_ALL)
 
     # show printer and status
-    def discover(self, xxx_todo_changeme):
-        (ipaddr, (device, uptime, status, prstat)) = xxx_todo_changeme
-        ipaddr = output().strfit(ipaddr, 15)
+    def discover(self, entry):
+        """Display a discovered printer entry.
+
+        Accepts either:
+          - a 2-tuple (ipaddr, fields_tuple) where fields_tuple has at least
+            (device, uptime, status, prstat) as first four elements, or
+          - a 2-tuple (label, tuple_of_labels) used as table header.
+        """
+        ipaddr, fields = entry
+        # Normalize: accept tuple with any length, use first 4 fields
+        if isinstance(fields, (tuple, list)):
+            fields = list(fields)
+        else:
+            fields = [str(fields)]
+        # Pad to at least 4 elements
+        while len(fields) < 4:
+            fields.append('?')
+        device, uptime, status = str(fields[0]), str(fields[1]), str(fields[2])
+        prstat = str(fields[3]) if len(fields) > 3 else '?'
+
+        ipaddr = output().strfit(str(ipaddr), 15)
         device = output().strfit(device, 27)
         uptime = output().strfit(uptime,  8)
         status = output().strfit(status, 23)
         if device.strip() != 'device':
             device = Style.BRIGHT + device + Style.NORMAL
         if prstat == '1':
-            status = Back.GREEN + status + Back.BLUE  # unknown
+            status = Back.GREEN + status + Back.BLUE   # unknown
         if prstat == '2':
-            status = Back.GREEN + status + Back.BLUE  # running
+            status = Back.GREEN + status + Back.BLUE   # running
         if prstat == '3':
             status = Back.YELLOW + status + Back.BLUE  # warning
         if prstat == '4':
-            status = Back.GREEN + status + Back.BLUE  # testing
+            status = Back.GREEN + status + Back.BLUE   # testing
         if prstat == '5':
-            status = Back.RED + status + Back.BLUE  # down
+            status = Back.RED + status + Back.BLUE     # down
         line = (ipaddr, device, uptime, status)
         output().info('%-15s  %-27s  %-8s  %-23s' % line)
 
@@ -291,8 +313,7 @@ class output():
 
     # dump ps dictionary
     def psdict(self, data, indent=''):
-        importlib.reload(sys)  # workaround for non-ascii output
-        # sys.setdefaultencoding('UTF8')
+        # Python 3 handles UTF-8 natively; no reload needed
         # convert list to dictionary with indices as keys
         if isinstance(data, list):
             data = dict(enumerate(data))
@@ -374,9 +395,11 @@ class conv():
     def lsdate(self, date):
         year1 = datetime.datetime.now().year
         year2 = datetime.datetime.fromtimestamp(date).year
-        pdate = '%b %e ' if os.name == 'posix' else '%b %d '
-        format = pdate + "%H:%M" if year1 == year2 else pdate + " %Y"
-        return time.strftime(format, time.localtime(date))
+        # %e (space-padded day) is POSIX-only; %d (zero-padded) is portable.
+        # On Windows, %e is not supported – use %d unconditionally for safety.
+        pdate = '%b %d '
+        fmt = pdate + "%H:%M" if year1 == year2 else pdate + " %Y"
+        return time.strftime(fmt, time.localtime(date))
 
     # return date plus/minus given seconds
     def timediff(self, seconds):

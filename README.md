@@ -1,23 +1,33 @@
-# PrinterReaper v2.5.3 - *Complete Printer Penetration Testing Toolkit*
+# PrinterReaper v3.0.0 - *Complete Printer Penetration Testing Toolkit*
 
 **Is your printer safe from the void? Find out before someone else does…**
 
-PrinterReaper v2.5.3 is the **most complete printer penetration testing toolkit** available, with support for **all three major printer languages** (PJL, PostScript, PCL) and **four network protocols** (RAW, LPD, IPP, SMB). Test, exploit, and secure network printers with 109 commands across 7 categories.
+PrinterReaper v3.0.0 is the **most complete printer penetration testing toolkit** available, with support for **all three major printer languages** (PJL, PostScript, PCL) and **four network protocols** (RAW, LPD, IPP, SMB). Test, exploit, and secure network printers with 109 commands across 7 categories.
 
 > **TL;DR:** PrinterReaper is your complete toolkit for discovering and exploiting printer vulnerabilities. **Connect. Scan. Exploit. Exfiltrate. Repeat.**
 
-> **📍 Official Website**: [www.uniaogeek.com.br/printer-reaper](https://www.uniaogeek.com.br/printer-reaper/)
+> **Official Website**: [www.uniaogeek.com.br/printer-reaper](https://www.uniaogeek.com.br/printer-reaper/)
 
 ---
 
-## 🎯 What's New in v2.5.3
+## What's New in v3.0.0
 
-- **🎨 Complete PRET Assets** - 8 PS fonts, 3 MIBs, 4 overlays, 5 testpages
-- **📋 New Commands** - `assets` (list bundled files), `overlay_list` (preview overlays)
-- **🧹 Clean Repository** - Removed 116+ archived files from public tracking
-- **🛠️ Release Tools** - `release_notes.py` to generate changelogs from commits
-- **🚀 Startup UX** - No args → extended help with quick-start and discovery
-- **🔍 Discovery Flags** - `--discover-local` and `--discover-online`
+- **IPv4 + IPv6 support** — RAWProtocol now auto-detects and connects over IPv6; all sockets use `AF_UNSPEC` resolution
+- **SMB protocol complete** — `protocols/smb.py` fully implemented with pysmb backend (share enumeration, printer discovery, file printing) and smbclient fallback
+- **pysnmp multi-version backend** — auto-selects `hlapi-v5` (pysnmp-lextudio ≥5), `hlapi-v7` (pysnmp community ≥7 via asyncio shim), or legacy `oneliner` (pysnmp ≤4)
+- **IPP/TLS fallback** — capabilities now automatically retries IPP over HTTPS when HTTP returns 426 (Upgrade Required), enabling detection of printers like EPSON L3250
+- **Local printer discovery** — `--discover-local` now shows installed printers on the host (Windows: Get-Printer + IP resolution via DNS/NetBIOS; Linux/macOS: CUPS lpstat) before running SNMP network scan
+- **Shodan + Censys integration** — online discovery module fully wired; install API keys via env vars
+- **Expanded QA suite** — 63 automated tests covering imports, version, protocols, SMB unit, IPv6 resolution, live printer, Shodan/Censys import
+- **Updated dependencies** — pysmb, impacket, censys, pytest, pytest-timeout added to requirements.txt
+
+## Version History
+
+| Version | Date       | Highlights |
+|---------|------------|------------|
+| 3.0.0   | 2026-03-24 | IPv6, SMB complete, pysnmp v5/v7, IPP/TLS, local discovery, 63 QA tests |
+| 2.5.3   | 2025-10-05 | PRET assets, overlay commands, discovery flags, clean repo |
+| 2.5.0   | 2025-09-01 | Cross-platform compatibility (Windows/Linux/macOS/Android) |
 - **📚 Help Standardized** - PS/PCL help with categories (PJL-style)
 - **🧪 Test Fixtures** - Real PS/PCL test pages for QA validation
 

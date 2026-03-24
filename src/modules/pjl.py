@@ -190,10 +190,12 @@ class pjl(printer):
         try:
             with open(local_file, 'rb') as f:
                 data = f.read()
-            
-            # Upload file using PJL FSUPLOAD
-            self.cmd(f"@PJL FSUPLOAD NAME=\"{remote_path}\" OFFSET=0 LENGTH={len(data)}")
-            self.send(data)
+
+            # PJL file upload: FSDOWNLOAD is the correct PJL command to
+            # *send* (download) data INTO the printer's filesystem.
+            # FSUPLOAD is used to READ from printer → host.
+            header = f"@PJL FSDOWNLOAD FORMAT:BINARY SIZE={len(data)} NAME=\"{remote_path}\"\r\n"
+            self.send(header.encode() + data)
             output().info(f"Uploaded {local_file} to {remote_path}")
         except Exception as e:
             output().errmsg(f"Upload failed: {e}")
@@ -205,7 +207,7 @@ class pjl(printer):
         print("=" * 60)
         print("DESCRIPTION:")
         print("  Transfers a file from the local system to the printer's file system")
-        print("  using PJL FSUPLOAD command. Supports any file type.")
+        print("  using PJL FSDOWNLOAD command. Supports any file type.")
         print()
         print("USAGE:")
         print("  upload <local_file> [remote_path]")

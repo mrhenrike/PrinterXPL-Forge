@@ -31,6 +31,33 @@ from utils.fuzzer import fuzzer
 # CVE module moved to backup - functionality integrated into PJL v2.0
 
 
+def _detect_editor() -> str:
+    """Return the best available text editor for the current OS."""
+    import shutil as _shutil
+    import sys as _sys
+
+    if _sys.platform == 'win32':
+        # Windows: prefer notepad (always present) or VS Code
+        for candidate in ('code', 'notepad++', 'notepad'):
+            if _shutil.which(candidate):
+                return candidate
+        return 'notepad'
+
+    # POSIX: Linux, macOS, WSL, Android/Termux, BSD
+    # Respect VISUAL / EDITOR environment variables first
+    for env_var in ('VISUAL', 'EDITOR'):
+        val = os.environ.get(env_var, '').strip()
+        if val and _shutil.which(val.split()[0]):
+            return val
+
+    # Fallback preference list (ordered)
+    for candidate in ('nano', 'micro', 'vim', 'vi', 'emacs', 'pico'):
+        if _shutil.which(candidate):
+            return candidate
+
+    return 'vi'  # POSIX mandates vi
+
+
 class printer(cmd.Cmd, object):
     # cmd module config and customization
     intro = "Welcome to the PrinterReaper shell. Type help or ? to list commands.\nType 'exit' to quit. Type 'discover' to scan for printers on your local network.\nNote: Not all commands will work on every printer — support depends on the device's manufacturer, model, and firmware language implementation."
@@ -53,8 +80,8 @@ class printer(cmd.Cmd, object):
     vol = ""
     cwd = ""
     traversal = ""
-    # can be changed
-    editor = "vim"  # set to nano/edit/notepad/leafpad/whatever
+    # default editor – auto-detected per OS, can be overridden at runtime
+    editor = _detect_editor()
     
     # Interruption control
     interrupted = False
@@ -373,7 +400,7 @@ class printer(cmd.Cmd, object):
     def do_open(self, arg, mode=""):
         "Connect to a new target"
         if not arg:
-            arg = eval(input("Target: "))
+            arg = input("Target: ")
         self.target = arg
         self.conn = conn(self.mode, self.debug, self.quiet).open(arg)
         if self.conn:
@@ -587,7 +614,7 @@ class printer(cmd.Cmd, object):
     def do_chvol(self, arg):
         "Change current volume"
         if not arg:
-            arg = eval(input("Volume: "))
+            arg = input("Volume: ")
         self.set_vol(arg)
         output().message("Changed to volume: " + self.vol)
 
@@ -662,7 +689,7 @@ class printer(cmd.Cmd, object):
     def do_cd(self, arg):
         "Change the current working directory on the printer"
         if not arg:
-            arg = eval(input("Directory: "))
+            arg = input("Directory: ")
         self.set_cwd(arg)
 
     def set_cwd(self, cwd=""):
@@ -729,7 +756,7 @@ class printer(cmd.Cmd, object):
     def do_download(self, arg, lpath="", r=True):
         "Receive file:  get <file>"
         if not arg:
-            arg = eval(input("Remote file: "))
+            arg = input("Remote file: ")
         if not lpath:
             lpath = self.basename(arg)
         path = self.rpath(arg) if r else arg
@@ -776,7 +803,7 @@ class printer(cmd.Cmd, object):
     def do_upload(self, arg, rpath=""):
         "Send file:  put <local file>"
         if not arg:
-            arg = eval(input("Local file: "))
+            arg = input("Local file: ")
         if not rpath:
             rpath = os.path.basename(arg)
         rpath = self.rpath(rpath)
@@ -853,7 +880,7 @@ class printer(cmd.Cmd, object):
 
     def do_delete(self, arg):
         if not arg:
-            arg = eval(input("File: "))
+            arg = input("File: ")
         self.delete(arg)
 
     def help_delete(self):
@@ -882,7 +909,7 @@ class printer(cmd.Cmd, object):
     def do_cat(self, arg):
         "Print remote file contents"
         if not arg:
-            arg = eval(input("File: "))
+            arg = input("File: ")
         data = self.get(self.rpath(arg))
         if data != c.NONEXISTENT:
             size, content = data
@@ -917,7 +944,7 @@ class printer(cmd.Cmd, object):
     def do_edit(self, arg):
         "Edit a remote file"
         if not arg:
-            arg = eval(input("File: "))
+            arg = input("File: ")
         # download file
         data = self.get(self.rpath(arg))
         if data == c.NONEXISTENT:
@@ -1037,7 +1064,7 @@ class printer(cmd.Cmd, object):
         "Launch file-system fuzzing"
         if not arg:
             try:
-                arg = eval(input("Fuzz path: "))
+                arg = input("Fuzz path: ")
             except (EOFError, KeyboardInterrupt):
                 output().errmsg("Fuzz cancelled - no path provided")
                 return
@@ -1117,7 +1144,7 @@ class printer(cmd.Cmd, object):
     def do_print(self, arg):
         "Print a file or literal text through the device"
         if not arg:
-            arg = eval(input("File or text: "))
+            arg = input("File or text: ")
         if os.path.exists(arg):
             # print file
             data = file().read(arg)
@@ -1156,7 +1183,7 @@ class printer(cmd.Cmd, object):
     def do_convert(self, path, pdl="pcl"):
         "Convert a file to PCL or PS format for printing"
         if not path:
-            path = eval(input("File: "))
+            path = input("File: ")
         if not os.path.exists(path):
             output().errmsg("File not found.")
             return

@@ -14,6 +14,11 @@ Collects identification banners from all relevant printer protocols:
 Returns a unified PrinterFingerprint dataclass with everything collected.
 """
 
+# Author    : Andre Henrique (@mrhenrike)
+# GitHub    : https://github.com/mrhenrike
+# LinkedIn  : https://linkedin.com/in/mrhenrike
+# X/Twitter : https://x.com/mrhenrike
+
 from __future__ import annotations
 
 import logging

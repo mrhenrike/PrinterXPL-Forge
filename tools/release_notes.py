@@ -7,6 +7,11 @@ Usage:
   python tools/release_notes.py --latest
 """
 
+# Author    : Andre Henrique (@mrhenrike)
+# GitHub    : https://github.com/mrhenrike
+# LinkedIn  : https://linkedin.com/in/mrhenrike
+# X/Twitter : https://x.com/mrhenrike
+
 import subprocess
 import argparse
 import sys

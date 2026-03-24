@@ -24,6 +24,11 @@ Override individual keys via environment variables:
   ABUSE_IPDB_API_KEY, OPENAI_API_KEY
 """
 
+# Author    : Andre Henrique (@mrhenrike)
+# GitHub    : https://github.com/mrhenrike
+# LinkedIn  : https://linkedin.com/in/mrhenrike
+# X/Twitter : https://x.com/mrhenrike
+
 from __future__ import annotations
 
 import json

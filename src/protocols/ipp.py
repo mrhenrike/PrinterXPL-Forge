@@ -8,6 +8,11 @@ Internet Printing Protocol (RFC 2910/2911) on port 631
 Modern HTTP-based printing protocol.
 """
 
+# Author    : Andre Henrique (@mrhenrike)
+# GitHub    : https://github.com/mrhenrike
+# LinkedIn  : https://linkedin.com/in/mrhenrike
+# X/Twitter : https://x.com/mrhenrike
+
 import socket
 import struct
 import time

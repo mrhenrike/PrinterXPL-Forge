@@ -24,6 +24,11 @@ Training data is built from the project's existing printer databases
 Models are trained once and cached in .ml_models/ (~2–5 MB total).
 """
 
+# Author    : Andre Henrique (@mrhenrike)
+# GitHub    : https://github.com/mrhenrike
+# LinkedIn  : https://linkedin.com/in/mrhenrike
+# X/Twitter : https://x.com/mrhenrike
+
 from __future__ import annotations
 
 import hashlib

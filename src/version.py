@@ -1,19 +1,31 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-Version information for PrinterReaper
+PrinterReaper — version control module.
+
+Versioning scheme: MAJOR.MINOR.PATCH  (semver-inspired)
+  MAJOR — breaking changes or major new feature sets
+  MINOR — new features, backwards-compatible
+  PATCH — bug fixes, small improvements
 """
 
-__version__ = "2.5.3"
-__version_info__ = (2, 5, 3)
+__version__      = "3.0.0"
+__version_info__ = (3, 0, 0)
+__release_date__ = "2026-03-24"
+__author__       = "Andre Henrique"
+__license__      = "MIT"
 
-def get_version():
-    """Get the current version string"""
+
+def get_version() -> str:
+    """Return the bare version string, e.g. '3.0.0'."""
     return __version__
 
-def get_version_info():
-    """Get the current version tuple"""
+
+def get_version_info() -> tuple:
+    """Return the version as a (major, minor, patch) tuple."""
     return __version_info__
 
-def get_version_string():
-    """Get formatted version string"""
-    return f"Version {__version__}"
+
+def get_version_string() -> str:
+    """Return formatted version string used in the banner."""
+    return f"Version {__version__} ({__release_date__})"

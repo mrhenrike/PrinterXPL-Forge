@@ -1,4 +1,4 @@
-# PrinterReaper v3.0.0 - Dependencies
+# PrinterReaper v3.1.0 - Dependencies
 # Python >= 3.8 required
 # Updated: 2026-03-24
 #
@@ -42,6 +42,15 @@ censys>=2.2.0
 # ── Testing ──────────────────────────────────────────────────────────────────
 pytest>=7.0.0
 pytest-timeout>=2.1.0
+
+# ── ML Engine (lightweight, no GPU required) ─────────────────────────────────
+# scikit-learn: banner fingerprinting, attack prioritization (~30 MB installed)
+scikit-learn>=1.3.0
+joblib>=1.3.0
+
+# ── Config ────────────────────────────────────────────────────────────────────
+# PyYAML: loads config.yaml (API keys, ML settings, network timeouts)
+PyYAML>=6.0
 
 # ── Optional extras ──────────────────────────────────────────────────────────
 # Uncomment the lines below to enable the corresponding features.

@@ -88,7 +88,6 @@ def build_parser() -> argparse.ArgumentParser:
 def get_args() -> argparse.Namespace:
     """Return parsed CLI arguments."""
     parser = build_parser()
-    return parser.parse_args()
     parser.add_argument(
         "--version",
         action="version",
@@ -186,6 +185,17 @@ def main() -> None:
 
     # Handle discovery shortcuts that do not require positionals
     if args.discover_local:
+        # 1. Show locally installed printers on this host
+        try:
+            from utils.local_printers import discover_local_installed, print_local_printers
+            output().green("\n>> Locally Installed Printers (this host):")
+            local_printers = discover_local_installed()
+            print_local_printers(local_printers)
+        except Exception as exc:
+            output().errmsg(f"Local printer enumeration failed: {exc}")
+
+        # 2. SNMP network scan for printers on reachable subnets
+        output().green(">> Network Discovery (SNMP scan):")
         discovery(usage=True)
         sys.exit(0)
 
@@ -205,20 +215,21 @@ def main() -> None:
 
     # Verify host OS compatibility early.
     os_type = get_os()
-    supported_os = ("linux", "windows", "wsl", "darwin", "bsd")
+    supported_os = ("linux", "windows", "wsl", "darwin", "bsd", "android")
     if os_type not in supported_os:
         output().errmsg(f"[!] Unsupported OS: {os_type!r}.")
-        output().message("    This tool currently supports Linux, WSL, Windows, macOS, and BSD.")
+        output().message("    This tool supports Linux, WSL, Windows, macOS, BSD, and Android (Termux).")
         sys.exit(1)
-    
+
     # Show OS detection result in non-quiet mode
     if not args.quiet:
         os_names = {
-            "linux": "Linux",
-            "wsl": "Windows Subsystem for Linux (WSL)",
+            "linux":   "Linux",
+            "wsl":     "Windows Subsystem for Linux (WSL)",
             "windows": "Windows",
-            "darwin": "macOS",
-            "bsd": "BSD"
+            "darwin":  "macOS",
+            "bsd":     "BSD",
+            "android": "Android (Termux)",
         }
         output().message(f">> Detected OS: {os_names.get(os_type, os_type)}")
 

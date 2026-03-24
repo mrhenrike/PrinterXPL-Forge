@@ -304,6 +304,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=0.3,
         help="Delay in seconds between login attempts (default: 0.3s). Increase to avoid lockouts.",
     )
+    # ── Interactive mode ───────────────────────────────────────────────────────
+    parser.add_argument(
+        "--interactive", "-I",
+        action="store_true",
+        help="Launch guided interactive menu (default when run with no arguments)",
+    )
     return parser
 
 
@@ -325,6 +331,17 @@ from itertools import zip_longest
 # --------------------------------------------------------------------------- #
 # Scan / recon mode
 # --------------------------------------------------------------------------- #
+def _ui_section(step: str, title: str, target: str = '') -> None:
+    """Print a clean section header for multi-step operations."""
+    _CYN = '\033[1;36m'
+    _DIM = '\033[2;37m'
+    _RST = '\033[0m'
+    _BLD = '\033[1m'
+    tgt  = f' — {_DIM}{target}{_RST}' if target else ''
+    print(f"\n  {_CYN}┌── [{step}] {_BLD}{title}{_RST}{tgt}")
+    print(f"  {_CYN}│{_RST}")
+
+
 def _run_scan(args) -> None:
     """
     Run banner grabbing + CVE scan + optional ML analysis on args.target.
@@ -347,15 +364,22 @@ def _run_scan(args) -> None:
         )
     timeout  = 5.0
 
-    output().green(f"\n>> Reconnaissance scan: {target}")
-    print()
+    _ui_section('1/3', 'Fingerprint & Banner Grab', target)
 
-    # 1. Banner grab
-    fp = grab_all(target, timeout=timeout, verbose=True)
+    # 1. Banner grab (with spinner)
+    try:
+        from ui.spinner import Spinner
+        sp = Spinner(f'Probing {target} ...').start()
+        try:
+            fp = grab_all(target, timeout=timeout, verbose=False)
+        finally:
+            sp.stop(True, f'Fingerprint complete — {fp.make or "?"} {fp.model or ""}')
+    except Exception:
+        fp = grab_all(target, timeout=timeout, verbose=True)
     print_fingerprint(fp)
 
     # 2. CVE / vuln scan
-    output().green(">> Vulnerability Assessment:")
+    _ui_section('2/3', 'Vulnerability Assessment', target)
     report = vuln_scan(
         host          = target,
         make          = fp.make,
@@ -372,6 +396,7 @@ def _run_scan(args) -> None:
     print_report(report)
 
     # 3. Exploit matching (always shown if exploits available; --xpl forces it)
+    _ui_section('3/3', 'Exploit Matching & Recommendations', target)
     xpl_active = getattr(args, 'xpl', False) or True  # always show on scan
     try:
         from utils.exploit_manager import get_matched_for_target, print_matched_exploits
@@ -396,17 +421,29 @@ def _run_scan(args) -> None:
     except Exception as exc:
         output().warning(f"Exploit matching error: {exc}")
 
-    # 4. Brute-force hint: show relevant credential count for this vendor
+    # 4. Brute-force hint + next-steps summary
+    _CYN = '\033[1;36m'; _DIM = '\033[2;37m'; _RST = '\033[0m'
+    _GRN = '\033[1;32m'; _YEL = '\033[1;33m'
     try:
         from utils.default_creds import get_creds_for_vendor
         bf_vendor_hint = (fp.make or '').lower().split()[0] if fp.make else 'generic'
-        vendor_creds = get_creds_for_vendor(bf_vendor_hint)
-        output().message(
-            f"  [bf] {len(vendor_creds)} default credential entries for '{bf_vendor_hint}'. "
-            f"Run: python src/main.py {target} --bruteforce "
-            + (f"--bf-serial <SERIAL> " if not fp.serial else f"--bf-serial {fp.serial} ")
-            + f"--bf-vendor {bf_vendor_hint}"
-        )
+        vendor_creds   = get_creds_for_vendor(bf_vendor_hint)
+        serial_hint    = fp.serial or '<SERIAL>'
+        print(f"\n  {_CYN}┌── Next Steps ──────────────────────────────────────────────{_RST}")
+        print(f"  {_CYN}│{_RST}")
+        print(f"  {_CYN}│{_RST}  {_GRN}Brute-force{_RST} ({len(vendor_creds)} default creds for {bf_vendor_hint}):")
+        print(f"  {_CYN}│{_RST}    {_DIM}python src/main.py {target} --bruteforce "
+              f"--bf-vendor {bf_vendor_hint} --bf-serial {serial_hint}{_RST}")
+        print(f"  {_CYN}│{_RST}")
+        print(f"  {_CYN}│{_RST}  {_GRN}Attack matrix{_RST} (BlackHat 2017 + CVEs, dry-run):")
+        print(f"  {_CYN}│{_RST}    {_DIM}python src/main.py {target} --attack-matrix{_RST}")
+        print(f"  {_CYN}│{_RST}")
+        print(f"  {_CYN}│{_RST}  {_GRN}Network mapping{_RST} (subnet scan, pivot paths):")
+        print(f"  {_CYN}│{_RST}    {_DIM}python src/main.py {target} --network-map{_RST}")
+        print(f"  {_CYN}│{_RST}")
+        print(f"  {_CYN}│{_RST}  {_YEL}Interactive guided menu:{_RST}")
+        print(f"  {_CYN}│{_RST}    {_DIM}python src/main.py  (no args){_RST}")
+        print(f"  {_CYN}└─────────────────────────────────────────────────────────────{_RST}")
     except Exception:
         pass
 
@@ -943,26 +980,13 @@ def intro(quiet: bool) -> None:
 # --------------------------------------------------------------------------- #
 def main() -> None:
     """Main program flow."""
-    # If called without any arguments, show an extended help/quick-start
+    # If called without any arguments → interactive guided menu
     if len(sys.argv) == 1:
-        parser = build_parser()
-        parser.print_help()
-        print()
-        print("Quick Start:")
-        print("  python src/main.py 15.204.211.244 auto --safe   # Auto-detect language and run")
-        print("  python src/main.py 15.204.211.244 pjl            # Force PJL shell")
-        print("  python src/main.py 15.204.211.244 ps             # Force PostScript shell")
-        print("  python src/main.py 15.204.211.244 pcl            # Force PCL shell")
-        print()
-        print("Discovery:")
-        print("  python src/main.py --discover-local               # SNMP scan local networks")
-        print("  python -m src.utils.discovery_online              # Online discovery (Shodan/Censys)")
-        print("       or: python src/main.py --discover-online")
-        print()
-        print("Examples:")
-        print("  printerreaper 15.204.211.244 auto --debug --log session.log")
-        print("  printerreaper 192.168.1.100 pjl -s -o raw.log")
-        print()
+        try:
+            from ui.interactive import run_interactive
+            run_interactive()
+        except KeyboardInterrupt:
+            print()
         sys.exit(0)
 
     args = get_args()
@@ -1014,6 +1038,15 @@ def main() -> None:
             output().errmsg(f"Online discovery failed: {e}")
         finally:
             sys.exit(0)
+
+    # ── --interactive: always launch guided menu ──────────────────────────────
+    if getattr(args, 'interactive', False):
+        try:
+            from ui.interactive import run_interactive
+            run_interactive()
+        except KeyboardInterrupt:
+            print()
+        sys.exit(0)
 
     # ── --xpl-list / --xpl-update / --xpl-fetch (no target needed) ─────────
     if getattr(args, 'xpl_list', False):
@@ -1101,13 +1134,13 @@ def main() -> None:
         output().green(f">> Starting {APP_NAME} (Advanced Printer Penetration Testing)")
         print()
 
-    # Validate required positionals (unless using discovery flags)
-    if not args.target or not args.mode:
-        parser = build_parser()
-        parser.print_help()
-        print()
-        print("Tip: Use --discover-local or --discover-online for discovery workflows.")
-        print()
+    # ── No meaningful args → launch interactive guided menu ──────────────────
+    if not args.target and not args.mode:
+        try:
+            from ui.interactive import run_interactive
+            run_interactive()
+        except KeyboardInterrupt:
+            print()
         sys.exit(0)
 
     # Auto-detect printer language support if mode is 'auto'

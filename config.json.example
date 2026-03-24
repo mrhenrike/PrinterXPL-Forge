@@ -1,0 +1,69 @@
+{
+  "_comment": [
+    "PrinterReaper — Configuration Template",
+    "Copy this file to config.json and fill in your credentials.",
+    "config.json is gitignored — NEVER commit real credentials.",
+    "",
+    "Features that require credentials:",
+    "  shodan       -> --discover-online (Shodan queries)",
+    "  censys       -> --discover-online (Censys queries)",
+    "  nvd          -> --scan CVE lookup (higher rate limit without key still works)",
+    "  virustotal   -> IP/hash reputation (future)",
+    "  greynoise    -> IP noise scoring (future)",
+    "  abuse_ipdb   -> IP abuse score (future)",
+    "  openai       -> AI-assisted summaries (future)"
+  ],
+
+  "shodan": [
+    { "label": "primary",   "api_key": "YOUR_SHODAN_API_KEY" },
+    { "label": "secondary", "api_key": "" }
+  ],
+
+  "censys": [
+    { "label": "primary", "api_id": "YOUR_CENSYS_API_ID", "api_secret": "YOUR_CENSYS_API_SECRET" }
+  ],
+
+  "nvd": [
+    { "label": "primary", "api_key": "" }
+  ],
+
+  "virustotal": [
+    { "label": "primary", "api_key": "" }
+  ],
+
+  "greynoise": [
+    { "label": "primary", "api_key": "" }
+  ],
+
+  "abuse_ipdb": [
+    { "label": "primary", "api_key": "" }
+  ],
+
+  "openai": [
+    { "label": "primary", "api_key": "", "model": "gpt-4o-mini" }
+  ],
+
+  "network": {
+    "timeout": 5,
+    "snmp_community": "public",
+    "snmp_timeout": 2,
+    "max_retries": 1
+  },
+
+  "ml": {
+    "enabled": false,
+    "model_dir": ".ml_models",
+    "min_confidence": 0.60
+  },
+
+  "discovery": {
+    "max_results_per_query": 50,
+    "delay_between_queries": 1.5
+  },
+
+  "output": {
+    "color": true,
+    "verbose": false,
+    "log_dir": ".log"
+  }
+}

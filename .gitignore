@@ -93,3 +93,5 @@ config.yaml
 .ml_models/
 *.onnx
 
+config.json
+

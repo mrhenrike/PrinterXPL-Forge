@@ -18,6 +18,9 @@ from utils.helper import output, item
 # the synchronous shim when available.
 _SNMP_BACKEND = None
 
+import warnings as _pysnmp_warn
+_pysnmp_warn.filterwarnings("ignore", category=RuntimeWarning)
+
 try:
     # pysnmp-lextudio ≥5 (hlapi synchronous, Python 3.8+) — primary backend
     from pysnmp.hlapi import (  # type: ignore

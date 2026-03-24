@@ -80,7 +80,23 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--discover-online",
         action="store_true",
-        help="Run online discovery via Shodan/Censys (requires API keys)",
+        help="Run online discovery via Shodan/Censys (requires API keys in config.yaml)",
+    )
+    # Reconnaissance / scanning
+    parser.add_argument(
+        "--scan",
+        action="store_true",
+        help="Banner grab + CVE lookup + attack surface assessment (no payloads sent)",
+    )
+    parser.add_argument(
+        "--scan-ml",
+        action="store_true",
+        help="Same as --scan but also runs ML-assisted fingerprinting and attack scoring",
+    )
+    parser.add_argument(
+        "--no-nvd",
+        action="store_true",
+        help="Skip NVD API CVE lookup during --scan (faster, offline)",
     )
     return parser
 
@@ -98,6 +114,81 @@ def get_args() -> argparse.Namespace:
 
 
 from itertools import zip_longest
+
+
+# --------------------------------------------------------------------------- #
+# Scan / recon mode
+# --------------------------------------------------------------------------- #
+def _run_scan(args) -> None:
+    """
+    Run banner grabbing + CVE scan + optional ML analysis on args.target.
+    No payloads are sent — this is pure reconnaissance.
+    """
+    from utils.config import load_config, nvd_key
+    from utils.banner_grabber import grab_all, print_fingerprint
+    from utils.vuln_scanner import scan as vuln_scan, print_report
+
+    load_config()
+    target   = args.target
+    use_nvd  = not getattr(args, 'no_nvd', False)
+    use_ml   = getattr(args, 'scan_ml', False)
+    timeout  = 5.0
+
+    output().green(f"\n>> Reconnaissance scan: {target}")
+    print()
+
+    # 1. Banner grab
+    fp = grab_all(target, timeout=timeout, verbose=True)
+    print_fingerprint(fp)
+
+    # 2. CVE / vuln scan
+    output().green(">> Vulnerability Assessment:")
+    report = vuln_scan(
+        host          = target,
+        make          = fp.make,
+        model         = fp.model,
+        firmware      = fp.firmware,
+        open_ports    = fp.open_ports,
+        printer_langs = fp.printer_langs,
+        snmp_descr    = fp.snmp_descr,
+        doc_formats   = fp.doc_formats,
+        nvd_api_key   = nvd_key(),
+        use_nvd       = use_nvd,
+        verbose       = True,
+    )
+    print_report(report)
+
+    # 3. Optional ML analysis
+    if use_ml:
+        output().green(">> ML-Assisted Analysis:")
+        try:
+            from utils.ml_engine import quick_analyze
+            all_banners = ' '.join(str(v) for v in fp.raw_banners.values())
+            quick_analyze(
+                banner_text = all_banners,
+                open_ports  = fp.open_ports,
+                verbose     = True,
+            )
+        except Exception as exc:
+            output().warning(f"ML engine error: {exc}")
+
+    # 4. Auto-mode recommendation
+    print()
+    output().green(">> Attack Mode Recommendation:")
+    langs = [l.upper() for l in fp.printer_langs]
+    if 'PJL' in langs:
+        output().message("  Recommended: python src/main.py {target} pjl --safe")
+    elif 'PS' in langs or 'POSTSCRIPT' in langs:
+        output().message(f"  Recommended: python src/main.py {target} ps --safe")
+    elif 'PCL' in langs:
+        output().message(f"  Recommended: python src/main.py {target} pcl --safe")
+    elif fp.doc_formats:
+        output().warning(
+            f"  Printer uses {fp.printer_langs} — not a PJL/PS/PCL laser printer.\n"
+            f"  Attack surface: IPP job submission, web interface, LPD flooding."
+        )
+    else:
+        output().warning("  Could not determine printer language. Try: auto mode")
 
 # --------------------------------------------------------------------------- #
 # Banner
@@ -201,14 +292,25 @@ def main() -> None:
 
     if args.discover_online:
         try:
+            from utils.config import load_config, shodan_key
             from utils.discovery_online import OnlineDiscoveryManager
-            mgr = OnlineDiscoveryManager()
+            load_config()
+            mgr = OnlineDiscoveryManager(shodan_key=shodan_key())
             mgr.discover(max_results_per_query=25)
             mgr.export_results()
         except Exception as e:
             output().errmsg(f"Online discovery failed: {e}")
         finally:
             sys.exit(0)
+
+    # ── --scan / --scan-ml: reconnaissance without payloads ─────────────────
+    scan_requested = getattr(args, 'scan', False) or getattr(args, 'scan_ml', False)
+    if scan_requested:
+        if not args.target:
+            output().errmsg("--scan requires a target: python src/main.py <ip> --scan")
+            sys.exit(1)
+        _run_scan(args)
+        sys.exit(0)
 
     # Show banner first (respects --quiet).
     intro(args.quiet)

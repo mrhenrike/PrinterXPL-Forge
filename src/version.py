@@ -9,8 +9,8 @@ Versioning scheme: MAJOR.MINOR.PATCH  (semver-inspired)
   PATCH — bug fixes, small improvements
 """
 
-__version__      = "3.2.0"
-__version_info__ = (3, 2, 0)
+__version__      = "3.3.0"
+__version_info__ = (3, 3, 0)
 __release_date__ = "2026-03-24"
 __author__       = "Andre Henrique"
 __license__      = "MIT"

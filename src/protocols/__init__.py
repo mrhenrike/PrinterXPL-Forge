@@ -10,5 +10,10 @@ Support for multiple network printing protocols:
 - SMB (Server Message Block) - Port 445/139
 """
 
+# Author    : Andre Henrique (@mrhenrike)
+# GitHub    : https://github.com/mrhenrike
+# LinkedIn  : https://linkedin.com/in/mrhenrike
+# X/Twitter : https://x.com/mrhenrike
+
 __all__ = ['lpd', 'ipp', 'raw', 'smb']
 

@@ -13,6 +13,11 @@ Payloads include:
 - exfil.ps - Data exfiltration template
 """
 
+# Author    : Andre Henrique (@mrhenrike)
+# GitHub    : https://github.com/mrhenrike
+# LinkedIn  : https://linkedin.com/in/mrhenrike
+# X/Twitter : https://x.com/mrhenrike
+
 __all__ = ['load_payload', 'list_payloads', 'execute_payload']
 
 import os

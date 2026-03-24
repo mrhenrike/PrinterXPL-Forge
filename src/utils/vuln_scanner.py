@@ -21,6 +21,11 @@ are promoted to the model-specific section; the rest are shown as "related vendo
 advisories" with a clear note.
 """
 
+# Author    : Andre Henrique (@mrhenrike)
+# GitHub    : https://github.com/mrhenrike
+# LinkedIn  : https://linkedin.com/in/mrhenrike
+# X/Twitter : https://x.com/mrhenrike
+
 from __future__ import annotations
 
 import logging

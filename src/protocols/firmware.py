@@ -18,6 +18,11 @@ NOTE: All operations are implemented for authorized penetration testing only.
       in isolated lab environments on explicitly authorized targets.
 """
 
+# Author    : Andre Henrique (@mrhenrike)
+# GitHub    : https://github.com/mrhenrike
+# LinkedIn  : https://linkedin.com/in/mrhenrike
+# X/Twitter : https://x.com/mrhenrike
+
 from __future__ import annotations
 
 import logging

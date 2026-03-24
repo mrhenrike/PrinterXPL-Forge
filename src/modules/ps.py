@@ -8,6 +8,11 @@ Complete PostScript penetration testing module with 40+ commands
 Based on PRET ps.py but massively enhanced for PrinterReaper
 """
 
+# Author    : Andre Henrique (@mrhenrike)
+# GitHub    : https://github.com/mrhenrike
+# LinkedIn  : https://linkedin.com/in/mrhenrike
+# X/Twitter : https://x.com/mrhenrike
+
 import re
 import os
 import random

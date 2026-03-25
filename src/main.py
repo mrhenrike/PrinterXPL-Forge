@@ -76,6 +76,88 @@ def build_parser() -> argparse.ArgumentParser:
         help="Automatically detect supported printer languages",
         action="store_true",
     )
+    # ── Custom port overrides ──────────────────────────────────────────────────
+    _port_group = parser.add_argument_group(
+        "custom port overrides",
+        "Override default protocol ports. When not specified, each module uses its own "
+        "default (RAW=9100, IPP=631, LPD=515, SNMP=161, FTP=21, HTTP=80, HTTPS=443, SMB=445, Telnet=23). "
+        "Use when the printer listens on non-standard ports."
+    )
+    _port_group.add_argument(
+        "--port-raw",
+        metavar="PORT",
+        type=int,
+        default=None,
+        help="Custom port for RAW/PJL/JetDirect (default: 9100). Example: --port-raw 3910",
+    )
+    _port_group.add_argument(
+        "--port-ipp",
+        metavar="PORT",
+        type=int,
+        default=None,
+        help="Custom port for IPP (default: 631). Example: --port-ipp 8631",
+    )
+    _port_group.add_argument(
+        "--port-lpd",
+        metavar="PORT",
+        type=int,
+        default=None,
+        help="Custom port for LPD/LPR (default: 515). Example: --port-lpd 5515",
+    )
+    _port_group.add_argument(
+        "--port-snmp",
+        metavar="PORT",
+        type=int,
+        default=None,
+        help="Custom port for SNMP (default: 161). Example: --port-snmp 1161",
+    )
+    _port_group.add_argument(
+        "--port-ftp",
+        metavar="PORT",
+        type=int,
+        default=None,
+        help="Custom port for FTP management (default: 21). Example: --port-ftp 2121",
+    )
+    _port_group.add_argument(
+        "--port-http",
+        metavar="PORT",
+        type=int,
+        default=None,
+        help="Custom port for HTTP embedded web server (default: 80). Example: --port-http 8080",
+    )
+    _port_group.add_argument(
+        "--port-https",
+        metavar="PORT",
+        type=int,
+        default=None,
+        help="Custom port for HTTPS embedded web server (default: 443). Example: --port-https 8443",
+    )
+    _port_group.add_argument(
+        "--port-smb",
+        metavar="PORT",
+        type=int,
+        default=None,
+        help="Custom port for SMB/CIFS (default: 445). Example: --port-smb 4445",
+    )
+    _port_group.add_argument(
+        "--port-telnet",
+        metavar="PORT",
+        type=int,
+        default=None,
+        help="Custom port for Telnet management (default: 23). Example: --port-telnet 2323",
+    )
+    _port_group.add_argument(
+        "--extra-ports",
+        metavar="PORT",
+        action="append",
+        dest="extra_ports",
+        default=[],
+        type=int,
+        help=(
+            "Extra port(s) to include in banner scan sweeps (repeatable). "
+            "Example: --extra-ports 9200 --extra-ports 7100"
+        ),
+    )
     # Discovery helpers
     parser.add_argument(
         "--discover-local",
@@ -746,8 +828,9 @@ def _run_send_job(args) -> None:
     queue    = getattr(args, 'send_queue',  'lp')
     port     = getattr(args, 'port', 0) or 0
 
-    proto_ports = {'raw': 9100, 'ipp': 631, 'lpd': 515}
-    display_port = port or proto_ports.get(proto, 9100)
+    from utils.ports import PortConfig
+    proto_ports  = {p: PortConfig.resolve(p) for p in ('raw', 'ipp', 'lpd')}
+    display_port = port or proto_ports.get(proto, PortConfig.resolve('raw'))
 
     print(f"\n  {_CYN}[ Send Job ]{_RST}")
     print(f"  {_DIM}Target   : {target}:{display_port}{_RST}")
@@ -926,9 +1009,10 @@ def _run_attack_modules(args) -> None:
             if not payload:
                 output().warning(f"No payload generated for {lang}:{kind}")
             else:
-                # Send to RAW port 9100
+                from utils.ports import PortConfig as _PC
                 import socket as _sock
-                s = _sock.create_connection((target, 9100), timeout=timeout)
+                _raw_port = _PC.resolve('raw')
+                s = _sock.create_connection((target, _raw_port), timeout=timeout)
                 s.sendall(payload)
                 _sock.setdefaulttimeout(2)
                 resp = b''
@@ -1220,8 +1304,9 @@ def _run_attack_modules(args) -> None:
         )
         try:
             from protocols.network_map import generate_xsp_payload
+            from utils.ports import PortConfig as _PC2
             payloads = generate_xsp_payload(
-                printer_ip=target, printer_port=9100,
+                printer_ip=target, printer_port=_PC2.resolve('raw'),
                 attack_type=attack, callback_url=cb, exfil_url=cb,
             )
             # Save HTML to .log/
@@ -1337,6 +1422,13 @@ def main() -> None:
         load_config(path=getattr(args, 'config', None))
     except Exception as _cfg_err:
         pass  # config is optional — tool runs without it
+
+    # ── Apply custom port overrides globally (must happen before any module connects)
+    try:
+        from utils.ports import PortConfig
+        PortConfig.configure_from_args(args)
+    except Exception:
+        pass
 
     # ── --check-config: print feature availability and exit ───────────────────
     if getattr(args, 'check_config', False):

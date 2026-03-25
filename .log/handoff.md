@@ -1,4 +1,90 @@
-# PrinterReaper — Handoff v3.6.2
+# PrinterReaper — Handoff
+
+---
+
+## v3.7.0 — Wordlist-driven credentials (sem hardcode) + lab execution
+
+**Data:** 2026-03-25
+**Status:** COMPLETO — Credenciais movidas para wordlists externas; sem hardcode no Python; lab executado
+
+### O que foi alterado
+
+**Arquitetura de credenciais completamente refatorada:**
+- Removido `_DB` (dict gigante hardcoded) de `default_creds.py`
+- `default_creds.py` agora contém apenas: `Cred` dataclass, tokens (`__SERIAL__`, `__MAC6__`, `__MAC12__`), `_ALIASES`
+- Criado `src/utils/wordlist_loader.py` — módulo dedicado ao carregamento de wordlists
+- `login_bruteforce.py` usa `wordlist_loader` como fonte primária (não hardcode)
+- `--bf-wordlist` agora **substitui** a wordlist padrão (antes fazia merge)
+- `--bf-cred` ainda funciona como entradas adicionais de maior prioridade
+
+**Novo módulo: `wordlist_loader.py`**
+- `load_wordlist(path)` — carrega todos os pares user:pass de um arquivo
+- `load_for_vendor(vendor, wordlist_path)` — filtra por seção vendor + appenda generic
+- `load_snmp_communities(path)` — lê `snmp_communities.txt`
+- `load_ftp_creds(path)` — lê `ftp_creds.txt`
+- `wordlist_stats(path)` — retorna stats por seção
+- `get_default_wordlist_path()` — localiza `wordlists/printer_default_creds.txt`
+- Suporte a tokens `__SERIAL__`, `__MAC6__`, `__MAC12__` no próprio arquivo de wordlist
+
+**Formato de wordlist com seções de vendor:**
+```
+# ── HP (Hewlett-Packard) ─────────────────────────────────────────────────────
+admin:
+Admin:Admin
+jetdirect:
+# ── Epson ─────────────────────────────────────────────────────────────────────
+admin:epson
+```
+
+**Tokens reais no wordlist:**
+- Adicionadas entradas reais (não comentadas) no `printer_default_creds.txt`:
+  `admin:__SERIAL__`, `:__SERIAL__`, `ADMIN:__SERIAL__`, `administrator:__SERIAL__`
+  `admin:__MAC6__`, `admin:__MAC12__`, `:__MAC6__`
+
+**main.py — bruteforce:**
+- Exibe path da wordlist sendo usada
+- Exibe total de entradas e stats
+- Remove código antigo de "merge" da wordlist (que carregava as linhas como `extra_creds`)
+- Passa `wordlist_path` para `bf_run()`
+
+### Arquivos modificados
+- `src/utils/default_creds.py` — removido `_DB`; mantido apenas tipos e aliases
+- `src/utils/wordlist_loader.py` — **NOVO** — carregador de wordlists
+- `src/modules/login_bruteforce.py` — usa wordlist_loader; `wordlist_path` em todos os métodos
+- `src/main.py` — bruteforce block refatorado; exibe path e stats da wordlist
+- `src/version.py` — bump 3.6.2 → 3.7.0
+- `wordlists/printer_default_creds.txt` — tokens reais adicionados
+
+### Execução no lab
+
+**Epson L3250 real (192.168.0.152):**
+- Bruteforce: `admin` / `epson` — encontrado via HTTP Basic Auth
+- URL de login detectada: `/PRESENTATION/HTML/TOP/PRTINFO.HTML`
+- Wordlist usada: `wordlists/printer_default_creds.txt` (195 entradas)
+
+**Lab emulado (127.0.0.1) — 7 impressoras:**
+- HP LaserJet Pro M404n (9080): 48 creds testadas — HTTP simulador sem auth validation
+- Epson L3250 (9081): 43 creds testadas
+- Ricoh MP C3003 (9082): 49 creds testadas
+- Xerox WorkCentre 7855 (9083): 58 creds testadas
+- Kyocera ECOSYS P3055dn (9084): 55 creds testadas
+- Brother MFC-J5945DW (9085): 46 creds testadas
+- Lexmark CS720de (9086): 43 creds testadas
+
+> Simuladores do lab respondem HTTP 200 independente de auth (comportamento esperado dos stubs).
+> O teste validou que a wordlist foi corretamente carregada, filtrada por vendor e aplicada a cada alvo.
+
+### Comandos executados
+```
+python main.py 192.168.0.152 --bruteforce --bf-vendor epson --bf-serial XAABT77481 --bf-no-variations
+# → [+] FOUND: HTTP → 'admin' / 'epson'
+
+python lab_manager.py --start all   # lab emulado
+python -c "from utils.wordlist_loader import wordlist_stats; ..."  # validação
+```
+
+---
+ v3.6.2
 **Data:** 2026-03-25  
 **Versão:** 3.6.2  
 **Status:** COMPLETO — Arsenal expandido com pesquisa Tungsten/Printix, bizuns.com, Canon docs, Spiceworks; novos módulos LDAP hash capture + CVE-2024-51978

@@ -78,6 +78,20 @@ FEATURE_REQUIREMENTS: Dict[str, Dict] = {
         'keys':    ['api_key'],
         'url':     'https://app.netlas.io/profile/',
     },
+    'anthropic': {
+        'label':   'Anthropic Claude LLM — AI analysis, report generation',
+        'section': 'anthropic',
+        'keys':    ['api_key'],
+        'url':     'https://console.anthropic.com/settings/keys',
+        'optional': True,
+    },
+    'gemini': {
+        'label':   'Google Gemini LLM — AI analysis, report generation',
+        'section': 'gemini',
+        'keys':    ['api_key'],
+        'url':     'https://aistudio.google.com/app/apikey',
+        'optional': True,
+    },
     'nvd_lookup': {
         'label':   'NVD CVE lookup (higher rate limit)',
         'section': 'nvd',
@@ -85,49 +99,31 @@ FEATURE_REQUIREMENTS: Dict[str, Dict] = {
         'url':     'https://nvd.nist.gov/developers/request-an-api-key',
         'optional': True,  # NVD works without key, just rate-limited
     },
-    'virustotal': {
-        'label':   'VirusTotal IP/hash reputation',
-        'section': 'virustotal',
-        'keys':    ['api_key'],
-        'url':     'https://www.virustotal.com/gui/my-apikey',
-    },
-    'greynoise': {
-        'label':   'GreyNoise IP noise scoring',
-        'section': 'greynoise',
-        'keys':    ['api_key'],
-        'url':     'https://viz.greynoise.io/account/api-key',
-    },
-    'abuse_ipdb': {
-        'label':   'AbuseIPDB reputation',
-        'section': 'abuse_ipdb',
-        'keys':    ['api_key'],
-        'url':     'https://www.abuseipdb.com/account/api',
-    },
     'openai': {
-        'label':   'OpenAI AI-assisted analysis',
+        'label':   'OpenAI — AI-assisted analysis, report generation',
         'section': 'openai',
         'keys':    ['api_key'],
         'url':     'https://platform.openai.com/api-keys',
+        'optional': True,
     },
 }
 
 # ── Defaults ──────────────────────────────────────────────────────────────────
 
 _DEFAULTS: Dict = {
-    'shodan':      [{'label': 'primary', 'api_key': ''}],
-    'censys':      [{'label': 'primary', 'api_id': '', 'api_secret': ''}],
-    'fofa':        [{'label': 'primary', 'email': '', 'api_key': ''}],
-    'zoomeye':     [{'label': 'primary', 'api_key': ''}],
-    'netlas':      [{'label': 'primary', 'api_key': ''}],
-    'nvd':         [{'label': 'primary', 'api_key': ''}],
-    'virustotal':  [{'label': 'primary', 'api_key': ''}],
-    'greynoise':   [{'label': 'primary', 'api_key': ''}],
-    'abuse_ipdb':  [{'label': 'primary', 'api_key': ''}],
-    'openai':      [{'label': 'primary', 'api_key': '', 'model': 'gpt-4o-mini'}],
-    'network':     {'timeout': 5, 'snmp_community': 'public', 'snmp_timeout': 2, 'max_retries': 1},
-    'ml':          {'enabled': False, 'model_dir': '.ml_models', 'min_confidence': 0.60},
-    'discovery':   {'max_results_per_query': 50, 'delay_between_queries': 1.5},
-    'output':      {'color': True, 'verbose': False, 'log_dir': '.log'},
+    'shodan':    [{'label': 'primary', 'api_key': ''}],
+    'censys':    [{'label': 'primary', 'api_id': '', 'api_secret': ''}],
+    'fofa':      [{'label': 'primary', 'email': '', 'api_key': ''}],
+    'zoomeye':   [{'label': 'primary', 'api_key': ''}],
+    'netlas':    [{'label': 'primary', 'api_key': ''}],
+    'nvd':       [{'label': 'primary', 'api_key': ''}],
+    'openai':    [{'label': 'primary', 'api_key': '', 'model': 'gpt-4o'}],
+    'anthropic': [{'label': 'primary', 'api_key': '', 'model': 'claude-opus-4-5'}],
+    'gemini':    [{'label': 'primary', 'api_key': '', 'model': 'gemini-2.0-flash'}],
+    'network':   {'timeout': 5, 'snmp_community': 'public', 'snmp_timeout': 2, 'max_retries': 1},
+    'ml':        {'enabled': False, 'model_dir': '.ml_models', 'min_confidence': 0.60},
+    'discovery': {'max_results_per_query': 50, 'delay_between_queries': 1.5},
+    'output':    {'color': True, 'verbose': False, 'log_dir': '.log'},
 }
 
 # ── Module state ──────────────────────────────────────────────────────────────
@@ -448,25 +444,55 @@ def nvd_key() -> str:
     return _get_first_key('nvd', 'api_key')
 
 
-def virustotal_key() -> str:
-    """Return the VirusTotal API key."""
-    return _get_first_key('virustotal', 'api_key')
-
-
-def greynoise_key() -> str:
-    """Return the GreyNoise API key."""
-    return _get_first_key('greynoise', 'api_key')
-
-
 def openai_key() -> str:
-    """Return the OpenAI API key."""
+    """Return the first non-empty OpenAI API key."""
     return _get_first_key('openai', 'api_key')
 
 
 def openai_model() -> str:
     """Return the configured OpenAI model name."""
     entry = _get_first_entry('openai')
-    return str(entry.get('model', 'gpt-4o-mini')).strip() or 'gpt-4o-mini'
+    return str(entry.get('model', 'gpt-4o')).strip() or 'gpt-4o'
+
+
+def anthropic_key() -> str:
+    """Return the Anthropic Claude API key."""
+    return _get_first_key('anthropic', 'api_key')
+
+
+def anthropic_model() -> str:
+    """Return the configured Anthropic Claude model name."""
+    entry = _get_first_entry('anthropic')
+    return str(entry.get('model', 'claude-opus-4-5')).strip() or 'claude-opus-4-5'
+
+
+def gemini_key() -> str:
+    """Return the first non-empty Google Gemini API key."""
+    return _get_first_key('gemini', 'api_key')
+
+
+def gemini_model() -> str:
+    """Return the configured Gemini model name."""
+    entry = _get_first_entry('gemini')
+    return str(entry.get('model', 'gemini-2.0-flash')).strip() or 'gemini-2.0-flash'
+
+
+def active_llm() -> Tuple[str, str, str]:
+    """
+    Return (provider, api_key, model) for the first configured LLM.
+
+    Priority: openai → anthropic → gemini.
+    Returns ('none', '', '') if no LLM is configured.
+    """
+    for provider, key_fn, model_fn in [
+        ('openai',    openai_key,    openai_model),
+        ('anthropic', anthropic_key, anthropic_model),
+        ('gemini',    gemini_key,    gemini_model),
+    ]:
+        key = key_fn()
+        if key:
+            return (provider, key, model_fn())
+    return ('none', '', '')
 
 
 def ml_enabled() -> bool:

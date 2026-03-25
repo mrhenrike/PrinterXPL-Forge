@@ -133,6 +133,26 @@
       "url": "https://github.com/rapid7/metasploit-framework/blob/master/modules/auxiliary/scanner/printer/printer_upload_file.rb"
     },
     {
+      "id": "RESEARCH-PJL-NVRAM-DAMAGE",
+      "source": "research",
+      "path": "research\\research-pjl-nvram-damage",
+      "cve": "",
+      "title": "PJL/PS Physical NVRAM Damage + HP PML Factory Reset",
+      "severity": "critical",
+      "vendor": [
+        "HP",
+        "Brother",
+        "Konica Minolta",
+        "Lexmark",
+        "Dell"
+      ],
+      "category": "dos",
+      "port": 9100,
+      "protocol": "PJL",
+      "cvss": 9.0,
+      "url": "https://seclists.org/fulldisclosure/2017/Jan/94"
+    },
+    {
       "id": "CUSTOM-001",
       "source": "custom",
       "path": "custom",
@@ -262,6 +282,22 @@
       "url": "https://www.exploit-db.com/exploits/45205"
     },
     {
+      "id": "EDB-51755",
+      "source": "exploit-db",
+      "path": "edb-51755",
+      "cve": "",
+      "title": "Ricoh Printer FTP Guest/Guest Filesystem Exposure (2024)",
+      "severity": "high",
+      "vendor": [
+        "Ricoh"
+      ],
+      "category": "info_disclosure",
+      "port": 21,
+      "protocol": "FTP",
+      "cvss": 7.5,
+      "url": "https://www.exploit-db.com/exploits/51755"
+    },
+    {
       "id": "MSF-PRINTER-DIR-LIST",
       "source": "metasploit",
       "path": "msf\\msf-printer-dir-list",
@@ -328,6 +364,26 @@
       "url": "https://github.com/rapid7/metasploit-framework/blob/master/modules/auxiliary/dos/printer/ricoh_loginout.rb"
     },
     {
+      "id": "CVE-2024-51982",
+      "source": "research",
+      "path": "research\\research-cve-2024-51982",
+      "cve": "CVE-2024-51982",
+      "title": "PJL FORMLINES Non-Numeric DoS \u2014 Brother/Ricoh/Fujifilm (2024)",
+      "severity": "high",
+      "vendor": [
+        "Brother",
+        "Ricoh",
+        "FUJIFILM",
+        "Konica Minolta",
+        "Toshiba"
+      ],
+      "category": "dos",
+      "port": 9100,
+      "protocol": "PJL",
+      "cvss": 7.5,
+      "url": "https://github.com/sfewer-r7/BrotherVulnerabilities"
+    },
+    {
       "id": "RESEARCH-EPSON-CONNECT-CLOUD",
       "source": "research",
       "path": "research\\research-epson-connect-cloud",
@@ -392,6 +448,68 @@
       "protocol": "PJL",
       "cvss": 8.0,
       "url": "https://github.com/mrhenrike/PrinterReaper"
+    },
+    {
+      "id": "RESEARCH-PS-DOS",
+      "source": "research",
+      "path": "research\\research-ps-dos",
+      "cve": "",
+      "title": "PostScript Infinite Loop + Transmission Channel DoS (All PS Printers)",
+      "severity": "high",
+      "vendor": [],
+      "category": "dos",
+      "port": 9100,
+      "protocol": "PS",
+      "cvss": 7.5,
+      "url": "http://hacking-printers.net/wiki/index.php/Denial_of_service"
+    },
+    {
+      "id": "RESEARCH-PS-FILESYSTEM",
+      "source": "research",
+      "path": "research\\research-ps-filesystem",
+      "cve": "CVE-2010-4107",
+      "title": "PostScript Filesystem Access via filenameforall (All PS Printers)",
+      "severity": "high",
+      "vendor": [],
+      "category": "info_disclosure",
+      "port": 9100,
+      "protocol": "PS",
+      "cvss": 7.8,
+      "url": "http://hacking-printers.net/wiki/index.php/File_system_access"
+    },
+    {
+      "id": "RESEARCH-PS-JOB-CAPTURE",
+      "source": "research",
+      "path": "research\\research-ps-job-capture",
+      "cve": "",
+      "title": "PostScript Print Job Capture via showpage Hook (All PS Printers)",
+      "severity": "high",
+      "vendor": [],
+      "category": "info_disclosure",
+      "port": 9100,
+      "protocol": "PS",
+      "cvss": 8.0,
+      "url": "https://seclists.org/fulldisclosure/2017/Jan/89"
+    },
+    {
+      "id": "RESEARCH-SNMP-FACTORY-RESET",
+      "source": "research",
+      "path": "research\\research-snmp-factory-reset",
+      "cve": "",
+      "title": "SNMP Unauthenticated Factory Reset via Printer MIB OID (Multi-vendor)",
+      "severity": "high",
+      "vendor": [
+        "HP",
+        "Lexmark",
+        "Ricoh",
+        "Xerox",
+        "Dell"
+      ],
+      "category": "dos",
+      "port": 161,
+      "protocol": "SNMP",
+      "cvss": 8.5,
+      "url": "http://hacking-printers.net/wiki/index.php/Factory_defaults"
     },
     {
       "id": "EDB-23147",

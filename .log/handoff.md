@@ -1,7 +1,7 @@
-# PrinterReaper — Handoff v3.6.0
+# PrinterReaper — Handoff v3.6.1
 **Data:** 2026-03-25  
-**Versão:** 3.6.0  
-**Status:** COMPLETO — Arsenal xpl/ expandido com MSF ports, EDB e research
+**Versão:** 3.6.1  
+**Status:** COMPLETO — Arsenal expandido com pesquisa BlackHat 2017, ExploitDB 2024, CVE-2024-51982
 
 ---
 

@@ -104,16 +104,24 @@ _DB: Dict[str, List[Cred]] = {
     ],
 
     # ── Canon ─────────────────────────────────────────────────────────────────
-    # Sources: Canon imageRUNNER/PRINT manuals, geeksinsneaks.com
+    # Sources: Canon imageRUNNER/PRINT manuals, ij.manual.canon/en/PW/pw_default.html
+    # Models with default password "canon" (username ADMIN):
+    #   E460/E480, iB4000, MB2000/MB2300/MB5000/MB5300, MG2900/MG5600/MG6600/MG6700/MG7500,
+    #   MX490, PRO-100S/PRO-10S series
+    # All other models: serial number is default password
+    # Printix Go integration: admin/Printix (must be set first time)
     'canon': [
-        Cred('admin',    None,           'http', 'most PRINT / MAXIFY: blank password'),
+        Cred('ADMIN',    'canon',        'http', 'E460/E480/iB4000/MB2000/MB5000/MG2900 series (ij.manual.canon)'),
+        Cred('admin',    'canon',        'http', 'alias: lowercase admin'),
+        Cred('ADMIN',    SERIAL_TOKEN,   'http', 'most other models: serial number is default password'),
+        Cred('admin',    SERIAL_TOKEN,   'http', 'serial number alt login'),
+        Cred('admin',    None,           'http', 'PRINT / MAXIFY / PIXMA: blank password'),
+        Cred('admin',    'Printix',      'http', 'Printix Go integration default (Tungsten docs)'),
         Cred('admin',    'admin',        'http'),
-        Cred('admin',    'canon',        'http'),
         Cred('admin',    '7654321',      'http', 'imageRUNNER series'),
         Cred('admin',    '1111111',      'http', 'imageRUNNER series alt'),
         Cred('system',   'system',       'http', 'service access'),
         Cred('root',     None,           'http'),
-        Cred('ADMIN',    SERIAL_TOKEN,   'http', 'some models use serial'),
         Cred('',         None,           'http'),
         Cred('public',   None,           'snmp'),
         Cred('private',  None,           'snmp'),
@@ -121,29 +129,37 @@ _DB: Dict[str, List[Cred]] = {
     ],
 
     # ── Ricoh ─────────────────────────────────────────────────────────────────
-    # Sources: theinfocentric.com, ricoh KB, wikitwist.com
+    # Sources: theinfocentric.com, ricoh KB, wikitwist.com, Tungsten Automation docs,
+    #          Spiceworks community (supervisor backdoor), bizuns.com
     'ricoh': [
-        Cred('admin',    None,           'http', 'most Aficio/MP: blank password'),
-        Cred('admin',    'password',     'http', 'Web Image Monitor fallback'),
-        Cred('admin',    'admin',        'http'),
-        Cred('sysadmin', 'password',     'http', 'service admin'),
-        Cred('supervisor', None,         'http'),
-        Cred('',         None,           'http', 'no auth'),
-        Cred('admin',    '1234',         'http'),
-        Cred('admin',    'ricoh',        'http'),
-        Cred('public',   None,           'snmp'),
-        Cred('private',  None,           'snmp'),
-        Cred('admin',    None,           'ftp'),
+        Cred('admin',      None,         'http', 'most Aficio/MP: blank password'),
+        Cred('admin',      'password',   'http', 'Web Image Monitor fallback'),
+        Cred('admin',      'admin',      'http'),
+        Cred('sysadmin',   'password',   'http', 'Aficio 2020D/2228c/2232C: service admin'),
+        Cred('supervisor', None,         'http', 'UNDOCUMENTED backdoor — resets admin password (Spiceworks community)'),
+        Cred('',           None,         'http', 'no auth / DSc338/NRG anonymous'),
+        Cred('',           'password',   'http', 'NRG/DSc338 blank user + password'),
+        Cred('admin',      '1234',       'http'),
+        Cred('admin',      'ricoh',      'http', 'SOP Gen 2: Remote Installation Password default'),
+        Cred('admin',      'Admin',      'http', 'some AP/IM series'),
+        Cred('guest',      'guest',      'ftp',  'EDB-51755: FTP guest/guest on port 21'),
+        Cred('public',     None,         'snmp'),
+        Cred('private',    None,         'snmp'),
+        Cred('admin',      None,         'ftp'),
     ],
 
     # ── Xerox ─────────────────────────────────────────────────────────────────
-    # Sources: supertechman.com.au, open-sez.me/default-passwords-xerox.html
+    # Sources: supertechman.com.au, open-sez.me/default-passwords-xerox.html,
+    #          bizuns.com (DocuCentre 425: admin/22222, MFP: admin/2222),
+    #          Tungsten Printix partner docs (admin/1111)
     'xerox': [
-        Cred('admin',    '1111',         'http', 'VersaLink/AltaLink/WorkCentre 5300+'),
+        Cred('admin',    '1111',         'http', 'VersaLink/AltaLink/WorkCentre 5300+; Tungsten Printix default'),
+        Cred('admin',    '22222',        'http', 'DocuCentre 425 (bizuns.com)'),
+        Cred('admin',    '2222',         'http', 'Multi Function Equipment series (bizuns.com)'),
         Cred('admin',    'admin',        'http'),
         Cred('11111',    'x-admin',      'http', 'DocuCentre/ApeosPort series'),
-        Cred('admin',    'x-admin',      'http', 'legacy models'),
-        Cred('admin',    None,           'http'),
+        Cred('admin',    'x-admin',      'http', 'Xerox 240a legacy (bizuns.com)'),
+        Cred('admin',    None,           'http', 'Document Centre 425: no password'),
         Cred('admin',    '1234',         'http'),
         Cred('admin',    'password',     'http'),
         Cred('service',  '1111',         'http', 'service login'),
@@ -185,8 +201,8 @@ _DB: Dict[str, List[Cred]] = {
         Cred('private',  None,           'snmp'),
     ],
 
-    # alias
-    'konica minolta': [],  # resolved dynamically to 'konica'
+    # aliases — resolved dynamically via _ALIASES; empty lists here as placeholders
+    'konica minolta': [],
     'konicaminolta': [],
 
     # ── Samsung ───────────────────────────────────────────────────────────────
@@ -265,17 +281,95 @@ _DB: Dict[str, List[Cred]] = {
     ],
 
     # ── Fuji Xerox / Fujifilm ─────────────────────────────────────────────────
+    # Sources: Printix partner docs (Tungsten Automation), fujifilm.com KBs
     'fuji': [
+        Cred('x-admin',  '11111',        'http', 'Fujifilm Business Innovation: Printix Go default (Tungsten docs)'),
         Cred('admin',    '1111',         'http', 'ApeosPort / DocuCentre'),
-        Cred('11111',    'x-admin',      'http', 'DocuCentre legacy'),
+        Cred('11111',    'x-admin',      'http', 'DocuCentre legacy (Xerox/Fuji era)'),
         Cred('admin',    'admin',        'http'),
+        Cred('admin',    None,           'http'),
         Cred('',         None,           'http'),
+        Cred('public',   None,           'snmp'),
+        Cred('private',  None,           'snmp'),
+        Cred('root',     None,           'ftp'),
+    ],
+
+    # alias
+    'fujifilm': [],
+
+    # ── Zebra Technologies ────────────────────────────────────────────────────
+    # Sources: Zebra ZD421/ZD621 user guide, docs.zebra.com
+    'zebra': [
+        Cred('admin',    '1234',         'http',   'ZD421/ZD621/ZT-series print server default'),
+        Cred('admin',    'admin',        'http'),
+        Cred('admin',    None,           'http'),
+        Cred('guest',    None,           'http',   'read-only guest'),
+        Cred('public',   None,           'snmp',   'ZebraNet print server SNMP read'),
+        Cred('private',  None,           'snmp',   'ZebraNet SNMP write'),
+        Cred('admin',    '1234',         'ftp',    'ZebraNet bridge FTP'),
+    ],
+
+    # ── Axis Print Servers / Network Cameras ──────────────────────────────────
+    # Sources: bizuns.com, Axis Communications KB
+    'axis': [
+        Cred('root',     'pass',         'http',   'ALL Axis Print Server default (bizuns.com)'),
+        Cred('root',     'pass',         'ftp',    'Axis FTP default'),
+        Cred('admin',    None,           'http'),
+        Cred('admin',    'admin',        'http'),
+        Cred('public',   None,           'snmp'),
+        Cred('private',  None,           'snmp'),
+    ],
+
+    # ── Dell Laser Printers ───────────────────────────────────────────────────
+    # Sources: bizuns.com, Dell support KB
+    'dell': [
+        Cred('admin',    'password',     'http',   '3000cn/3100cn/5100cn EWS default'),
+        Cred('admin',    None,           'http'),
+        Cred('admin',    'admin',        'http'),
+        Cred('admin',    '1234',         'http'),
+        Cred('root',     'calvin',       'http',   'Dell iDRAC/Remote Access Card backdoor'),
+        Cred('public',   None,           'snmp'),
+        Cred('private',  None,           'snmp'),
+    ],
+
+    # ── Minolta / QMS / Magicolor ─────────────────────────────────────────────
+    # Sources: bizuns.com, Minolta Magicolor 3100 manual
+    'minolta': [
+        Cred('operator', None,           'http',   'Magicolor 3100: operator role'),
+        Cred('admin',    None,           'http',   'Magicolor 3100: admin role'),
+        Cred('admin',    '0',            'http',   'Di 2010f: numeric zero password'),
+        Cred('',         '0',            'http',   'Di 2010f: blank user, zero password'),
+        Cred('sysadm',   'sysadm',       'http',   'QMS 4100GN PagePro'),
+        Cred('admin',    'admin',        'http'),
+        Cred('public',   None,           'snmp'),
+        Cred('private',  None,           'snmp'),
+    ],
+
+    # ── Xerox (expanded) ──────────────────────────────────────────────────────
+    # Already defined above as 'xerox'; alias entries below expand it.
+    # DocuCentre 425 uses admin/22222 (bizuns.com)
+    # Multi-Function Equipment uses admin/2222
+
+    # ── IBM Printers / Infoprint ──────────────────────────────────────────────
+    # Sources: bizuns.com
+    'ibm': [
+        Cred('root',     None,           'http',   'Infoprint 6700: root blank password'),
+        Cred('admin',    'password',     'http'),
+        Cred('USERID',   'PASSW0RD',     'http',   'IBM BladeCenter / Remote Supervisor'),
+        Cred('public',   None,           'snmp'),
+        Cred('private',  None,           'snmp'),
+    ],
+
+    # ── Develop / Ineo (Konica Minolta OEM) ──────────────────────────────────
+    'develop': [
+        Cred('admin',    '12345678',     'http',   'Ineo+/ineo series (KM OEM)'),
+        Cred('admin',    None,           'http'),
         Cred('public',   None,           'snmp'),
         Cred('private',  None,           'snmp'),
     ],
 
     # alias
-    'fujifilm': [],
+    'ineo': [],
 
     # ── Generic / Unknown vendor ──────────────────────────────────────────────
     # Tried when vendor cannot be determined
@@ -315,11 +409,29 @@ _ALIASES: Dict[str, str] = {
     'konicaminolta':  'konica',
     'fujifilm':       'fuji',
     'fuji xerox':     'fuji',
+    'fujifilm business innovation': 'fuji',
     'hewlett':        'hp',
     'hewlett-packard':'hp',
     'hewlett packard':'hp',
     'jetdirect':      'hp',
     'epson seiko':    'epson',
+    'seiko epson':    'epson',
+    'brother industries': 'brother',
+    'zebra technologies': 'zebra',
+    'axis communications': 'axis',
+    'develop ineo':   'develop',
+    'ineo':           'develop',
+    'nrg':            'ricoh',      # NRG is a Ricoh brand
+    'nashuatec':      'ricoh',      # Nashuatec is a Ricoh brand
+    'lanier':         'ricoh',      # Lanier is a Ricoh brand
+    'savin':          'ricoh',      # Savin is a Ricoh brand
+    'gestetner':      'ricoh',      # Gestetner is a Ricoh brand
+    'infotec':        'ricoh',      # Infotec is a Ricoh brand
+    'docucentre':     'fuji',       # DocuCentre is Fuji Xerox / Fujifilm
+    'apeosport':      'fuji',
+    'qms':            'minolta',
+    'konica qms':     'minolta',
+    'minolta qms':    'minolta',
 }
 
 

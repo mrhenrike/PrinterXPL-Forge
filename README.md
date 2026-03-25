@@ -2,7 +2,7 @@
 
 <a href="https://www.uniaogeek.com.br"><img src="img/logotype-uniaogeek-2.png" width="240" alt="União Geek"></a>
 
-# PrinterReaper v3.7.0
+# PrinterReaper v3.9.0
 
 *Advanced Printer Penetration Testing Toolkit*
 
@@ -10,7 +10,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-3.7.0-red)](https://github.com/mrhenrike/PrinterReaper/releases)
+[![Version](https://img.shields.io/badge/Version-3.9.0-red)](https://github.com/mrhenrike/PrinterReaper/releases)
 [![Wiki](https://img.shields.io/badge/Wiki-GitHub-orange)](https://github.com/mrhenrike/PrinterReaper/wiki)
 
 > **"Is your printer safe from the void? Find out before someone else does."**
@@ -138,40 +138,46 @@ python printer-reaper.py 192.168.1.100 --osint
 python printer-reaper.py 192.168.1.100 --auto-detect
 ```
 
-### Online — Structured Dork Discovery (v3.8.0)
+### Online — Structured Dork Discovery (v3.9.0)
 
-`--discover-online` now uses structured dork parameters. **Printer context is always implicit** — no need to specify "printer" in searches. At least one `--dork-*` filter is required.
+`--discover-online` supports 5 search engines: **Shodan, Censys, FOFA, ZoomEye, Netlas**.
+**Printer context is always implicit** — no need to specify "printer" in searches.
+**At least one `--dork-*` filter is required** — unfiltered global sweeps are blocked.
+**No engine runs without credentials** — configure keys in `config.json`.
 
 ```bash
-# All Epson + Ricoh printers in Latin America with port 515
+# All Epson + Ricoh printers in Latin America, port 515 — query all engines
 python printer-reaper.py --discover-online \
   --dork-vendor epson --dork-vendor ricoh \
   --dork-region latin_america \
   --dork-port 515
 
-# HP DeskJet Pro 5500 in Brazil
+# HP DeskJet Pro 5500 in Brazil — Shodan + FOFA only
 python printer-reaper.py --discover-online \
   --dork-vendor hp \
   --dork-model "deskjet pro 5500" \
-  --dork-country brazil
+  --dork-country brazil \
+  --dork-engine shodan,fofa
 
-# All printers in São Paulo with port 9100
+# All printers in São Paulo port 9100 — all engines
 python printer-reaper.py --discover-online \
   --dork-country BR \
   --dork-city "Sao Paulo" \
   --dork-port 9100
 
-# Kyocera in Europe, 200 results
+# Kyocera in Europe, 200 results, Netlas only
 python printer-reaper.py --discover-online \
   --dork-vendor kyocera \
   --dork-region europe \
-  --dork-limit 200
+  --dork-limit 200 \
+  --dork-engine netlas
 
-# Multiple vendors, countries and ports
+# Multiple vendors and countries, ZoomEye + Shodan
 python printer-reaper.py --discover-online \
   --dork-vendor hp --dork-vendor canon \
   --dork-country BR --dork-country AR \
-  --dork-port 9100 --dork-port 631
+  --dork-port 9100 --dork-port 631 \
+  --dork-engine shodan,zoomeye
 ```
 
 **Dork flags:**
@@ -185,8 +191,19 @@ python printer-reaper.py --discover-online \
 | `--dork-region REGION` | Yes | latin\_america, south\_america, europe, eastern\_europe, asia, southeast\_asia, middle\_east, africa, oceania, north\_america |
 | `--dork-port PORT` | Yes | 9100 (RAW/PJL), 515 (LPD), 631 (IPP), 80, 443 |
 | `--dork-org ORG` | No | Organization/ISP name |
-| `--dork-cpe CPE` | No | CPE filter (Censys only) |
+| `--dork-cpe CPE` | No | CPE filter (Censys/Netlas) |
 | `--dork-limit N` | No | Max results per query (default: 100) |
+| `--dork-engine ENGINE[,ENGINE]` | No | Engines to query: `shodan`, `censys`, `fofa`, `zoomeye`, `netlas`. Default: all configured. |
+
+**Query syntax generated per engine (implicit + your filters):**
+
+| Engine | Example generated query |
+|--------|------------------------|
+| Shodan | `"HP LaserJet" country:BR port:9100` |
+| Censys | `services.banner="HP LaserJet" AND location.country_code="BR" AND services.port=9100` |
+| FOFA | `banner="HP LaserJet" && country="BR" && port="9100"` |
+| ZoomEye | `banner:"HP LaserJet" +country:"BR" +port:9100` |
+| Netlas | `data.response:"HP LaserJet" AND geo.country_code:"BR" AND port:9100` |
 
 ---
 
@@ -565,7 +582,8 @@ All flow diagrams are editable in [diagrams.net / draw.io](https://app.diagrams.
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| **3.8.0** | 2026-03-25 | Structured dork discovery (Shodan/Censys), `--auto-exploit` pipeline, `DiscoveryParams`, `DorkQueryBuilder`, `auto_exploit()` |
+| **3.9.0** | 2026-03-25 | 5-engine dork discovery (Shodan, Censys, FOFA, ZoomEye, Netlas), `--dork-engine` selector, per-engine query syntax, zero-filter enforcement |
+| 3.8.0 | 2026-03-25 | Structured dork discovery (Shodan/Censys), `--auto-exploit` pipeline, `DiscoveryParams`, `DorkQueryBuilder`, `auto_exploit()` |
 | 3.7.0 | 2026-03-25 | Zero hardcoded creds, wordlist engine, draw.io diagrams, PNG assets |
 | 3.6.2 | 2026-03-25 | LDAP hash capture, CVE-2024-51978, 5 new vendors |
 | 3.6.0 | 2026-03-24 | 7 new BlackHat 2017 exploits + EDB research modules |

@@ -180,6 +180,17 @@ def build_parser() -> argparse.ArgumentParser:
         default=100,
         help="Maximum results per query (default: 100).",
     )
+    _dork_group.add_argument(
+        "--dork-engine",
+        metavar="ENGINE[,ENGINE]",
+        default=None,
+        help=(
+            "Comma-separated list of search engines to use. "
+            "Choices: shodan, censys, fofa, zoomeye, netlas. "
+            "Default: all engines with configured API keys. "
+            "Example: --dork-engine shodan,fofa,netlas"
+        ),
+    )
     # Reconnaissance / scanning
     parser.add_argument(
         "--scan",
@@ -1339,7 +1350,9 @@ def main() -> None:
     if args.discover_online:
         try:
             from utils.discovery_online import OnlineDiscoveryManager, DiscoveryParams
-            from utils.config import shodan_key as _sk, censys_credentials as _cc
+            from utils.config import (shodan_key as _sk, censys_credentials as _cc,
+                                       fofa_credentials as _fc, zoomeye_key as _zk,
+                                       netlas_key as _nk)
 
             # Build DiscoveryParams from --dork-* CLI flags
             dork_params = DiscoveryParams(
@@ -1364,12 +1377,29 @@ def main() -> None:
                     "  --dork-port PORT         (e.g. 9100, 515, 631)\n"
                     "  --dork-city CITY         (e.g. 'Sao Paulo')\n"
                     "  --dork-org ORG           (e.g. 'Telefonica')\n"
-                    "  --dork-cpe CPE           (Censys only)\n"
+                    "  --dork-cpe CPE           (Censys/Netlas only)\n"
                     "  --dork-model MODEL       (e.g. 'deskjet pro 5500')\n\n"
                     "Or provide a direct IP target: python printer-reaper.py <IP> --scan"
                 )
                 sys.exit(1)
 
+            # Parse --dork-engine whitelist
+            _engine_arg = getattr(args, 'dork_engine', None)
+            _engines    = [e.strip().lower() for e in _engine_arg.split(',') if e.strip()] \
+                          if _engine_arg else None
+
+            # Validate engine names
+            _VALID_ENGINES = {'shodan', 'censys', 'fofa', 'zoomeye', 'netlas'}
+            if _engines:
+                _bad = [e for e in _engines if e not in _VALID_ENGINES]
+                if _bad:
+                    output().errmsg(
+                        f"Unknown engine(s): {', '.join(_bad)}\n"
+                        f"Valid choices: {', '.join(sorted(_VALID_ENGINES))}"
+                    )
+                    sys.exit(1)
+
+            # Load credentials for all engines
             try:
                 _shodan_key = _sk()
             except Exception:
@@ -1378,9 +1408,29 @@ def main() -> None:
                 _cid, _csec = _cc()
             except Exception:
                 _cid, _csec = None, None
+            try:
+                _femail, _fkey = _fc()
+            except Exception:
+                _femail, _fkey = None, None
+            try:
+                _zykey = _zk()
+            except Exception:
+                _zykey = None
+            try:
+                _nlkey = _nk()
+            except Exception:
+                _nlkey = None
 
-            mgr  = OnlineDiscoveryManager(shodan_key=_shodan_key, censys_id=_cid, censys_secret=_csec)
-            hits = mgr.targeted_search(dork_params)
+            mgr  = OnlineDiscoveryManager(
+                shodan_key    = _shodan_key,
+                censys_id     = _cid,
+                censys_secret = _csec,
+                fofa_email    = _femail,
+                fofa_key      = _fkey,
+                zoomeye_key   = _zykey,
+                netlas_key    = _nlkey,
+            )
+            hits = mgr.targeted_search(dork_params, engines=_engines)
             mgr.print_results(hits)
             saved = mgr.export_results(hits)
             if saved:

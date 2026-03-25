@@ -319,6 +319,95 @@ def _menu_attack() -> None:
             _run_cmd([target, '--implant', kv])
 
 
+def _menu_send_job() -> None:
+    """Send a print job (file or raw text) to a target printer."""
+    target = _target_prompt()
+    print()
+    print(f"  {_DIM}Send any file or text directly to the printer for printing.{_RST}")
+    print(f"  {_DIM}Supported: .txt, .pdf, .ps, .pcl, .png, .jpg, .doc — or raw text.{_RST}")
+    print()
+    choice = _choose([
+        ('file',    'Send a file          (PDF, PS, PCL, PNG, JPG, TXT, DOC...)'),
+        ('text',    'Send raw text        (type text directly, printer outputs it)'),
+        ('ps',      'Send PostScript      (raw PS code — advanced)'),
+    ], title=f'Send Print Job  ->  {target}', allow_back=True)
+    if choice is None:
+        return
+
+    proto = _choose([
+        ('raw',  'RAW / JetDirect     (port 9100 — fastest, no job tracking)'),
+        ('ipp',  'IPP                 (port 631 — standard, job tracking)'),
+        ('lpd',  'LPD                 (port 515 — legacy line printer)'),
+    ], title='Printing Protocol', allow_back=True)
+    if proto is None:
+        return
+
+    port_defaults = {'raw': '9100', 'ipp': '631', 'lpd': '515'}
+    port = _ask(f"Port [{port_defaults.get(proto, '9100')}]", port_defaults.get(proto, '9100'))
+    copies = _ask("Number of copies [1]", '1')
+
+    if choice == 'file':
+        path = _ask("File path (absolute or relative)", '')
+        if not path:
+            return
+        cmd = [target, '--send-job', path, '--send-proto', proto, '--port', port]
+        if copies and copies != '1':
+            cmd += ['--send-copies', copies]
+        _run_cmd(cmd)
+
+    elif choice == 'text':
+        print(f"  {_DIM}Type your text below. End with a blank line + Enter:{_RST}")
+        lines = []
+        try:
+            while True:
+                line = input()
+                if line == '' and lines:
+                    break
+                lines.append(line)
+        except (EOFError, KeyboardInterrupt):
+            pass
+        if not lines:
+            return
+        import tempfile, os
+        tmp = tempfile.NamedTemporaryFile(mode='w', suffix='.txt',
+                                          delete=False, encoding='utf-8')
+        tmp.write('\n'.join(lines) + '\n')
+        tmp.close()
+        cmd = [target, '--send-job', tmp.name, '--send-proto', proto, '--port', port]
+        if copies and copies != '1':
+            cmd += ['--send-copies', copies]
+        _run_cmd(cmd)
+        try:
+            os.unlink(tmp.name)
+        except OSError:
+            pass
+
+    elif choice == 'ps':
+        print(f"  {_DIM}Enter PostScript code (end with blank line):{_RST}")
+        lines = []
+        try:
+            while True:
+                line = input()
+                if line == '' and lines:
+                    break
+                lines.append(line)
+        except (EOFError, KeyboardInterrupt):
+            pass
+        if not lines:
+            return
+        import tempfile, os
+        tmp = tempfile.NamedTemporaryFile(mode='w', suffix='.ps',
+                                          delete=False, encoding='utf-8')
+        tmp.write('\n'.join(lines) + '\n')
+        tmp.close()
+        cmd = [target, '--send-job', tmp.name, '--send-proto', proto, '--port', port]
+        _run_cmd(cmd)
+        try:
+            os.unlink(tmp.name)
+        except OSError:
+            pass
+
+
 def _menu_exploits() -> None:
     choice = _choose([
         ('list',   'List all exploits  (sorted by severity: critical → info)'),
@@ -446,13 +535,14 @@ def _workflow_full_audit() -> None:
 # ── Main interactive loop ─────────────────────────────────────────────────────
 
 _MAIN_MENU = [
-    ('discover',  '🔍  Discover printers        Find printers on LAN or via Shodan/Censys'),
-    ('scan',      '🧪  Scan target              Fingerprint + CVE lookup + exploit matching'),
-    ('bruteforce','🔑  Brute-force login        Test default credentials (all protocols)'),
-    ('attack',    '💥  Attack / Exploit         IPP, pivot, firmware, payload, XSP, matrix'),
-    ('exploits',  '🗡   Exploit library          List, check, run or download exploits'),
-    ('workflow',  '⚡  Full audit workflow      Scan → BF → Attack matrix → Netmap in one go'),
-    ('config',    '⚙   Config & help            API keys, settings, documentation'),
+    ('discover',  '[~]  Discover printers       Find printers on LAN or via Shodan/Censys'),
+    ('scan',      '[?]  Scan target             Fingerprint + CVE lookup + exploit matching'),
+    ('bruteforce','[*]  Brute-force login       Test default credentials (all protocols)'),
+    ('attack',    '[!]  Attack / Exploit        IPP, pivot, firmware, payload, XSP, matrix'),
+    ('exploits',  '[X]  Exploit library         List, check, run or download exploits'),
+    ('send',      '[>]  Send print job          Send text/doc/pdf/image to target printer'),
+    ('workflow',  '[>>] Full audit workflow     Scan → BF → Attack matrix → Netmap in one go'),
+    ('config',    '[=]  Config & help           API keys, settings, documentation'),
 ]
 
 
@@ -530,6 +620,8 @@ def run_interactive() -> None:
             _menu_attack()
         elif key == 'exploits':
             _menu_exploits()
+        elif key == 'send':
+            _menu_send_job()
         elif key == 'workflow':
             _workflow_full_audit()
         elif key == 'config':

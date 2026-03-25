@@ -2,7 +2,7 @@
 
 <a href="https://www.uniaogeek.com.br"><img src="img/logotype-uniaogeek-2.png" width="240" alt="União Geek"></a>
 
-# PrinterReaper v3.10.0
+# PrinterReaper v3.13.0
 
 *Advanced Printer Penetration Testing Toolkit*
 
@@ -10,7 +10,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-3.10.0-red)](https://github.com/mrhenrike/PrinterReaper/releases)
+[![Version](https://img.shields.io/badge/Version-3.13.0-red)](https://github.com/mrhenrike/PrinterReaper/releases)
 [![Wiki](https://img.shields.io/badge/Wiki-GitHub-orange)](https://github.com/mrhenrike/PrinterReaper/wiki)
 
 > **"Is your printer safe from the void? Find out before someone else does."**
@@ -120,7 +120,7 @@ python printer-reaper.py [target] [mode] [options]
 | `python printer-reaper.py 192.168.1.100 --auto-exploit` | Auto exploit selection + execution |
 | `python printer-reaper.py 192.168.1.100 --attack-matrix` | Full attack campaign |
 | `python printer-reaper.py --discover-online --shodan --dork-vendor hp --dork-country BR` | Dork discovery via Shodan only |
-| `python printer-reaper.py --discover-online --fofa --netlas --dork-vendor epson --dork-port 9100` | Dork discovery via FOFA + Netlas |
+| `python printer-reaper.py --discover-online --dork-engine shodan,netlas --dork-vendor hp,epson --dork-country BR,AR` | Multi-engine, multi-vendor CSV |
 | `python printer-reaper.py --discover-online --dork-vendor hp --dork-country BR` | Dork discovery via all configured engines |
 
 ---
@@ -185,7 +185,7 @@ python printer-reaper.py 192.168.1.100 --osint
 python printer-reaper.py 192.168.1.100 --auto-detect
 ```
 
-### Online — Structured Dork Discovery (v3.9.0)
+### Online — Structured Dork Discovery (v3.12.0+)
 
 `--discover-online` supports 5 search engines: **Shodan, Censys, FOFA, ZoomEye, Netlas**.
 **Printer context is always implicit** — no need to specify "printer" in searches.
@@ -193,22 +193,22 @@ python printer-reaper.py 192.168.1.100 --auto-detect
 **No engine runs without credentials** — configure keys in `config.json`.
 
 ```bash
-# All Epson + Ricoh printers in Latin America, port 515 — query all engines
+# All Epson + Ricoh printers in Latin America, port 515 — all engines
 python printer-reaper.py --discover-online \
-  --dork-vendor epson --dork-vendor ricoh \
+  --dork-vendor epson,ricoh \
   --dork-region latin_america \
   --dork-port 515
 
-# HP DeskJet Pro 5500 in Brazil — Shodan + FOFA only
-python printer-reaper.py --discover-online --shodan --fofa \
+# HP DeskJet Pro 5500 in Brazil — Shodan only (single engine flag)
+python printer-reaper.py --discover-online --shodan \
   --dork-vendor hp \
   --dork-model "deskjet pro 5500" \
-  --dork-country brazil
+  --dork-country BR
 
-# All printers in São Paulo port 9100 — all configured engines
+# All printers in São Paulo port 9100 (CSV + single-country city filter)
 python printer-reaper.py --discover-online \
   --dork-country BR \
-  --dork-city "Sao Paulo" \
+  --dork-city "Sao Paulo","Rio de Janeiro" \
   --dork-port 9100
 
 # Kyocera in Europe, 200 results — Netlas only
@@ -217,44 +217,41 @@ python printer-reaper.py --discover-online --netlas \
   --dork-region europe \
   --dork-limit 200
 
-# Multiple vendors and countries — ZoomEye + Shodan
-python printer-reaper.py --discover-online --shodan --zoomeye \
-  --dork-vendor hp --dork-vendor canon \
-  --dork-country BR --dork-country AR \
-  --dork-port 9100 --dork-port 631
-
-# Three engines at once via --dork-engine (alternative to individual flags)
+# Multiple vendors and countries via CSV — Shodan + ZoomEye (multi-engine)
 python printer-reaper.py --discover-online \
-  --dork-engine shodan,fofa,netlas \
+  --dork-engine shodan,zoomeye \
+  --dork-vendor hp,canon \
+  --dork-country BR,AR \
+  --dork-port 9100,631
+
+# Five engines at once
+python printer-reaper.py --discover-online \
+  --dork-engine shodan,censys,fofa,zoomeye,netlas \
   --dork-vendor epson --dork-port 9100
 ```
 
-**Engine selection flags** (only engines with credentials in `config.json` are used):
+**Engine selection rules:**
 
-| Flag | Description |
-|------|-------------|
-| `--shodan` | Use Shodan |
-| `--censys` | Use Censys |
-| `--fofa` | Use FOFA |
-| `--zoomeye` | Use ZoomEye |
-| `--netlas` | Use Netlas |
-| `--dork-engine A,B` | Use multiple engines by name (when `--shodan` etc. feel verbose) |
+| Goal | How |
+|------|-----|
+| ONE engine | `--shodan` / `--censys` / `--fofa` / `--zoomeye` / `--netlas` |
+| MULTIPLE engines | `--dork-engine shodan,netlas` (comma-separated — the **only** multi-engine way) |
+| ALL configured | Omit all engine flags |
+| Forbidden | `--shodan --fofa` (two individual flags) or `--shodan --dork-engine fofa` (mix) → error |
 
-Omit all engine flags to query **all engines with configured API keys** automatically.
+**Dork filter flags — all accept CSV or repeated flags:**
 
-**Dork filter flags:**
-
-| Flag | Repeatable | Description |
-|------|-----------|-------------|
-| `--dork-vendor VENDOR` | Yes | Vendor: hp, epson, ricoh, brother, canon, kyocera, xerox, lexmark, samsung, oki, zebra, ... |
+| Flag | Multi-value | Description |
+|------|------------|-------------|
+| `--dork-vendor hp,epson` | Yes — CSV or repeat | Vendor: hp, epson, ricoh, brother, canon, kyocera, xerox, lexmark, samsung, oki, zebra |
 | `--dork-model MODEL` | No | Model substring in banner |
-| `--dork-country COUNTRY` | Yes | ISO code or name (pt-BR/en): BR, brazil, argentina, DE, germany... |
-| `--dork-city CITY` | No | City name |
-| `--dork-region REGION` | Yes | latin\_america, south\_america, europe, eastern\_europe, asia, southeast\_asia, middle\_east, africa, oceania, north\_america |
-| `--dork-port PORT` | Yes | 9100 (RAW/PJL), 515 (LPD), 631 (IPP), 80, 443 |
+| `--dork-country BR,AR,US` | Yes — CSV or repeat | ISO-2 code or name: BR, brazil, argentina, DE |
+| `--dork-city "São Paulo",Belém` | Yes — **only with 1 country** | City names; compound names must be quoted |
+| `--dork-region latin_america,europe` | Yes — CSV or repeat | Region: latin\_america, south\_america, europe, eastern\_europe, asia, southeast\_asia, middle\_east, africa, oceania, north\_america |
+| `--dork-port 9100,515,631` | Yes — CSV or repeat | 9100 (RAW/PJL), 515 (LPD), 631 (IPP), 80 (HTTP), 443 (HTTPS) |
 | `--dork-org ORG` | No | Organization/ISP name |
 | `--dork-cpe CPE` | No | CPE filter (Censys/Netlas) |
-| `--dork-limit N` | No | Max results per query (default: 100) |
+| `--dork-limit N` | No | Max results per query per engine (default: 100) |
 
 **Query syntax generated per engine (implicit + your filters):**
 
@@ -643,7 +640,10 @@ All flow diagrams are editable in [diagrams.net / draw.io](https://app.diagrams.
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| **3.10.0** | 2026-03-25 | Custom port overrides for every protocol (`--port-raw`, `--port-ipp`, `--port-snmp`, ...), `PortConfig` central resolver, `--extra-ports` scan flag |
+| **3.13.0** | 2026-03-24 | ZoomEye API fix (→ api.zoomeye.ai, API-KEY auth), Netlas field fixes (geo.country, http.title), repo cleanup (remove tests/tools/debian/packaging) |
+| 3.12.0 | 2026-03-24 | CSV multi-value dork filters (--dork-vendor hp,canon --dork-port 9100,631), --dork-city multi-city, city/country guard |
+| 3.11.0 | 2026-03-24 | Engine selection UX: individual flags = single engine, --dork-engine = multi-engine only; FOFA email deprecated (key-only); ZoomEye + Netlas keys |
+| 3.10.0 | 2026-03-25 | Custom port overrides for every protocol (`--port-raw`, `--port-ipp`, `--port-snmp`, ...), `PortConfig` central resolver, `--extra-ports` scan flag |
 | 3.9.0 | 2026-03-25 | 5-engine dork discovery (Shodan, Censys, FOFA, ZoomEye, Netlas), `--dork-engine` selector, per-engine query syntax, zero-filter enforcement |
 | 3.8.0 | 2026-03-25 | Structured dork discovery (Shodan/Censys), `--auto-exploit` pipeline, `DiscoveryParams`, `DorkQueryBuilder`, `auto_exploit()` |
 | 3.7.0 | 2026-03-25 | Zero hardcoded creds, wordlist engine, draw.io diagrams, PNG assets |

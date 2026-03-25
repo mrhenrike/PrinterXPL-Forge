@@ -8,20 +8,21 @@
 
 ---
 
-## 🎯 What is PrinterReaper?
+## What is PrinterReaper?
 
-PrinterReaper v2.5.3 is a **complete, powerful toolkit** for **penetration testing network printers**, supporting **PJL, PostScript, and PCL** with **4 network protocols**. It enables security professionals to discover, assess, and exploit printer vulnerabilities through an intuitive command-line interface.
+PrinterReaper **v3.13.0** is a **complete, modular framework** for **security assessment of network printers**. It supports all major printer languages (PJL, PostScript, PCL, ESC/P), all common protocols (RAW/JetDirect, IPP, LPD, SNMP, FTP, HTTP/HTTPS, SMB, Telnet), 39+ exploit modules, ML-assisted fingerprinting, NVD/CVE integration, and 5-engine internet discovery via structured dork queries.
 
 ### Key Features
 
-- **🎯 PJL-Focused** - Specialized in Printer Job Language exploitation
-- **📋 54+ Commands** - Complete PJL command coverage across 7 categories
-- **🔧 File Operations** - Upload, download, manipulate printer files
-- **🔒 Security Testing** - Lock, unlock, backup, restore, NVRAM access
-- **💥 Attack Vectors** - Physical damage, DoS, job retention, formatting
-- **📚 Complete Documentation** - Every command has detailed help
-- **⚡ High Performance** - Optimized for speed and reliability
-- **🛡️ Error Handling** - Robust error handling with user-friendly messages
+- **5 Search Engines** — Shodan, Censys, FOFA, ZoomEye, Netlas with multi-value dork filters (CSV or repeat)
+- **39+ Exploit Modules** — ExploitDB, Metasploit-reference, and original research modules
+- **Auto-Exploit Pipeline** — Fingerprints target, matches exploits, pre-fills variables, runs best confirmed exploit
+- **Zero Hardcoded Credentials** — Wordlist-driven brute-force engine with vendor sections and variation generator
+- **Custom Port Overrides** — Every protocol port configurable via `--port-raw`, `--port-ipp`, etc.
+- **ML Fingerprinting** — ML-assisted printer language and attack scoring (`--scan-ml`)
+- **3 LLM Providers** — OpenAI, Anthropic (Claude), Google (Gemini) for analysis and reports
+- **Attack Matrix** — Full BlackHat 2017 + CVEs campaign with DoS, RCE, info disclosure, bypass vectors
+- **Network Mapping** — SNMP routing, PJL network vars, subnet scan, WSD neighbors, attack paths
 
 ---
 

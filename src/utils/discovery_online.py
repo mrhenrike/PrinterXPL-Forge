@@ -3,11 +3,12 @@
 """
 PrinterReaper — Online Discovery Module
 ========================================
-Structured dork-based discovery of exposed printers via Shodan and Censys APIs.
+Structured dork-based discovery of exposed printers via 5 search engines:
+  Shodan, Censys, FOFA, ZoomEye, Netlas.
 
-Supports parameterized filters: vendor, model, country, city, region, port, org, CPE.
-Printer search terms are implicit — user does not need to specify "printer".
-Requires at least one filter parameter when no direct IP target is given.
+Printer context is always implicit — user does not need to specify "printer".
+At least one filter parameter is REQUIRED in all cases.
+No engine will run a broad (unfiltered) search — ever.
 """
 # Author    : Andre Henrique (@mrhenrike)
 # GitHub    : https://github.com/mrhenrike
@@ -16,7 +17,7 @@ Requires at least one filter parameter when no direct IP target is given.
 
 from __future__ import annotations
 
-import csv
+import base64
 import json
 import logging
 import os
@@ -25,10 +26,11 @@ import time
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
-from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
 _log = logging.getLogger(__name__)
+
+# ── Optional engine library imports ───────────────────────────────────────────
 
 try:
     import shodan as _shodan_lib
@@ -41,6 +43,26 @@ try:
     CENSYS_AVAILABLE = True
 except ImportError:
     CENSYS_AVAILABLE = False
+
+try:
+    import requests as _requests
+    REQUESTS_AVAILABLE = True
+except ImportError:
+    REQUESTS_AVAILABLE = False
+
+# FOFA — uses requests (no dedicated package required)
+FOFA_AVAILABLE = REQUESTS_AVAILABLE
+
+# ZoomEye — uses requests
+ZOOMEYE_AVAILABLE = REQUESTS_AVAILABLE
+
+# Netlas — official SDK or requests fallback
+try:
+    import netlas as _netlas_sdk
+    NETLAS_SDK_AVAILABLE = True
+except ImportError:
+    NETLAS_SDK_AVAILABLE = False
+NETLAS_AVAILABLE = REQUESTS_AVAILABLE or NETLAS_SDK_AVAILABLE
 
 
 # ── Geographic region → ISO-3166-1 alpha-2 code map ─────────────────────────
@@ -347,6 +369,194 @@ class DorkQueryBuilder:
             return ''
         return f' AND location.city="{self.params.city}"'
 
+    # ── FOFA ──────────────────────────────────────────────────────────────────
+
+    def build_fofa_queries(self) -> List[Dict[str, str]]:
+        """
+        Builds FOFA query strings.
+
+        FOFA syntax: field="value" && field="value" || field="value"
+        Fields: port, country, region, city, org, banner, header, protocol, app, product
+        Query is base64-encoded before sending to the API.
+        Implicit printer filter: at minimum port="9100" or banner="@PJL".
+        """
+        geo_part   = self._fofa_geo_part()
+        port_part  = self._fofa_port_part()
+        city_part  = f' && city="{self.params.city}"' if self.params.city else ''
+        org_part   = f' && org="{self.params.org}"' if self.params.org else ''
+        model_part = f' && banner="{self.params.model}"' if self.params.model else ''
+        suffix     = f"{geo_part}{city_part}{org_part}{model_part}{port_part}"
+
+        queries: List[Dict[str, str]] = []
+
+        if self.params.vendors:
+            for vendor in self.params.vendors:
+                vendor_key = vendor.lower()
+                raw_terms  = _VENDOR_SEARCH_TERMS.get(vendor_key, [f'"{vendor}"'])
+                # FOFA uses banner field for string matching
+                fofa_terms = [t.strip('"') for t in raw_terms[:2]]
+                for term in fofa_terms:
+                    q = f'banner="{term}"{suffix}'
+                    if not port_part:
+                        q += ' && (port="9100" || port="515" || port="631")'
+                    queries.append({
+                        'query':       q,
+                        'query_b64':   base64.b64encode(q.encode()).decode(),
+                        'description': f"{vendor.title()} printers (FOFA){self._geo_label()}",
+                        'vendor':      vendor,
+                    })
+        else:
+            generic_terms = ['banner="@PJL"', 'banner="PJL READY"']
+            for term in generic_terms:
+                q = f'{term}{suffix}'
+                if not port_part:
+                    q += ' && (port="9100" || port="515")'
+                queries.append({
+                    'query':       q,
+                    'query_b64':   base64.b64encode(q.encode()).decode(),
+                    'description': f"Generic PJL printers (FOFA){self._geo_label()}",
+                    'vendor':      None,
+                })
+        return queries
+
+    def _fofa_geo_part(self) -> str:
+        codes = self.params.resolve_country_codes()
+        if not codes:
+            return ''
+        if len(codes) == 1:
+            return f' && country="{codes[0]}"'
+        return ' && (' + ' || '.join(f'country="{c}"' for c in codes) + ')'
+
+    def _fofa_port_part(self) -> str:
+        if not self.params.ports:
+            return ''
+        if len(self.params.ports) == 1:
+            return f' && port="{self.params.ports[0]}"'
+        return ' && (' + ' || '.join(f'port="{p}"' for p in self.params.ports) + ')'
+
+    # ── ZoomEye ───────────────────────────────────────────────────────────────
+
+    def build_zoomeye_queries(self) -> List[Dict[str, str]]:
+        """
+        Builds ZoomEye query strings.
+
+        ZoomEye syntax: field:value +field:value (AND), -field:value (NOT)
+        Fields: port, country, city, hostname, asn, org, app, ver, os, ssl, banner
+        Note: country field uses full name or ISO code.
+        """
+        geo_part   = self._zoomeye_geo_part()
+        port_part  = self._zoomeye_port_part()
+        city_part  = f' +city:"{self.params.city}"' if self.params.city else ''
+        org_part   = f' +org:"{self.params.org}"' if self.params.org else ''
+        model_part = f' +banner:"{self.params.model}"' if self.params.model else ''
+        suffix     = f"{geo_part}{city_part}{org_part}{model_part}{port_part}"
+
+        queries: List[Dict[str, str]] = []
+
+        if self.params.vendors:
+            for vendor in self.params.vendors:
+                vendor_key = vendor.lower()
+                raw_terms  = _VENDOR_SEARCH_TERMS.get(vendor_key, [f'"{vendor}"'])
+                zy_terms   = [t.strip('"') for t in raw_terms[:2]]
+                for term in zy_terms:
+                    q = f'banner:"{term}"{suffix}'
+                    if not port_part:
+                        q += ' +(port:9100 port:515 port:631)'
+                    queries.append({
+                        'query':       q,
+                        'description': f"{vendor.title()} printers (ZoomEye){self._geo_label()}",
+                        'vendor':      vendor,
+                    })
+        else:
+            generic_terms = ['banner:"@PJL"', 'banner:"PJL READY"']
+            for term in generic_terms:
+                q = f'{term}{suffix}'
+                if not port_part:
+                    q += ' +(port:9100 port:515)'
+                queries.append({
+                    'query':       q,
+                    'description': f"Generic PJL printers (ZoomEye){self._geo_label()}",
+                    'vendor':      None,
+                })
+        return queries
+
+    def _zoomeye_geo_part(self) -> str:
+        codes = self.params.resolve_country_codes()
+        if not codes:
+            return ''
+        if len(codes) == 1:
+            return f' +country:"{codes[0]}"'
+        # ZoomEye supports OR with multiple country: filters
+        return ' +(' + ' '.join(f'country:"{c}"' for c in codes) + ')'
+
+    def _zoomeye_port_part(self) -> str:
+        if not self.params.ports:
+            return ''
+        if len(self.params.ports) == 1:
+            return f' +port:{self.params.ports[0]}'
+        return ' +(' + ' '.join(f'port:{p}' for p in self.params.ports) + ')'
+
+    # ── Netlas ────────────────────────────────────────────────────────────────
+
+    def build_netlas_queries(self) -> List[Dict[str, str]]:
+        """
+        Builds Netlas Lucene queries.
+
+        Netlas syntax: Elasticsearch/Lucene — field:value AND/OR/NOT
+        Fields: port, geo.country_name, geo.city.name, host.name, data.response, protocol, asn.org
+        Ref: https://docs.netlas.io/reference/
+        """
+        geo_part   = self._netlas_geo_part()
+        port_part  = self._netlas_port_part()
+        city_part  = f' AND geo.city.name:"{self.params.city}"' if self.params.city else ''
+        org_part   = f' AND asn.org:"{self.params.org}"' if self.params.org else ''
+        model_part = f' AND data.response:"{self.params.model}"' if self.params.model else ''
+        suffix     = f"{geo_part}{city_part}{org_part}{model_part}{port_part}"
+
+        queries: List[Dict[str, str]] = []
+
+        if self.params.vendors:
+            for vendor in self.params.vendors:
+                vendor_key = vendor.lower()
+                raw_terms  = _VENDOR_SEARCH_TERMS.get(vendor_key, [f'"{vendor}"'])
+                nl_terms   = [t.strip('"') for t in raw_terms[:2]]
+                for term in nl_terms:
+                    q = f'data.response:"{term}"{suffix}'
+                    if not port_part:
+                        q += ' AND (port:9100 OR port:515 OR port:631)'
+                    queries.append({
+                        'query':       q,
+                        'description': f"{vendor.title()} printers (Netlas){self._geo_label()}",
+                        'vendor':      vendor,
+                    })
+        else:
+            generic_terms = ['data.response:"@PJL"', 'data.response:"PJL READY"']
+            for term in generic_terms:
+                q = f'{term}{suffix}'
+                if not port_part:
+                    q += ' AND (port:9100 OR port:515)'
+                queries.append({
+                    'query':       q,
+                    'description': f"Generic PJL printers (Netlas){self._geo_label()}",
+                    'vendor':      None,
+                })
+        return queries
+
+    def _netlas_geo_part(self) -> str:
+        codes = self.params.resolve_country_codes()
+        if not codes:
+            return ''
+        if len(codes) == 1:
+            return f' AND geo.country_code:"{codes[0]}"'
+        return ' AND (' + ' OR '.join(f'geo.country_code:"{c}"' for c in codes) + ')'
+
+    def _netlas_port_part(self) -> str:
+        if not self.params.ports:
+            return ''
+        if len(self.params.ports) == 1:
+            return f' AND port:{self.params.ports[0]}'
+        return ' AND (' + ' OR '.join(f'port:{p}' for p in self.params.ports) + ')'
+
     # ── Labels ────────────────────────────────────────────────────────────────
 
     def _geo_label(self) -> str:
@@ -499,16 +709,259 @@ class CensysSearcher:
         return hits
 
 
+# ── FOFA Searcher ─────────────────────────────────────────────────────────────
+
+class FOFASearcher:
+    """
+    Wraps the FOFA API (fofa.info) for structured printer searches.
+
+    API endpoint: GET https://fofa.info/api/v1/search/all
+    Auth: email + key query params. Query must be base64-encoded.
+    Docs: https://en.fofa.info/api
+    """
+
+    _BASE = "https://fofa.info/api/v1/search/all"
+    _FIELDS = "ip,port,country,region,city,org,host,os,banner,server,product,version"
+
+    def __init__(self, email: str, api_key: str) -> None:
+        if not REQUESTS_AVAILABLE:
+            raise RuntimeError("'requests' library required for FOFA — pip install requests")
+        self._email   = email.strip()
+        self._api_key = api_key.strip()
+        import requests as _r
+        self._session = _r.Session()
+
+    def search(self, params: 'DiscoveryParams', builder: 'DorkQueryBuilder') -> List['PrinterHit']:
+        """Execute all FOFA dork queries derived from params."""
+        hits:  List[PrinterHit] = []
+        seen:  set              = set()
+        limit  = params.limit
+        queries = builder.build_fofa_queries()
+
+        for qd in queries:
+            if len(hits) >= limit:
+                break
+            q_b64 = qd.get('query_b64', base64.b64encode(qd['query'].encode()).decode())
+            _log.debug("FOFA query: %s", qd['query'])
+            try:
+                resp = self._session.get(
+                    self._BASE,
+                    params={
+                        'email':   self._email,
+                        'key':     self._api_key,
+                        'qbase64': q_b64,
+                        'fields':  self._FIELDS,
+                        'size':    min(limit - len(hits), 100),
+                        'page':    1,
+                        'full':    'false',
+                    },
+                    timeout=20,
+                )
+                resp.raise_for_status()
+                data = resp.json()
+                if data.get('error'):
+                    _log.warning("FOFA API error: %s", data.get('errmsg', 'unknown'))
+                    continue
+                for item in data.get('results', []):
+                    if len(hits) >= limit:
+                        break
+                    # results: [ip, port, country, region, city, org, host, os, banner, server, product, version]
+                    ip = item[0] if len(item) > 0 else ''
+                    if not ip or ip in seen:
+                        continue
+                    seen.add(ip)
+                    hits.append(PrinterHit(
+                        ip           = ip,
+                        port         = int(item[1]) if len(item) > 1 and item[1] else 9100,
+                        source       = 'fofa',
+                        country      = item[2] if len(item) > 2 else '',
+                        country_code = item[2] if len(item) > 2 else '',
+                        city         = item[4] if len(item) > 4 else '',
+                        org          = item[5] if len(item) > 5 else '',
+                        hostnames    = [item[6]] if len(item) > 6 and item[6] else [],
+                        banner       = item[8] if len(item) > 8 else '',
+                        product      = item[10] if len(item) > 10 else '',
+                        version      = item[11] if len(item) > 11 else '',
+                        vendor       = qd.get('vendor'),
+                        timestamp    = '',
+                    ))
+            except Exception as exc:
+                _log.warning("FOFA search error (%s): %s", qd['query'][:60], exc)
+        return hits
+
+
+# ── ZoomEye Searcher ──────────────────────────────────────────────────────────
+
+class ZoomEyeSearcher:
+    """
+    Wraps the ZoomEye API (zoomeye.org) for structured printer searches.
+
+    API endpoint: GET https://api.zoomeye.org/host/search
+    Auth: Authorization: JWT <api_key>
+    Docs: https://www.zoomeye.org/doc
+    """
+
+    _BASE = "https://api.zoomeye.org/host/search"
+
+    def __init__(self, api_key: str) -> None:
+        if not REQUESTS_AVAILABLE:
+            raise RuntimeError("'requests' library required for ZoomEye — pip install requests")
+        self._api_key = api_key.strip()
+        import requests as _r
+        self._session = _r.Session()
+        self._session.headers.update({
+            'Authorization': f'JWT {self._api_key}',
+            'Content-Type':  'application/json',
+        })
+
+    def search(self, params: 'DiscoveryParams', builder: 'DorkQueryBuilder') -> List['PrinterHit']:
+        """Execute all ZoomEye dork queries derived from params."""
+        hits:  List[PrinterHit] = []
+        seen:  set              = set()
+        limit  = params.limit
+        queries = builder.build_zoomeye_queries()
+
+        for qd in queries:
+            if len(hits) >= limit:
+                break
+            _log.debug("ZoomEye query: %s", qd['query'])
+            try:
+                page = 1
+                while len(hits) < limit:
+                    resp = self._session.get(
+                        self._BASE,
+                        params={
+                            'query':    qd['query'],
+                            'page':     page,
+                            'pagesize': 20,
+                        },
+                        timeout=20,
+                    )
+                    resp.raise_for_status()
+                    data  = resp.json()
+                    items = data.get('matches', [])
+                    if not items:
+                        break
+                    for item in items:
+                        if len(hits) >= limit:
+                            break
+                        ip = item.get('ip', '')
+                        if not ip or ip in seen:
+                            continue
+                        seen.add(ip)
+                        geo   = item.get('geoinfo', {})
+                        pinfo = item.get('portinfo', {})
+                        hits.append(PrinterHit(
+                            ip           = ip,
+                            port         = int(pinfo.get('port', 9100)),
+                            source       = 'zoomeye',
+                            country      = geo.get('country', {}).get('name', ''),
+                            country_code = geo.get('country', {}).get('code', ''),
+                            city         = geo.get('city', {}).get('name', ''),
+                            org          = geo.get('organization', ''),
+                            hostnames    = [item.get('rdns', '')] if item.get('rdns') else [],
+                            banner       = pinfo.get('banner', '')[:600],
+                            product      = pinfo.get('app', ''),
+                            version      = pinfo.get('ver', ''),
+                            vendor       = qd.get('vendor'),
+                            timestamp    = item.get('timestamp', ''),
+                        ))
+                    # ZoomEye free plan limited; stop after first page unless we have quota
+                    if len(items) < 20:
+                        break
+                    page += 1
+            except Exception as exc:
+                _log.warning("ZoomEye search error (%s): %s", qd['query'][:60], exc)
+        return hits
+
+
+# ── Netlas Searcher ───────────────────────────────────────────────────────────
+
+class NetlasSearcher:
+    """
+    Wraps the Netlas API (netlas.io) for structured printer searches.
+
+    API endpoint: GET https://app.netlas.io/api/responses/
+    Auth: X-API-Key header.
+    Query syntax: Lucene (Elasticsearch-based).
+    Docs: https://docs.netlas.io/
+    """
+
+    _BASE = "https://app.netlas.io/api/responses/"
+
+    def __init__(self, api_key: str) -> None:
+        if not REQUESTS_AVAILABLE:
+            raise RuntimeError("'requests' library required for Netlas — pip install requests")
+        self._api_key = api_key.strip()
+        import requests as _r
+        self._session = _r.Session()
+        self._session.headers.update({'X-API-Key': self._api_key})
+
+    def search(self, params: 'DiscoveryParams', builder: 'DorkQueryBuilder') -> List['PrinterHit']:
+        """Execute all Netlas Lucene queries derived from params."""
+        hits:  List[PrinterHit] = []
+        seen:  set              = set()
+        limit  = params.limit
+        queries = builder.build_netlas_queries()
+
+        for qd in queries:
+            if len(hits) >= limit:
+                break
+            _log.debug("Netlas query: %s", qd['query'])
+            try:
+                resp = self._session.get(
+                    self._BASE,
+                    params={
+                        'q':       qd['query'],
+                        'indices': 'responses',
+                        'size':    min(limit - len(hits), 100),
+                        'start':   0,
+                    },
+                    timeout=25,
+                )
+                resp.raise_for_status()
+                data  = resp.json()
+                items = data.get('items', [])
+                for item in items:
+                    if len(hits) >= limit:
+                        break
+                    attrs = item.get('data', {})
+                    ip    = attrs.get('ip', '')
+                    if not ip or ip in seen:
+                        continue
+                    seen.add(ip)
+                    geo   = attrs.get('geo', {})
+                    asn   = attrs.get('asn', {})
+                    hits.append(PrinterHit(
+                        ip           = ip,
+                        port         = int(attrs.get('port', 9100)),
+                        source       = 'netlas',
+                        country      = geo.get('country_name', ''),
+                        country_code = geo.get('country_code', ''),
+                        city         = geo.get('city', {}).get('name', '') if isinstance(geo.get('city'), dict) else geo.get('city', ''),
+                        org          = asn.get('org', ''),
+                        hostnames    = attrs.get('host', {}).get('name', []) or [],
+                        banner       = str(attrs.get('data', {}).get('response', ''))[:600],
+                        product      = attrs.get('data', {}).get('product', ''),
+                        version      = attrs.get('data', {}).get('version', ''),
+                        vendor       = qd.get('vendor'),
+                        timestamp    = item.get('date', ''),
+                    ))
+            except Exception as exc:
+                _log.warning("Netlas search error (%s): %s", qd['query'][:60], exc)
+        return hits
+
+
 # ── Manager (main public API) ─────────────────────────────────────────────────
 
 class OnlineDiscoveryManager:
     """
-    Orchestrates dork-based printer discovery across Shodan and Censys.
+    Orchestrates dork-based printer discovery across Shodan, Censys, FOFA, ZoomEye, Netlas.
 
     Usage:
-        params = DiscoveryParams(vendors=['epson','ricoh'], regions=['latin_america'], ports=[515])
-        mgr    = OnlineDiscoveryManager(shodan_key='...', censys_id='...', censys_secret='...')
-        hits   = mgr.targeted_search(params)
+        params = DiscoveryParams(vendors=['epson'], regions=['latin_america'], ports=[515])
+        mgr    = OnlineDiscoveryManager()          # loads keys from config.json
+        hits   = mgr.targeted_search(params, engines=['shodan','fofa'])
         mgr.print_results(hits)
     """
 
@@ -520,25 +973,41 @@ class OnlineDiscoveryManager:
     _DIM = '\033[2;37m'
     _RST = '\033[0m'
 
+    _ALL_ENGINES = ('shodan', 'censys', 'fofa', 'zoomeye', 'netlas')
+
     def __init__(self,
                  shodan_key:     Optional[str] = None,
                  censys_id:      Optional[str] = None,
-                 censys_secret:  Optional[str] = None) -> None:
+                 censys_secret:  Optional[str] = None,
+                 fofa_email:     Optional[str] = None,
+                 fofa_key:       Optional[str] = None,
+                 zoomeye_key:    Optional[str] = None,
+                 netlas_key:     Optional[str] = None) -> None:
 
-        # Try loading credentials from config if not passed directly
+        # Load credentials from config when not passed directly
         try:
-            from utils.config import load_config, shodan_key as _sk, censys_credentials
+            from utils.config import (load_config, shodan_key as _sk, censys_credentials,
+                                       fofa_credentials, zoomeye_key as _zk, netlas_key as _nk)
             load_config()
             if not shodan_key:
                 shodan_key = _sk()
             if not (censys_id and censys_secret):
                 censys_id, censys_secret = censys_credentials()
+            if not (fofa_email and fofa_key):
+                fofa_email, fofa_key = fofa_credentials()
+            if not zoomeye_key:
+                zoomeye_key = _zk()
+            if not netlas_key:
+                netlas_key = _nk()
         except Exception:
             pass
 
-        self._shodan:  Optional[ShodanSearcher]  = None
-        self._censys:  Optional[CensysSearcher]  = None
-        self._hits:    List[PrinterHit]           = []
+        self._shodan:   Optional[ShodanSearcher]   = None
+        self._censys:   Optional[CensysSearcher]   = None
+        self._fofa:     Optional[FOFASearcher]     = None
+        self._zoomeye:  Optional[ZoomEyeSearcher]  = None
+        self._netlas:   Optional[NetlasSearcher]   = None
+        self._hits:     List[PrinterHit]            = []
 
         if shodan_key:
             try:
@@ -554,14 +1023,54 @@ class OnlineDiscoveryManager:
             except Exception as exc:
                 print(f"  {self._YEL}[!]{self._RST} Censys init failed: {exc}")
 
+        if fofa_email and fofa_key:
+            try:
+                self._fofa = FOFASearcher(fofa_email, fofa_key)
+                _log.info("FOFA API initialized")
+            except Exception as exc:
+                print(f"  {self._YEL}[!]{self._RST} FOFA init failed: {exc}")
+
+        if zoomeye_key:
+            try:
+                self._zoomeye = ZoomEyeSearcher(zoomeye_key)
+                _log.info("ZoomEye API initialized")
+            except Exception as exc:
+                print(f"  {self._YEL}[!]{self._RST} ZoomEye init failed: {exc}")
+
+        if netlas_key:
+            try:
+                self._netlas = NetlasSearcher(netlas_key)
+                _log.info("Netlas API initialized")
+            except Exception as exc:
+                print(f"  {self._YEL}[!]{self._RST} Netlas init failed: {exc}")
+
     # ── Public entry points ───────────────────────────────────────────────────
 
-    def targeted_search(self, params: DiscoveryParams) -> List[PrinterHit]:
+    def _available_engines(self) -> Dict[str, object]:
+        """Return a dict of engine_name -> searcher for all initialized engines."""
+        return {k: v for k, v in {
+            'shodan':  self._shodan,
+            'censys':  self._censys,
+            'fofa':    self._fofa,
+            'zoomeye': self._zoomeye,
+            'netlas':  self._netlas,
+        }.items() if v is not None}
+
+    def targeted_search(self,
+                        params:  DiscoveryParams,
+                        engines: Optional[List[str]] = None) -> List['PrinterHit']:
         """
         Run a structured dork search using provided parameters.
 
-        Raises ValueError if params.has_filters() returns False (no criteria given).
-        Returns deduplicated list of PrinterHit, sorted by country + IP.
+        Args:
+            params:  Filter criteria (vendor, country, port, etc.).
+            engines: Whitelist of engine names to use, e.g. ['shodan','fofa'].
+                     Defaults to all initialized engines.
+
+        Raises:
+            ValueError: if params.has_filters() returns False.
+        Returns:
+            Deduplicated list of PrinterHit, sorted by country + IP.
         """
         if not params.has_filters():
             raise ValueError(
@@ -570,43 +1079,38 @@ class OnlineDiscoveryManager:
                 "When searching without geographic/vendor filters, provide a direct IP target instead."
             )
 
+        active = self._available_engines()
+        if engines:
+            active = {k: v for k, v in active.items()
+                      if k in [e.lower().strip() for e in engines]}
+
         builder = DorkQueryBuilder(params)
         print(f"\n  {self._CYN}{'='*68}{self._RST}")
         print(f"  {self._CYN}Online Printer Discovery — Dork Mode{self._RST}")
-        print(f"  Filter: {builder.describe()}")
-        print(f"  Limit : {params.limit} results per query")
+        print(f"  Filter : {builder.describe()}")
+        print(f"  Engines: {', '.join(active.keys()) or 'none configured'}")
+        print(f"  Limit  : {params.limit} results per query")
         print(f"  {self._CYN}{'='*68}{self._RST}\n")
 
         all_hits: List[PrinterHit] = []
         delay = 1.2  # seconds between API calls
 
-        if self._shodan:
-            queries = builder.build_shodan_queries()
-            print(f"  {self._GRN}[Shodan]{self._RST} {len(queries)} queries")
-            for idx, q in enumerate(queries, 1):
-                print(f"    [{idx}/{len(queries)}] {q['description']}")
-                print(f"           Query: {self._DIM}{q['query']}{self._RST}")
-                hits = self._shodan.search(q['query'], limit=params.limit, vendor=q.get('vendor', ''))
-                print(f"           Found: {self._GRN}{len(hits)}{self._RST}")
-                all_hits.extend(hits)
-                if idx < len(queries):
-                    time.sleep(delay)
+        _ENGINE_DISPATCH = {
+            'shodan':  self._run_shodan,
+            'censys':  self._run_censys,
+            'fofa':    self._run_fofa,
+            'zoomeye': self._run_zoomeye,
+            'netlas':  self._run_netlas,
+        }
 
-        if self._censys:
-            queries = builder.build_censys_queries()
-            print(f"\n  {self._GRN}[Censys]{self._RST} {len(queries)} queries")
-            for idx, q in enumerate(queries, 1):
-                print(f"    [{idx}/{len(queries)}] {q['description']}")
-                print(f"           Query: {self._DIM}{q['query']}{self._RST}")
-                hits = self._censys.search(q['query'], limit=params.limit, vendor=q.get('vendor', ''))
-                print(f"           Found: {self._GRN}{len(hits)}{self._RST}")
-                all_hits.extend(hits)
-                if idx < len(queries):
-                    time.sleep(delay)
+        for eng_name, _searcher in active.items():
+            hits = _ENGINE_DISPATCH[eng_name](builder, params)
+            all_hits.extend(hits)
+            time.sleep(delay)
 
-        if not self._shodan and not self._censys:
+        if not active:
             print(f"  {self._RED}[!]{self._RST} No API credentials configured.")
-            print(f"      Add shodan/censys keys to config.json — see: python printer-reaper.py --check-config")
+            print(f"      Add keys to config.json — see: python printer-reaper.py --check-config")
             return []
 
         # Deduplicate by IP:port
@@ -621,6 +1125,73 @@ class OnlineDiscoveryManager:
         unique.sort(key=lambda h: (h.country_code, h.ip))
         self._hits = unique
         return unique
+
+    # ── Per-engine runners ────────────────────────────────────────────────────
+
+    def _run_shodan(self, builder: 'DorkQueryBuilder', params: DiscoveryParams) -> List['PrinterHit']:
+        if not self._shodan:
+            return []
+        queries = builder.build_shodan_queries()
+        print(f"  {self._GRN}[Shodan]{self._RST} {len(queries)} quer{'y' if len(queries)==1 else 'ies'}")
+        hits: List[PrinterHit] = []
+        for idx, q in enumerate(queries, 1):
+            print(f"    [{idx}/{len(queries)}] {q['description']}")
+            print(f"           {self._DIM}{q['query']}{self._RST}")
+            h = self._shodan.search(q['query'], limit=params.limit, vendor=q.get('vendor', ''))
+            print(f"           Found: {self._GRN}{len(h)}{self._RST}")
+            hits.extend(h)
+            if idx < len(queries):
+                time.sleep(1.2)
+        return hits
+
+    def _run_censys(self, builder: 'DorkQueryBuilder', params: DiscoveryParams) -> List['PrinterHit']:
+        if not self._censys:
+            return []
+        queries = builder.build_censys_queries()
+        print(f"  {self._GRN}[Censys]{self._RST} {len(queries)} quer{'y' if len(queries)==1 else 'ies'}")
+        hits: List[PrinterHit] = []
+        for idx, q in enumerate(queries, 1):
+            print(f"    [{idx}/{len(queries)}] {q['description']}")
+            print(f"           {self._DIM}{q['query']}{self._RST}")
+            h = self._censys.search(q['query'], limit=params.limit, vendor=q.get('vendor', ''))
+            print(f"           Found: {self._GRN}{len(h)}{self._RST}")
+            hits.extend(h)
+            if idx < len(queries):
+                time.sleep(1.2)
+        return hits
+
+    def _run_fofa(self, builder: 'DorkQueryBuilder', params: DiscoveryParams) -> List['PrinterHit']:
+        if not self._fofa:
+            return []
+        queries = builder.build_fofa_queries()
+        print(f"  {self._GRN}[FOFA]{self._RST} {len(queries)} quer{'y' if len(queries)==1 else 'ies'}")
+        hits = self._fofa.search(params, builder)
+        print(f"         Found: {self._GRN}{len(hits)}{self._RST}")
+        for q in queries:
+            print(f"    Query: {self._DIM}{q['query']}{self._RST}")
+        return hits
+
+    def _run_zoomeye(self, builder: 'DorkQueryBuilder', params: DiscoveryParams) -> List['PrinterHit']:
+        if not self._zoomeye:
+            return []
+        queries = builder.build_zoomeye_queries()
+        print(f"  {self._GRN}[ZoomEye]{self._RST} {len(queries)} quer{'y' if len(queries)==1 else 'ies'}")
+        hits = self._zoomeye.search(params, builder)
+        print(f"           Found: {self._GRN}{len(hits)}{self._RST}")
+        for q in queries:
+            print(f"    Query: {self._DIM}{q['query']}{self._RST}")
+        return hits
+
+    def _run_netlas(self, builder: 'DorkQueryBuilder', params: DiscoveryParams) -> List['PrinterHit']:
+        if not self._netlas:
+            return []
+        queries = builder.build_netlas_queries()
+        print(f"  {self._GRN}[Netlas]{self._RST} {len(queries)} quer{'y' if len(queries)==1 else 'ies'}")
+        hits = self._netlas.search(params, builder)
+        print(f"          Found: {self._GRN}{len(hits)}{self._RST}")
+        for q in queries:
+            print(f"    Query: {self._DIM}{q['query']}{self._RST}")
+        return hits
 
     def print_results(self, hits: List[PrinterHit]) -> None:
         """Print a formatted table of discovered printers."""

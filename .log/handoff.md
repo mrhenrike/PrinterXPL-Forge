@@ -2,6 +2,36 @@
 
 ---
 
+## v3.15.2 — Clear Queue + Prompt Target + Session State + Semver Fix
+
+**Data:** 2026-03-24
+**Status:** COMPLETO
+
+### Semver corrigido
+- `3.15.0` = feature release (IPP/PWG Raster/OS print fallback)
+- `3.15.1` = patch (sanitização de código, UI alignment, git LF)
+- `3.15.2` = patch (este — queue clearing, prompt target, session state)
+- Regra: campo1=MAJOR (mudança drástica), campo2=MINOR (novas features), campo3=PATCH (bugfix/ajustes)
+
+### Alterações
+
+| Arquivo | O que mudou |
+|---------|-------------|
+| `src/version.py` | Versão `3.15.2`, date `2026-03-24` |
+| `src/main.py` | `_require_target()` — nova função que solicita target ao user quando ausente, substituindo todos os `sys.exit(1)` por prompt; `_has_action` — lógica para detectar quando não há ação real e ir para menu interativo mesmo com flags sem efeito |
+| `src/modules/print_job.py` | `_clear_os_print_queue()` — nova função que limpa fila de impressão via PowerShell (Windows) ou `cancel -a` (Linux/macOS) antes de enviar job via OS; `send_os_print()` com parâmetro `clear_queue=True` |
+| `src/ui/interactive.py` | `_session` dict para persistência de target/vendor/serial entre ações do menu; `_target_prompt()` usa `_session['target']` como default; opção `[T]` para trocar target; exibe target ativo no rodapé do menu |
+
+### Comportamento novo
+
+- `python printer-reaper.py --scan` → solicita target ao user em vez de sair com erro
+- `python printer-reaper.py --send-job file.pdf` → solicita target
+- Menu interativo: target informado em scan fica salvo para brute-force/attack sem re-digitar
+- Impressão via OS: limpa fila antes de enviar (resolve "impressora offline/fila travada")
+- Fila de impressão: limpa jobs com erro/paused/stuck antes de cada `send_os_print()`
+
+---
+
 ## v3.15.1 — Sanitização de Código + Fixes de UI + Git LF
 
 **Data:** 2026-03-24

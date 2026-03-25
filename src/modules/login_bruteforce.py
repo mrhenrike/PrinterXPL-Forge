@@ -49,6 +49,12 @@ from utils.default_creds import (
     Cred, SERIAL_TOKEN, MAC6_TOKEN, MAC12_TOKEN,
     get_creds_for_vendor,
 )
+from utils.wordlist_loader import (
+    load_for_vendor,
+    load_snmp_communities,
+    load_ftp_creds,
+    get_default_wordlist_path,
+)
 
 _log = logging.getLogger(__name__)
 
@@ -233,27 +239,41 @@ def iter_credentials(
     protocol_filter:   str = '',
     enable_variations: bool = True,
     extra_creds:       List[Tuple[str, Optional[str]]] = None,
+    wordlist_path:     Optional[str] = None,
 ) -> Iterator[Tuple[str, Optional[str]]]:
     """
     Yield (username, password) pairs for brute-forcing.
 
-    Combines vendor defaults + generic + user-supplied extras.
+    Credentials are loaded from external wordlist files (not hardcoded).
+    Combines: wordlist (vendor-specific + generic) + user-supplied extras.
     Expands dynamic tokens and variation modes.
     Deduplicates.
-    """
-    creds = get_creds_for_vendor(vendor)
 
-    # Prepend user-supplied extras
+    Args:
+        vendor:           Vendor name for section selection.
+        serial:           Device serial number (resolves __SERIAL__ token).
+        mac:              Device MAC address (resolves __MAC6__, __MAC12__).
+        protocol_filter:  Only yield creds for this protocol ('' = all).
+        enable_variations: Generate reverse/leet/camelcase variants.
+        extra_creds:      Additional (user, pass) pairs prepended to the list.
+        wordlist_path:    Custom wordlist path (replaces default wordlist).
+    """
+    # Load from wordlist (external file, no hardcoded data)
+    wl = get_default_wordlist_path() if wordlist_path is None else wordlist_path
+    creds: List[Cred] = load_for_vendor(vendor, wordlist_path=wl)
+
+    # Prepend user-supplied extras (highest priority)
     if extra_creds:
-        for u, p in extra_creds:
-            creds.insert(0, Cred(u, p, 'any'))
+        extra = [Cred(u, p, 'any') for u, p in extra_creds]
+        creds = extra + creds
 
     seen: set = set()
     count = 0
 
     for cred in creds:
-        if protocol_filter and cred.protocol not in ('any', protocol_filter, 'http', 'https'):
-            if cred.protocol != protocol_filter:
+        # Protocol filter: skip if cred is protocol-specific and doesn't match
+        if protocol_filter:
+            if cred.protocol not in ('any', protocol_filter, 'http', 'https'):
                 continue
 
         passwords = expand_password(cred.password, serial, mac, enable_variations)
@@ -368,6 +388,7 @@ def bruteforce_http(
     enable_variations: bool = True,
     stop_on_first:     bool = True,
     extra_creds:       List[Tuple[str, Optional[str]]] = None,
+    wordlist_path:     Optional[str] = None,
     verbose:           bool = True,
 ) -> List[LoginResult]:
     """HTTP/HTTPS brute force against printer web interface."""
@@ -375,15 +396,17 @@ def bruteforce_http(
 
     login_url, user_field, pass_field = _detect_http_login(host, port, scheme, timeout)
     if verbose:
+        wl_label = wordlist_path or get_default_wordlist_path() or "(not found)"
         print(f"\n  {_CYN}[HTTP BF]{_RST} {scheme}://{host}:{port} | "
               f"vendor={vendor} serial={serial or '-'}")
+        print(f"  Wordlist: {wl_label}")
         print(f"  Login URL: {login_url}  fields: {user_field!r}/{pass_field!r}")
 
     session = requests.Session()
     session.verify = False
 
     for username, password in iter_credentials(
-        vendor, serial, mac, 'http', enable_variations, extra_creds
+        vendor, serial, mac, 'http', enable_variations, extra_creds, wordlist_path
     ):
         pwd_display = password if password is not None else '(blank)'
         if verbose:
@@ -433,6 +456,7 @@ def bruteforce_ftp(
     enable_variations: bool = True,
     stop_on_first:     bool = True,
     extra_creds:       List[Tuple[str, Optional[str]]] = None,
+    wordlist_path:     Optional[str] = None,
     verbose:           bool = True,
 ) -> List[LoginResult]:
     """FTP brute force against printer file system."""
@@ -449,7 +473,7 @@ def bruteforce_ftp(
         print(f"\n  {_CYN}[FTP BF]{_RST} {host}:{port} | vendor={vendor}")
 
     for username, password in iter_credentials(
-        vendor, serial, mac, 'ftp', enable_variations, extra_creds
+        vendor, serial, mac, 'ftp', enable_variations, extra_creds, wordlist_path
     ):
         pwd_display = password if password is not None else '(blank)'
         if verbose:
@@ -509,9 +533,10 @@ def bruteforce_snmp(
     enable_variations: bool = False,  # variations rarely useful for SNMP strings
     stop_on_first:     bool = False,
     extra_creds:       List[Tuple[str, Optional[str]]] = None,
+    wordlist_path:     Optional[str] = None,
     verbose:           bool = True,
 ) -> List[LoginResult]:
-    """Test SNMP community strings (read and write)."""
+    """Test SNMP community strings (read and write) from snmp_communities.txt wordlist."""
     results: List[LoginResult] = []
 
     try:
@@ -528,16 +553,24 @@ def bruteforce_snmp(
     if verbose:
         print(f"\n  {_CYN}[SNMP BF]{_RST} {host}:{port} | vendor={vendor}")
 
-    # Collect community strings: passwords from snmp-protocol creds
+    # Load community strings from wordlist file (not hardcoded)
     communities: List[str] = []
     seen_comm: set = set()
-    for cred in get_creds_for_vendor(vendor):
-        if cred.protocol in ('snmp', 'any'):
+
+    # Primary source: snmp_communities.txt
+    for comm in load_snmp_communities(wordlist_path):
+        if comm not in seen_comm:
+            seen_comm.add(comm)
+            communities.append(comm)
+
+    # Also pull community strings from main wordlist SNMP sections
+    wl = wordlist_path or get_default_wordlist_path()
+    for cred in load_for_vendor(vendor, wordlist_path=wl):
+        if cred.protocol == 'snmp':
             comm = cred.username or (cred.password or '')
-            for c in ([comm] + ([comm[::-1], leet(comm)] if enable_variations else [])):
-                if c and c not in seen_comm:
-                    seen_comm.add(c)
-                    communities.append(c)
+            if comm and comm not in seen_comm:
+                seen_comm.add(comm)
+                communities.append(comm)
 
     # Add extra_creds if any
     if extra_creds:
@@ -547,9 +580,8 @@ def bruteforce_snmp(
                     seen_comm.add(c)
                     communities.append(c)
 
-    # Common additional communities
-    for common in ['public', 'private', 'internal', 'manager', 'SNMP_trap',
-                   'admin', 'guest', serial.lower(), serial.upper()]:
+    # Inject serial-based communities (often used as SNMP community)
+    for common in [serial.lower(), serial.upper()]:
         if common and common not in seen_comm:
             seen_comm.add(common)
             communities.append(common)
@@ -604,6 +636,7 @@ def bruteforce_telnet(
     enable_variations: bool = True,
     stop_on_first:     bool = True,
     extra_creds:       List[Tuple[str, Optional[str]]] = None,
+    wordlist_path:     Optional[str] = None,
     verbose:           bool = True,
 ) -> List[LoginResult]:
     """Telnet brute force against printer management interface."""
@@ -626,7 +659,7 @@ def bruteforce_telnet(
         print(f"\n  {_CYN}[TELNET BF]{_RST} {host}:{port} | vendor={vendor}")
 
     for username, password in iter_credentials(
-        vendor, serial, mac, 'telnet', enable_variations, extra_creds
+        vendor, serial, mac, 'telnet', enable_variations, extra_creds, wordlist_path
     ):
         pwd_display = password if password is not None else '(blank)'
         if verbose:
@@ -684,6 +717,7 @@ def bruteforce(
     enable_variations: bool = True,
     stop_on_first:     bool = True,
     extra_creds:       List[Tuple[str, Optional[str]]] = None,
+    wordlist_path:     Optional[str] = None,
     test_http:         bool = True,
     test_ftp:          bool = True,
     test_snmp:         bool = True,
@@ -713,13 +747,17 @@ def bruteforce(
     ports = set(open_ports or [])
     report = BruteforceReport(host=host, vendor=vendor, serial=serial)
 
+    # Resolve wordlist to use
+    effective_wordlist = wordlist_path or get_default_wordlist_path()
+
     if verbose:
         print(f"\n  {'='*60}")
         print(f"  {_CYN}BRUTE FORCE LOGIN — {host}{_RST}")
         print(f"  {'='*60}")
-        print(f"  Vendor   : {vendor or 'generic'}")
-        print(f"  Serial   : {serial or '(not provided)'}")
-        print(f"  MAC      : {mac or '(not provided)'}")
+        print(f"  Vendor    : {vendor or 'generic'}")
+        print(f"  Serial    : {serial or '(not provided)'}")
+        print(f"  MAC       : {mac or '(not provided)'}")
+        print(f"  Wordlist  : {effective_wordlist or '(not found — check wordlists/ folder)'}")
         print(f"  Variations: {'YES' if enable_variations else 'NO'}")
         print()
 
@@ -732,7 +770,8 @@ def bruteforce(
                 continue
             r = bruteforce_http(
                 host, port, vendor, serial, mac, scheme,
-                timeout, delay, enable_variations, stop_on_first, extra_creds, verbose,
+                timeout, delay, enable_variations, stop_on_first, extra_creds,
+                effective_wordlist, verbose,
             )
             all_results.extend(r)
             if stop_on_first and any(x.success for x in r):
@@ -742,7 +781,8 @@ def bruteforce(
     if test_ftp and (not ports or 21 in ports):
         r = bruteforce_ftp(
             host, 21, vendor, serial, mac,
-            timeout, delay, enable_variations, stop_on_first, extra_creds, verbose,
+            timeout, delay, enable_variations, stop_on_first, extra_creds,
+            effective_wordlist, verbose,
         )
         all_results.extend(r)
 
@@ -751,7 +791,7 @@ def bruteforce(
         r = bruteforce_snmp(
             host, 161, vendor, serial, mac,
             timeout, enable_variations, stop_on_first=False, extra_creds=extra_creds,
-            verbose=verbose,
+            wordlist_path=effective_wordlist, verbose=verbose,
         )
         all_results.extend(r)
 
@@ -759,7 +799,8 @@ def bruteforce(
     if test_telnet and (not ports or 23 in ports):
         r = bruteforce_telnet(
             host, 23, vendor, serial, mac,
-            timeout, delay, enable_variations, stop_on_first, extra_creds, verbose,
+            timeout, delay, enable_variations, stop_on_first, extra_creds,
+            effective_wordlist, verbose,
         )
         all_results.extend(r)
 

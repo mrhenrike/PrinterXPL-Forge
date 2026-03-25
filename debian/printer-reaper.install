@@ -1,0 +1,10 @@
+# Files installed by dh_install (in addition to what dh_auto_install does)
+# Format:  <source path>  <destination directory>
+
+# Main launcher at /usr/bin/printer-reaper (created by entry_points in pyproject.toml)
+# Additional convenience symlink
+printer-reaper.py  usr/share/printer-reaper/
+
+# Config example
+config.json.example  usr/share/printer-reaper/
+config.yaml.example  usr/share/printer-reaper/

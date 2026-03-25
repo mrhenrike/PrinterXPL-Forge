@@ -1,0 +1,51 @@
+Source: printer-reaper
+Section: net
+Priority: optional
+Maintainer: Andre Henrique <mrhenrike@users.noreply.github.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3-all,
+               python3-setuptools,
+               python3-requests,
+               python3-urllib3,
+               python3-colorama,
+               python3-yaml
+Standards-Version: 4.6.2
+Homepage: https://github.com/mrhenrike/PrinterReaper
+Vcs-Browser: https://github.com/mrhenrike/PrinterReaper
+Vcs-Git: https://github.com/mrhenrike/PrinterReaper.git
+Rules-Requires-Root: no
+
+Package: printer-reaper
+Architecture: all
+Depends: ${python3:Depends},
+         ${misc:Depends},
+         python3 (>= 3.8),
+         python3-requests (>= 2.31.0),
+         python3-urllib3 (>= 2.0.0),
+         python3-colorama,
+         python3-yaml,
+         python3-pysnmp | python3-pysnmp-lextudio
+Recommends: python3-shodan,
+            python3-censys,
+            python3-sklearn,
+            python3-impacket,
+            python3-pysmb
+Suggests: snmp,
+          nmap
+Description: Advanced Printer Penetration Testing Toolkit
+ PrinterReaper is a complete, modular framework for security assessment
+ of network printers. It covers PJL, PostScript, PCL, and ESC/P printer
+ languages across all common protocols (RAW/9100, IPP/631, LPD/515, HTTP,
+ SNMP, FTP, SMB, Telnet).
+ .
+ Features:
+  - Banner grab + NVD/CVE lookup with ML-assisted fingerprinting
+  - 39+ exploit modules (ExploitDB, Metasploit, Research)
+  - Wordlist-driven brute-force (HTTP, FTP, SNMP, Telnet)
+  - Lateral movement via SSRF/IPP, network mapping, LDAP hash capture
+  - Storage audit (FTP, web file manager, SNMP MIB, saved jobs)
+  - Firmware analysis, NVRAM read/write, factory reset
+  - Cross-Site Printing (XSP) payload generator
+  - Online discovery via Shodan/Censys
+  - Interactive PJL/PS/PCL shell with 109+ commands

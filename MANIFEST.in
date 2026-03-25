@@ -1,0 +1,47 @@
+# MANIFEST.in — files to include in the source distribution (sdist)
+# Run:  python -m build --sdist
+# Then: twine upload dist/*.tar.gz
+
+# License and metadata
+include LICENSE
+include README.md
+include requirements.txt
+include config.json.example
+include config.yaml.example
+
+# Launcher scripts
+include printer-reaper.py
+include run.sh
+include run.ps1
+
+# Wordlists (shipped with the package — no hardcoded credentials in source)
+recursive-include wordlists *.txt *.md
+
+# Exploit library
+recursive-include xpl *.py *.json
+exclude xpl/**/__pycache__
+
+# PostScript assets (fonts, overlays)
+recursive-include src/assets/fonts *.pfa
+recursive-include src/assets/overlays *.eps
+recursive-include src/assets/mibs *
+
+# Diagrams (source files only, not generated PNGs)
+recursive-include diagrams *.drawio *.mmd *.json
+
+# Man page
+recursive-include man *.1 *.gz
+
+# Exclude generated / build artifacts
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude __pycache__
+global-exclude .DS_Store
+global-exclude *.swp
+prune .git
+prune .venv
+prune .log
+prune .ml_models
+prune dist
+prune build
+prune *.egg-info

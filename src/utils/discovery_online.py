@@ -716,17 +716,23 @@ class FOFASearcher:
     Wraps the FOFA API (fofa.info) for structured printer searches.
 
     API endpoint: GET https://fofa.info/api/v1/search/all
-    Auth: email + key query params. Query must be base64-encoded.
+    Auth: API key only (email field was deprecated by FOFA in December 2023).
+    Query must be base64-encoded.
     Docs: https://en.fofa.info/api
     """
 
     _BASE = "https://fofa.info/api/v1/search/all"
     _FIELDS = "ip,port,country,region,city,org,host,os,banner,server,product,version"
 
-    def __init__(self, email: str, api_key: str) -> None:
+    def __init__(self, api_key: str, email: str = "") -> None:
+        """Initialize FOFASearcher.
+
+        Args:
+            api_key: FOFA API key (required).
+            email:   Ignored — FOFA deprecated email auth in December 2023.
+        """
         if not REQUESTS_AVAILABLE:
             raise RuntimeError("'requests' library required for FOFA — pip install requests")
-        self._email   = email.strip()
         self._api_key = api_key.strip()
         import requests as _r
         self._session = _r.Session()
@@ -747,7 +753,6 @@ class FOFASearcher:
                 resp = self._session.get(
                     self._BASE,
                     params={
-                        'email':   self._email,
                         'key':     self._api_key,
                         'qbase64': q_b64,
                         'fields':  self._FIELDS,
@@ -979,7 +984,6 @@ class OnlineDiscoveryManager:
                  shodan_key:     Optional[str] = None,
                  censys_id:      Optional[str] = None,
                  censys_secret:  Optional[str] = None,
-                 fofa_email:     Optional[str] = None,
                  fofa_key:       Optional[str] = None,
                  zoomeye_key:    Optional[str] = None,
                  netlas_key:     Optional[str] = None) -> None:
@@ -987,14 +991,14 @@ class OnlineDiscoveryManager:
         # Load credentials from config when not passed directly
         try:
             from utils.config import (load_config, shodan_key as _sk, censys_credentials,
-                                       fofa_credentials, zoomeye_key as _zk, netlas_key as _nk)
+                                       fofa_key as _fk, zoomeye_key as _zk, netlas_key as _nk)
             load_config()
             if not shodan_key:
                 shodan_key = _sk()
             if not (censys_id and censys_secret):
                 censys_id, censys_secret = censys_credentials()
-            if not (fofa_email and fofa_key):
-                fofa_email, fofa_key = fofa_credentials()
+            if not fofa_key:
+                fofa_key = _fk()
             if not zoomeye_key:
                 zoomeye_key = _zk()
             if not netlas_key:
@@ -1023,9 +1027,9 @@ class OnlineDiscoveryManager:
             except Exception as exc:
                 print(f"  {self._YEL}[!]{self._RST} Censys init failed: {exc}")
 
-        if fofa_email and fofa_key:
+        if fofa_key:
             try:
-                self._fofa = FOFASearcher(fofa_email, fofa_key)
+                self._fofa = FOFASearcher(api_key=fofa_key)
                 _log.info("FOFA API initialized")
             except Exception as exc:
                 print(f"  {self._YEL}[!]{self._RST} FOFA init failed: {exc}")

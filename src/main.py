@@ -13,8 +13,10 @@ Main entry point.
 from __future__ import annotations
 
 import argparse
+import csv
+import io
 import sys
-from typing import Callable, Dict
+from typing import Callable, Dict, List
 
 from core.osdetect import get_os
 from core.discovery import discovery
@@ -24,6 +26,49 @@ from modules.ps import ps
 from modules.pcl import pcl
 from utils.helper import output
 from version import get_version_string
+
+# --------------------------------------------------------------------------- #
+# CLI helpers
+# --------------------------------------------------------------------------- #
+
+def _expand_csv(raw_values: List[str]) -> List[str]:
+    """Expand a list of raw CLI strings into individual values.
+
+    Accepts both repeated flags and comma-separated values (with optional
+    single- or double-quote quoting for compound tokens):
+
+        --dork-vendor hp --dork-vendor canon   →  ['hp', 'canon']
+        --dork-vendor "hp,canon,epson"          →  ['hp', 'canon', 'epson']
+        --dork-country BR,AR,US                 →  ['BR', 'AR', 'US']
+
+    Quoting inside the CSV string follows standard CSV rules so compound
+    names with spaces work naturally:
+
+        --dork-city "São Paulo",Belém           →  ['São Paulo', 'Belém']
+    """
+    result: List[str] = []
+    for raw in raw_values:
+        raw = raw.strip()
+        # Use csv.reader to honour double-quote quoting inside the value
+        reader = csv.reader(io.StringIO(raw), skipinitialspace=True)
+        for row in reader:
+            for token in row:
+                token = token.strip().strip("'")   # strip residual single-quotes
+                if token:
+                    result.append(token)
+    return result
+
+
+def _expand_csv_int(raw_values: List[str]) -> List[int]:
+    """Expand CSV values and convert each token to int (for port lists)."""
+    result: List[int] = []
+    for token in _expand_csv(raw_values):
+        try:
+            result.append(int(token))
+        except ValueError:
+            pass  # non-numeric tokens silently ignored; argparse already validates type
+    return result
+
 
 # --------------------------------------------------------------------------- #
 # Metadata
@@ -182,14 +227,14 @@ def build_parser() -> argparse.ArgumentParser:
     _dork_group = parser.add_argument_group("online discovery filters (--discover-online dorks)")
     _dork_group.add_argument(
         "--dork-vendor",
-        metavar="VENDOR",
+        metavar="VENDOR[,VENDOR...]",
         action="append",
         dest="dork_vendors",
         default=[],
         help=(
-            "Vendor to search for (repeatable). "
-            "Examples: hp, epson, ricoh, brother, canon, kyocera, xerox, lexmark, samsung, oki, zebra. "
-            "Example: --dork-vendor epson --dork-vendor ricoh"
+            "Vendor filter. Accepts a single value, comma-separated list, or repeated flags. "
+            "Choices: hp, epson, ricoh, brother, canon, kyocera, xerox, lexmark, samsung, oki, zebra. "
+            "Examples: --dork-vendor hp  |  --dork-vendor hp,canon,epson  |  --dork-vendor hp --dork-vendor canon"
         ),
     )
     _dork_group.add_argument(
@@ -197,65 +242,78 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="MODEL",
         default=None,
         help=(
-            "Model string to search for in banner. "
+            "Model string to search for in banner (single value; wrap in quotes for spaces). "
             "Example: --dork-model 'deskjet pro 5500'"
         ),
     )
     _dork_group.add_argument(
         "--dork-country",
-        metavar="COUNTRY",
+        metavar="COUNTRY[,COUNTRY...]",
         action="append",
         dest="dork_countries",
         default=[],
         help=(
-            "Country filter (ISO code or name, repeatable). "
-            "Examples: BR, brazil, argentina, US, DE. "
-            "Example: --dork-country BR --dork-country AR"
+            "Country filter. ISO-2 codes or country names. "
+            "Accepts comma-separated list or repeated flags. "
+            "Examples: --dork-country BR  |  --dork-country BR,AR,US  |  --dork-country BR --dork-country AR. "
+            "Note: --dork-city is only allowed when exactly ONE country is specified."
         ),
     )
     _dork_group.add_argument(
         "--dork-city",
-        metavar="CITY",
-        default=None,
-        help="City filter. Example: --dork-city 'Sao Paulo'",
+        metavar="CITY[,CITY...]",
+        action="append",
+        dest="dork_cities",
+        default=[],
+        help=(
+            "City filter. Accepts comma-separated list or repeated flags. "
+            "Compound city names must be quoted (single or double quotes). "
+            "RESTRICTION: only allowed when exactly ONE --dork-country is provided. "
+            "Examples: --dork-city 'Sao Paulo'  |  "
+            "--dork-city \"Sao Paulo\",Belem  |  "
+            "--dork-city \"Sao Paulo\" --dork-city Belem"
+        ),
     )
     _dork_group.add_argument(
         "--dork-region",
-        metavar="REGION",
+        metavar="REGION[,REGION...]",
         action="append",
         dest="dork_regions",
         default=[],
         help=(
-            "Geographic region filter (repeatable). "
+            "Geographic region filter. Accepts comma-separated list or repeated flags. "
             "Valid regions: latin_america, south_america, central_america, north_america, "
             "europe, eastern_europe, asia, southeast_asia, middle_east, africa, north_africa, oceania. "
-            "Example: --dork-region latin_america"
+            "Examples: --dork-region latin_america  |  --dork-region latin_america,europe"
         ),
     )
     _dork_group.add_argument(
         "--dork-port",
-        metavar="PORT",
-        type=int,
+        metavar="PORT[,PORT...]",
         action="append",
         dest="dork_ports",
         default=[],
         help=(
-            "Port filter (repeatable). Common: 9100 (RAW/PJL), 515 (LPD), 631 (IPP). "
-            "Example: --dork-port 9100 --dork-port 515"
+            "Port filter. Accepts comma-separated list or repeated flags. "
+            "Common: 9100 (RAW/PJL), 515 (LPD), 631 (IPP), 80 (HTTP), 443 (HTTPS). "
+            "Examples: --dork-port 9100  |  --dork-port 9100,515,631  |  --dork-port 9100 --dork-port 631"
         ),
     )
     _dork_group.add_argument(
         "--dork-org",
         metavar="ORG",
         default=None,
-        help="Organization/ISP filter. Example: --dork-org 'Telefonica'",
+        help=(
+            "Organization/ISP filter (single value; wrap in quotes for spaces). "
+            "Example: --dork-org 'Telefonica'"
+        ),
     )
     _dork_group.add_argument(
         "--dork-cpe",
         metavar="CPE",
         default=None,
         help=(
-            "CPE filter (Censys only). "
+            "CPE filter (Censys and Netlas only). "
             "Example: --dork-cpe 'cpe:/h:hp:laserjet'"
         ),
     )
@@ -264,7 +322,7 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="N",
         type=int,
         default=100,
-        help="Maximum results per query (default: 100).",
+        help="Maximum results per query per engine (default: 100).",
     )
     # ── Per-engine shortcut flags (mutually exclusive — pick exactly ONE) ───────
     _dork_group.add_argument(
@@ -1516,31 +1574,66 @@ def main() -> None:
                                        fofa_key as _fk, zoomeye_key as _zk,
                                        netlas_key as _nk)
 
+            # ── Expand CSV values in all list-type dork flags ─────────────────
+            # Each flag accepts either repeated usage OR comma-separated values.
+            # _expand_csv normalises both forms into a flat, deduplicated list.
+            _vendors   = _expand_csv(getattr(args, 'dork_vendors',   []) or [])
+            _countries = _expand_csv(getattr(args, 'dork_countries', []) or [])
+            _cities    = _expand_csv(getattr(args, 'dork_cities',    []) or [])
+            _regions   = _expand_csv(getattr(args, 'dork_regions',   []) or [])
+            _ports     = _expand_csv_int(getattr(args, 'dork_ports', []) or [])
+
+            # Deduplicate while preserving order
+            _vendors   = list(dict.fromkeys(_vendors))
+            _countries = list(dict.fromkeys(_countries))
+            _cities    = list(dict.fromkeys(_cities))
+            _regions   = list(dict.fromkeys(_regions))
+            _ports     = list(dict.fromkeys(_ports))
+
+            # ── Validate --dork-city: only when exactly ONE country is given ──
+            if _cities:
+                _n_countries = len(_countries)
+                if _n_countries == 0:
+                    output().errmsg(
+                        "--dork-city requires exactly one --dork-country to be specified.\n"
+                        "Example: --dork-country BR --dork-city 'Sao Paulo'\n"
+                        "Without a country, city filtering is ambiguous and not supported."
+                    )
+                    sys.exit(1)
+                if _n_countries > 1:
+                    output().errmsg(
+                        f"--dork-city cannot be used with multiple countries "
+                        f"({', '.join(_countries)}).\n"
+                        "Specify exactly ONE --dork-country when using --dork-city.\n"
+                        "To search multiple countries, omit --dork-city or run separate searches."
+                    )
+                    sys.exit(1)
+
             # Build DiscoveryParams from --dork-* CLI flags
             dork_params = DiscoveryParams(
-                vendors   = getattr(args, 'dork_vendors',   []) or [],
-                model     = getattr(args, 'dork_model',     None),
-                countries = getattr(args, 'dork_countries', []) or [],
-                city      = getattr(args, 'dork_city',      None),
-                regions   = getattr(args, 'dork_regions',   []) or [],
-                ports     = getattr(args, 'dork_ports',     []) or [],
-                org       = getattr(args, 'dork_org',       None),
-                cpe       = getattr(args, 'dork_cpe',       None),
-                limit     = getattr(args, 'dork_limit',     100),
+                vendors   = _vendors,
+                model     = getattr(args, 'dork_model',  None),
+                countries = _countries,
+                cities    = _cities,
+                regions   = _regions,
+                ports     = _ports,
+                org       = getattr(args, 'dork_org',    None),
+                cpe       = getattr(args, 'dork_cpe',    None),
+                limit     = getattr(args, 'dork_limit',  100),
             )
 
             # Enforce: at least one dork filter required when no IP target given
             if not dork_params.has_filters() and not getattr(args, 'target', None):
                 output().errmsg(
                     "--discover-online requires at least one filter:\n"
-                    "  --dork-vendor VENDOR     (e.g. hp, epson, ricoh)\n"
-                    "  --dork-country COUNTRY   (e.g. BR, brazil, argentina)\n"
-                    "  --dork-region REGION     (e.g. latin_america, europe)\n"
-                    "  --dork-port PORT         (e.g. 9100, 515, 631)\n"
-                    "  --dork-city CITY         (e.g. 'Sao Paulo')\n"
-                    "  --dork-org ORG           (e.g. 'Telefonica')\n"
-                    "  --dork-cpe CPE           (Censys/Netlas only)\n"
-                    "  --dork-model MODEL       (e.g. 'deskjet pro 5500')\n\n"
+                    "  --dork-vendor  VENDOR[,VENDOR...]   e.g. hp  | hp,canon,epson\n"
+                    "  --dork-country COUNTRY[,COUNTRY...] e.g. BR  | BR,AR,US\n"
+                    "  --dork-port    PORT[,PORT...]        e.g. 9100 | 9100,515,631\n"
+                    "  --dork-region  REGION[,REGION...]   e.g. latin_america | latin_america,europe\n"
+                    "  --dork-city    CITY[,CITY...]        requires exactly ONE --dork-country\n"
+                    "  --dork-org     ORG                  e.g. 'Telefonica'\n"
+                    "  --dork-cpe     CPE                  Censys/Netlas only\n"
+                    "  --dork-model   MODEL                e.g. 'deskjet pro 5500'\n\n"
                     "Or provide a direct IP target: python printer-reaper.py <IP> --scan"
                 )
                 sys.exit(1)

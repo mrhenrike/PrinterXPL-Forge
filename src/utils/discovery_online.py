@@ -183,18 +183,24 @@ class DiscoveryParams:
     vendors:   List[str]       = field(default_factory=list)   # e.g. ['epson', 'ricoh']
     model:     Optional[str]   = None                           # e.g. "deskjet pro 5500"
     countries: List[str]       = field(default_factory=list)   # ISO codes e.g. ['BR', 'AR']
-    city:      Optional[str]   = None                           # e.g. "Sao Paulo"
+    cities:    List[str]       = field(default_factory=list)   # e.g. ['Sao Paulo', 'Belem'] — single country only
     regions:   List[str]       = field(default_factory=list)   # e.g. ['latin_america']
     ports:     List[int]       = field(default_factory=list)   # e.g. [515, 9100]
     org:       Optional[str]   = None                           # e.g. "Telefonica"
     cpe:       Optional[str]   = None                           # Censys CPE e.g. "cpe:/h:hp:laserjet"
     limit:     int             = 100
 
+    # ── backwards-compat shim: accept legacy `city` kwarg ──────────────────
+    def __post_init__(self) -> None:
+        """Normalise legacy ``city`` (str) → ``cities`` (list) if needed."""
+        # Nothing to do — kept as hook for future compat if needed.
+        pass
+
     def has_filters(self) -> bool:
         """Returns True if at least one discovery filter was provided."""
         return bool(
             self.vendors or self.model or self.countries or
-            self.city or self.regions or self.ports or
+            self.cities or self.regions or self.ports or
             self.org or self.cpe
         )
 
@@ -298,9 +304,11 @@ class DorkQueryBuilder:
         return ' (' + ' OR '.join(f'port:{p}' for p in self.params.ports) + ')'
 
     def _shodan_city_part(self) -> str:
-        if not self.params.city:
+        if not self.params.cities:
             return ''
-        return f' city:"{self.params.city}"'
+        if len(self.params.cities) == 1:
+            return f' city:"{self.params.cities[0]}"'
+        return ' (' + ' OR '.join(f'city:"{c}"' for c in self.params.cities) + ')'
 
     # ── Censys ────────────────────────────────────────────────────────────────
 
@@ -365,9 +373,11 @@ class DorkQueryBuilder:
         return ' AND (' + ' OR '.join(f'services.port={p}' for p in self.params.ports) + ')'
 
     def _censys_city_part(self) -> str:
-        if not self.params.city:
+        if not self.params.cities:
             return ''
-        return f' AND location.city="{self.params.city}"'
+        if len(self.params.cities) == 1:
+            return f' AND location.city="{self.params.cities[0]}"'
+        return ' AND (' + ' OR '.join(f'location.city="{c}"' for c in self.params.cities) + ')'
 
     # ── FOFA ──────────────────────────────────────────────────────────────────
 
@@ -382,7 +392,7 @@ class DorkQueryBuilder:
         """
         geo_part   = self._fofa_geo_part()
         port_part  = self._fofa_port_part()
-        city_part  = f' && city="{self.params.city}"' if self.params.city else ''
+        city_part  = self._fofa_city_part()
         org_part   = f' && org="{self.params.org}"' if self.params.org else ''
         model_part = f' && banner="{self.params.model}"' if self.params.model else ''
         suffix     = f"{geo_part}{city_part}{org_part}{model_part}{port_part}"
@@ -434,6 +444,13 @@ class DorkQueryBuilder:
             return f' && port="{self.params.ports[0]}"'
         return ' && (' + ' || '.join(f'port="{p}"' for p in self.params.ports) + ')'
 
+    def _fofa_city_part(self) -> str:
+        if not self.params.cities:
+            return ''
+        if len(self.params.cities) == 1:
+            return f' && city="{self.params.cities[0]}"'
+        return ' && (' + ' || '.join(f'city="{c}"' for c in self.params.cities) + ')'
+
     # ── ZoomEye ───────────────────────────────────────────────────────────────
 
     def build_zoomeye_queries(self) -> List[Dict[str, str]]:
@@ -446,7 +463,7 @@ class DorkQueryBuilder:
         """
         geo_part   = self._zoomeye_geo_part()
         port_part  = self._zoomeye_port_part()
-        city_part  = f' +city:"{self.params.city}"' if self.params.city else ''
+        city_part  = self._zoomeye_city_part()
         org_part   = f' +org:"{self.params.org}"' if self.params.org else ''
         model_part = f' +banner:"{self.params.model}"' if self.params.model else ''
         suffix     = f"{geo_part}{city_part}{org_part}{model_part}{port_part}"
@@ -496,6 +513,13 @@ class DorkQueryBuilder:
             return f' +port:{self.params.ports[0]}'
         return ' +(' + ' '.join(f'port:{p}' for p in self.params.ports) + ')'
 
+    def _zoomeye_city_part(self) -> str:
+        if not self.params.cities:
+            return ''
+        if len(self.params.cities) == 1:
+            return f' +city:"{self.params.cities[0]}"'
+        return ' +(' + ' '.join(f'city:"{c}"' for c in self.params.cities) + ')'
+
     # ── Netlas ────────────────────────────────────────────────────────────────
 
     def build_netlas_queries(self) -> List[Dict[str, str]]:
@@ -508,7 +532,7 @@ class DorkQueryBuilder:
         """
         geo_part   = self._netlas_geo_part()
         port_part  = self._netlas_port_part()
-        city_part  = f' AND geo.city.name:"{self.params.city}"' if self.params.city else ''
+        city_part  = self._netlas_city_part()
         org_part   = f' AND asn.org:"{self.params.org}"' if self.params.org else ''
         model_part = f' AND data.response:"{self.params.model}"' if self.params.model else ''
         suffix     = f"{geo_part}{city_part}{org_part}{model_part}{port_part}"
@@ -557,6 +581,13 @@ class DorkQueryBuilder:
             return f' AND port:{self.params.ports[0]}'
         return ' AND (' + ' OR '.join(f'port:{p}' for p in self.params.ports) + ')'
 
+    def _netlas_city_part(self) -> str:
+        if not self.params.cities:
+            return ''
+        if len(self.params.cities) == 1:
+            return f' AND geo.city.name:"{self.params.cities[0]}"'
+        return ' AND (' + ' OR '.join(f'geo.city.name:"{c}"' for c in self.params.cities) + ')'
+
     # ── Labels ────────────────────────────────────────────────────────────────
 
     def _geo_label(self) -> str:
@@ -564,8 +595,11 @@ class DorkQueryBuilder:
         codes = self.params.resolve_country_codes()
         if codes:
             parts.append('/'.join(codes[:4]) + ('...' if len(codes) > 4 else ''))
-        if self.params.city:
-            parts.append(self.params.city)
+        if self.params.cities:
+            cities_label = '/'.join(self.params.cities[:3])
+            if len(self.params.cities) > 3:
+                cities_label += '...'
+            parts.append(cities_label)
         if self.params.regions:
             parts.append('+'.join(self.params.regions))
         return (', ' + ', '.join(parts)) if parts else ''
@@ -581,8 +615,8 @@ class DorkQueryBuilder:
         if codes:
             label = ','.join(codes[:6]) + ('...' if len(codes) > 6 else '')
             parts.append(f"countries=[{label}]")
-        if self.params.city:
-            parts.append(f"city={self.params.city!r}")
+        if self.params.cities:
+            parts.append(f"cities=[{','.join(self.params.cities)}]")
         if self.params.regions:
             parts.append(f"regions={','.join(self.params.regions)}")
         if self.params.ports:

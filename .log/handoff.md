@@ -2,6 +2,58 @@
 
 ---
 
+## v3.11.0 — Engine Selection UX Fix, FOFA Key-Only, ZoomEye/Netlas Keys
+
+**Data:** 2026-03-24
+**Status:** COMPLETO
+
+### Problema resolvido
+Corrigiu UX de seleção de search engines no `--discover-online`:
+- Flags individuais (`--shodan`, `--censys`, `--fofa`, `--zoomeye`, `--netlas`) são **mutually exclusive** — apenas uma pode ser usada por vez.
+- `--dork-engine A,B,C` é o **único** mecanismo para selecionar múltiplos engines simultaneamente.
+- Misturar flag individual com `--dork-engine` gera erro explicativo imediato.
+- Dois ou mais flags individuais juntos geram erro com sugestão de uso do `--dork-engine`.
+- Sem flag → todos os engines com chave configurada são usados.
+
+FOFA não exige mais email desde dezembro de 2023 — campo `email` removido do JSON e da API call.
+
+### Arquivos alterados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `src/main.py` | Lógica de resolução de engines reescrita; help texts de todos os engine flags reescritos; import de `fofa_key` no lugar de `fofa_credentials`; `fofa_email` removido do construtor `OnlineDiscoveryManager` |
+| `src/utils/discovery_online.py` | `FOFASearcher.__init__` aceita apenas `api_key` (email depreciado); `OnlineDiscoveryManager.__init__` assinatura e init FOFA atualizados; import `fofa_key` no lugar de `fofa_credentials` |
+| `src/utils/config.py` | Nova função `fofa_key()` adicionada; `fofa_credentials()` mantida por compatibilidade com nota de depreciação |
+| `config.json` | FOFA: campo `email` removido; ZoomEye key preenchida (`0F499Cf2-Db9A-60c3A-8758-2372509e30b`); Netlas key preenchida (`LHOXtnRa1ARORAVnmVFUtH6KKbo8Bzm3`) |
+| `config.json.example` | FOFA: campo `email` removido do template |
+| `src/version.py` | 3.10.0 → 3.11.0 |
+| `.log/handoff.md` | Este arquivo |
+
+### Comportamento de seleção de engines (novo)
+
+```bash
+# Um engine → flag individual
+python printer-reaper.py --discover-online --shodan --dork-vendor hp --dork-country BR
+
+# Múltiplos engines → --dork-engine
+python printer-reaper.py --discover-online --dork-engine shodan,censys --dork-vendor epson
+
+# Erro: mistura proibida
+python printer-reaper.py --discover-online --shodan --dork-engine fofa  # ← ERRO
+
+# Erro: dois flags individuais
+python printer-reaper.py --discover-online --shodan --fofa               # ← ERRO
+
+# Sem flag → todos os engines configurados
+python printer-reaper.py --discover-online --dork-vendor hp
+```
+
+### Próximos passos
+- Atualizar wiki `Online-Discovery-Dorks.md` para refletir o novo comportamento de engine selection.
+- Considerar integração de resultados FOFA/ZoomEye/Netlas no relatório consolidado.
+
+---
+
 ## v3.10.0 — Custom Port Overrides for Every Protocol
 
 **Data:** 2026-03-25

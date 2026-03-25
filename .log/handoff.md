@@ -1,7 +1,64 @@
-# PrinterReaper — Handoff v3.5.0
+# PrinterReaper — Handoff v3.6.0
 **Data:** 2026-03-25  
-**Versão:** 3.5.0  
-**Status:** COMPLETO — Assessment Epson L3250 realizado
+**Versão:** 3.6.0  
+**Status:** COMPLETO — Arsenal xpl/ expandido com MSF ports, EDB e research
+
+---
+
+## Sessão Atual — Expansão Arsenal Exploit (xpl/)
+
+### Objetivo
+Integrar todos os módulos Metasploit e ExploitDB verificados para impressoras diretamente no PrinterReaper, evitando que o operador precise sair da ferramenta.
+
+### Resultado
+**30 exploits** carregados (era 8). Breakdow por fonte:
+- `[EDB]` **14** módulos ExploitDB (6 existentes + 8 novos)
+- `[MSF]` **9** módulos Metasploit portados para Python nativo
+- `[RES]` **6** módulos research original (Epson + genéricos + NCC/SentinelOne)
+- `[USR]` **1** template custom
+
+### Novos arquivos criados
+- `xpl/msf/msf-printer-env-vars/` — PJL NVRAM dump (MSF printer_env_vars)
+- `xpl/msf/msf-printer-dir-list/` — PJL filesystem listing (MSF printer_list_dir)
+- `xpl/msf/msf-printer-file-download/` — PJL FSUPLOAD download (MSF printer_download_file)
+- `xpl/msf/msf-printer-file-upload/` — PJL FSDOWNLOAD upload (MSF printer_upload_file)
+- `xpl/msf/msf-printer-info/` — PJL INFO query (MSF printer_info)
+- `xpl/msf/msf-ricoh-loginout-dos/` — Ricoh SNMP DoS (MSF ricoh_loginout)
+- `xpl/msf/msf-hp-web-jetadmin-rce/` — HP WebJetAdmin RCE CVE-2011-4065
+- `xpl/msf/msf-snmp-printer-enum/` — SNMP MIB dump printer-específico
+- `xpl/msf/msf-ipp-printer-check/` — IPP AirPrint anon enumeration
+- `xpl/edb-36608/` — Ricoh MP auth bypass (CVE-2014-9321)
+- `xpl/edb-40909/` — Samsung SCX command injection (CVE-2016-6556)
+- `xpl/edb-36913/` — Lexmark arbitrary file read (CVE-2014-8738)
+- `xpl/edb-41920/` — HP LaserJet hardcoded credentials (CVE-2017-2740)
+- `xpl/edb-43178/` — Konica Minolta session fixation (CVE-2017-6321)
+- `xpl/edb-45205/` — HP PageWide SSRF (CVE-2017-2750)
+- `xpl/edb-23147/` — Kyocera ECOSYS info disclosure
+- `xpl/edb-37956/` — Brother HL/MFC default credentials
+- `xpl/research/research-epson-noauth-disclosure/` — CVE-2022-3426 + CWE-603
+- `xpl/research/research-epson-lpd-unauth/` — CVE-2023-27516
+- `xpl/research/research-epson-connect-cloud/` — Cloud email SNMP exposure
+- `xpl/research/research-generic-pjl-nvram/` — PJL NVRAM read/write
+
+### Mudanças no engine
+- `src/utils/exploit_manager.py`: suporte a subpastas `msf/` e `research/`
+- `src/utils/exploit_manager.py`: `--xpl-source` filter (metasploit|exploit-db|research|custom)
+- `src/utils/exploit_manager.py`: badge `[MSF]`, `[EDB]`, `[RES]`, `[USR]` na listagem
+- `src/utils/exploit_manager.py`: `index.json` v2.0 com campos source, protocol, cvss, url
+- `src/main.py`: argumento `--xpl-source SOURCE` adicionado
+
+### Comandos disponíveis
+```
+python src/main.py --xpl-list                        # todos os 30 exploits
+python src/main.py --xpl-list --xpl-source metasploit
+python src/main.py --xpl-list --xpl-source exploit-db
+python src/main.py --xpl-list --xpl-source research
+python src/main.py 192.168.0.152 --xpl-check MSF-PRINTER-ENV-VARS
+python src/main.py 192.168.0.152 --xpl-run MSF-PRINTER-ENV-VARS
+python src/main.py 192.168.0.152 --xpl-run RESEARCH-EPSON-NOAUTH-DISCLOSURE
+```
+
+---
 
 ---
 

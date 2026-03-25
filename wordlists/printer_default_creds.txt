@@ -296,6 +296,14 @@ admin:
 :2500
 
 # ── Common default serial number patterns (tokens expanded at runtime) ──────
-# admin:__SERIAL__     → replaced with actual device serial
-# admin:__MAC6__       → last 6 hex chars of MAC (OKI, Brother)
-# admin:__MAC12__      → full MAC without colons
+# Tokens below are expanded at runtime when --bf-serial / --bf-mac is provided.
+# __SERIAL__ → replaced with actual device serial number
+# __MAC6__   → replaced with last 6 hex chars of MAC (OKI, Brother)
+# __MAC12__  → replaced with full 12-char MAC without separators
+admin:__SERIAL__
+:__SERIAL__
+ADMIN:__SERIAL__
+administrator:__SERIAL__
+admin:__MAC6__
+admin:__MAC12__
+:__MAC6__

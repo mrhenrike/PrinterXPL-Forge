@@ -320,7 +320,10 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help=(
             "Custom wordlist file for brute-force (format: user:pass per line, # = comment). "
-            "Merged with vendor defaults. Example: --bf-wordlist wordlists/printer_default_creds.txt"
+            "REPLACES the default wordlist (wordlists/printer_default_creds.txt). "
+            "Supports vendor sections: '# ── Vendor ───'. "
+            "Use --bf-cred to add individual credentials on top of the wordlist. "
+            "Example: --bf-wordlist /path/to/my_creds.txt"
         ),
     )
     # ── Send print job ─────────────────────────────────────────────────────────
@@ -864,7 +867,7 @@ def _run_attack_modules(args) -> None:
     # ── Brute-force login ─────────────────────────────────────────────────────
     if getattr(args, 'bruteforce', False):
         from modules.login_bruteforce import bruteforce as bf_run, print_report as bf_print
-        from utils.default_creds import known_vendors
+        from utils.wordlist_loader import get_default_wordlist_path, wordlist_stats
 
         # Resolve vendor: CLI override > auto-detect from scan
         bf_vendor = getattr(args, 'bf_vendor', None) or ''
@@ -890,7 +893,31 @@ def _run_attack_modules(args) -> None:
         if not bf_vendor:
             bf_vendor = 'generic'
 
-        # Parse extra credentials from --bf-cred USER:PASS
+        # --bf-wordlist: use as the credential source (replaces default wordlist)
+        # --bf-cred: additional credentials prepended (highest priority)
+        bf_wordlist = getattr(args, 'bf_wordlist', None)
+
+        # Validate custom wordlist path
+        if bf_wordlist:
+            import os
+            if not os.path.exists(bf_wordlist):
+                output().warning(f"  [bf] Wordlist not found: {bf_wordlist}")
+                bf_wordlist = None
+            else:
+                stats = wordlist_stats(bf_wordlist)
+                total_entries = sum(stats.values())
+                output().message(f"  [bf] Custom wordlist: {bf_wordlist} ({total_entries} entries)")
+        else:
+            # Show info about default wordlist
+            default_wl = get_default_wordlist_path()
+            if default_wl:
+                stats = wordlist_stats(default_wl)
+                total_entries = sum(stats.values())
+                output().message(f"  [bf] Default wordlist: {default_wl} ({total_entries} entries)")
+            else:
+                output().warning("  [bf] No wordlist found — place printer_default_creds.txt in wordlists/")
+
+        # Parse extra credentials from --bf-cred USER:PASS (prepended, highest priority)
         extra_creds = []
         for cred_str in getattr(args, 'bf_cred', []) or []:
             if ':' in cred_str:
@@ -899,23 +926,8 @@ def _run_attack_modules(args) -> None:
             else:
                 extra_creds.append((cred_str, None))
 
-        # Load wordlist from --bf-wordlist FILE
-        bf_wordlist = getattr(args, 'bf_wordlist', None)
-        if bf_wordlist:
-            try:
-                with open(bf_wordlist, encoding='utf-8', errors='ignore') as wf:
-                    for line in wf:
-                        line = line.strip()
-                        if not line or line.startswith('#'):
-                            continue
-                        if ':' in line:
-                            u, p = line.split(':', 1)
-                            extra_creds.append((u.strip(), p.strip()))
-                        else:
-                            extra_creds.append((line, ''))
-                output().message(f"  [bf] Loaded wordlist: {bf_wordlist} (+{len(extra_creds)} entries)")
-            except OSError as exc:
-                output().warning(f"  [bf] Could not load wordlist {bf_wordlist}: {exc}")
+        if extra_creds:
+            output().message(f"  [bf] Extra credentials (--bf-cred): {len(extra_creds)} entries")
 
         output().green(
             f"\n>> Brute Force Login: {target} | vendor={bf_vendor} | "
@@ -932,6 +944,7 @@ def _run_attack_modules(args) -> None:
             enable_variations = not bf_novary,
             stop_on_first     = True,
             extra_creds       = extra_creds,
+            wordlist_path     = bf_wordlist,  # None → use default wordlist automatically
             verbose           = True,
         )
         bf_print(report)

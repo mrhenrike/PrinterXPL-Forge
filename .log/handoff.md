@@ -434,3 +434,20 @@ Ver handoff anterior para histórico das versões 3.0.0–3.4.1.
 5. Verificar se firmware update está disponível para L3250 (ver https://epson.com/Support/)
 6. Implementar teste de CSRF (form sem token) — `/PRESENTATION/PSWD`
 7. Testar abuso do Epson Connect email para envio de job remoto
+
+---
+
+## v3.7.0 — Limpeza, PNGs, draw.io, logo, wiki — 2026-03-25
+
+### Alterações
+- **SVGs deletados**: img/printer_architecture.svg, img/printerreaper_workflow.svg, img/attack_coverage_matrix.svg, img/credential_wordlist_flow.svg
+- **PNGs gerados** via Pillow (dark-theme, 960px+): printer_architecture.png, printerreaper_workflow.png, attack_coverage_matrix.png, credential_wordlist_flow.png
+- **draw.io criados**: diagrams/printerreaper_workflow.drawio, diagrams/credential_flow.drawio, diagrams/attack_matrix.drawio (editáveis em app.diagrams.net)
+- **Limpeza**: diagrams/CHANGELOG.md, scripts/help_selftest.py, scripts/selftest_help_run.py removidos
+- **README.md**: logo União Geek restaurado no topo e footer, diagrams referenciados como PNG, tabela benchmark PrinterReaper vs PRET adicionada
+- **printer-reaper.py**: entry point limpo com versão 3.7.0, KeyboardInterrupt e ImportError tratados
+- **Wiki GitHub**: inicializada e publicada em https://github.com/mrhenrike/PrinterReaper/wiki — 7 páginas: Home, Installation, Quick-Start, Discovery, Reconnaissance, Interactive-Shell, Brute-Force
+
+### Status
+- Repository: https://github.com/mrhenrike/PrinterReaper — push confirmado (4c03781..9696c24)
+- Wiki: https://github.com/mrhenrike/PrinterReaper/wiki — push confirmado (afc36d7)

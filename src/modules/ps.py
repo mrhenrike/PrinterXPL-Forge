@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PostScript Module for PrinterReaper v2.4.0
+PostScript Module for PrinterReaper
 ==========================================
 Complete PostScript penetration testing module with 40+ commands
 

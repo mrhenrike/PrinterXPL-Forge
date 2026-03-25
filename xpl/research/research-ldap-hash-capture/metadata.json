@@ -1,0 +1,20 @@
+{
+  "id": "research-ldap-hash-capture",
+  "title": "Printer LDAP/AD Integration — NTLM Hash Capture via Rogue Server",
+  "description": "Exploits printers integrated with Active Directory via LDAP authentication. By accessing the printer's web admin panel (often with default creds) and redirecting the LDAP server IP to an attacker-controlled listener, the printer attempts authentication to the rogue server and leaks the NTLM hash of the configured AD account. The captured hash can then be cracked offline or relayed (Pass-The-Hash / NTLM Relay) to gain domain access. Affects virtually all enterprise MFP/printer vendors that support AD/LDAP integration.",
+  "source": "research",
+  "cve": "",
+  "edb": "",
+  "cvss": 9.0,
+  "protocol": "http",
+  "port": 80,
+  "affected_vendors": ["HP", "Ricoh", "Konica Minolta", "Xerox", "Canon", "Kyocera", "Lexmark", "Sharp", "Toshiba", "Brother", "Samsung"],
+  "affected_models": ["any enterprise MFP with LDAP/AD integration"],
+  "references": [
+    "https://0xabdi.medium.com/from-default-printer-credentials-to-domain-admin-f81491735229",
+    "https://community.spiceworks.com/t/bruteforce-default-credential-for-printers/955760",
+    "https://www.rapid7.com/db/modules/auxiliary/server/capture/smb"
+  ],
+  "tags": ["lateral-movement", "domain-escalation", "ntlm", "ldap", "hash-capture", "pass-the-hash"],
+  "author": "Andre Henrique (@mrhenrike)"
+}

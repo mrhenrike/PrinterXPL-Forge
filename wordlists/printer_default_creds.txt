@@ -1,7 +1,9 @@
 # PrinterReaper — Master Default Credentials Wordlist
 # Format: username:password
 # Sources: vendor manuals, FCC filings, SecLists, known CVEs, community research
-# Last updated: 2026-03-24
+#          Tungsten Automation / Printix partner docs, bizuns.com, ij.manual.canon,
+#          Spiceworks community (Ricoh supervisor backdoor), 0xabdi.medium.com
+# Last updated: 2026-03-25
 # Author: Andre Henrique (@mrhenrike)
 
 # ── UNIVERSAL / GENERIC ─────────────────────────────────────────────────────
@@ -79,9 +81,16 @@ user:user
 
 # ── Canon ────────────────────────────────────────────────────────────────────
 # Canon imageRUNNER, PIXMA, i-SENSYS
+# Per ij.manual.canon: E460/E480/iB4000/MB2000/MB2300/MB5000/MB5300/MG2900/
+#   MG5600/MG6600/MG6700/MG7500/MX490/PRO-100S/PRO-10S → username ADMIN, pass "canon"
+# All other models → serial number is default password
+# Printix Go integration default: admin/Printix
 admin:
 admin:canon
+ADMIN:canon
+ADMIN:
 ADMIN:ADMIN
+admin:Printix
 7654321:7654321
 admin:7654321
 NSL:
@@ -92,6 +101,11 @@ administrator:
 
 # ── Ricoh ─────────────────────────────────────────────────────────────────
 # Ricoh MP, SP, Aficio series
+# Spiceworks community: undocumented backdoor account "supervisor" with blank password
+#   → allows resetting admin password. Even Ricoh technicians may not know this.
+# Tungsten Automation: SOP Gen 2 Remote Installation Password default = "ricoh"
+# EDB-51755: FTP guest/guest on port 21 exposes Info/Prnlog/Syslog directories
+# bizuns.com: Ricoh Aficio (sysadmin/password), DSc338/NRG (blank/password)
 admin:
 admin:password
 admin:ricoh
@@ -102,14 +116,24 @@ supervisor:password
 admin:ricoh2
 user:password
 sysadmin:sysadmin
+sysadmin:password
+:password
+guest:guest
 
 # ── Xerox ────────────────────────────────────────────────────────────────────
 # Xerox WorkCentre, VersaLink, AltaLink
+# Tungsten Printix partner docs: admin/1111 (must be set after first login)
+# bizuns.com: DocuCentre 425 → admin/22222; Multi-Function Equipment → admin/2222
+# Xerox 240a → admin/x-admin
 admin:1111
+admin:22222
+admin:2222
 admin:
 admin:Admin
 admin:11111
 x-admin:
+11111:x-admin
+admin:x-admin
 admin:xerox
 admin:Xerox
 Administrator:
@@ -238,6 +262,38 @@ admin:1111
 Administrator:
 Administrator:12345678
 admin:12345678
+
+# ── Fujifilm / Fuji Xerox / DocuCentre / ApeosPort ─────────────────────────
+# Tungsten Automation Printix partner docs: x-admin/11111 (Fujifilm Business Innovation)
+# Legacy DocuCentre/ApeosPort (Fuji Xerox): 11111/x-admin
+x-admin:11111
+11111:x-admin
+admin:1111
+admin:x-admin
+
+# ── Axis Print Servers ────────────────────────────────────────────────────────
+# bizuns.com: All Axis Print Server default = root/pass
+root:pass
+
+# ── IBM Printers / Infoprint ─────────────────────────────────────────────────
+# bizuns.com: IBM Infoprint 6700 = root/(blank); IBM BladeCenter = USERID/PASSW0RD
+root:
+USERID:PASSW0RD
+
+# ── Minolta QMS / Magicolor ──────────────────────────────────────────────────
+# bizuns.com: Magicolor 3100 = operator/(blank) or admin/(blank)
+# Di 2010f = blank/0
+operator:
+admin:
+:0
+
+# ── Kyocera expanded ─────────────────────────────────────────────────────────
+# EcoLink panel code: PASSWORD; FS panel reset codes
+:PASSWORD
+:3500
+:2800
+:4000
+:2500
 
 # ── Common default serial number patterns (tokens expanded at runtime) ──────
 # admin:__SERIAL__     → replaced with actual device serial

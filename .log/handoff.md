@@ -1,7 +1,89 @@
-# PrinterReaper — Handoff v3.6.1
+# PrinterReaper — Handoff v3.6.2
 **Data:** 2026-03-25  
-**Versão:** 3.6.1  
-**Status:** COMPLETO — Arsenal expandido com pesquisa BlackHat 2017, ExploitDB 2024, CVE-2024-51982
+**Versão:** 3.6.2  
+**Status:** COMPLETO — Arsenal expandido com pesquisa Tungsten/Printix, bizuns.com, Canon docs, Spiceworks; novos módulos LDAP hash capture + CVE-2024-51978
+
+---
+
+## Sessão v3.6.2 — Credenciais default expandidas + 2 novos módulos
+
+### Objetivo
+Estudar e integrar as informações dos links fornecidos (Tungsten Automation/Printix docs, bizuns.com, ij.manual.canon, Spiceworks community, 0xabdi.medium.com) para enriquecer credenciais default e o arsenal de exploits.
+
+### Novas descobertas incorporadas
+
+**Tungsten Automation / Printix partner docs:**
+- Fujifilm Business Innovation: `x-admin / 11111` (novo — era apenas `admin/1111`)
+- Ricoh SOP Gen 2: Remote Installation Password default = `ricoh`
+- Canon Printix Go: `admin / Printix` (para integração Printix)
+- Kyocera: alias `blank/admin00` confirmado
+
+**ij.manual.canon:**
+- Canon E460/E480/iB4000/MB2000/MB5000/MG2900 etc: username = `ADMIN` (maiúsculo!), password = `canon`
+- Todos os outros modelos Canon: senha default = número de série do produto
+
+**Spiceworks community:**
+- Ricoh backdoor não-documentado: `supervisor` com senha em branco — permite resetar senha admin
+- Brother label sticker: senha impressa na etiqueta (last 6 MAC)
+
+**bizuns.com (default passwords list):**
+- Xerox DocuCentre 425: `admin / 22222`
+- Xerox Multi-Function: `admin / 2222`
+- Xerox 240a: `admin / x-admin` + `11111 / x-admin`
+- Ricoh DSc338/NRG: blank user + `password`
+- Axis Print Server: `root / pass` (universal — todos os Axis)
+- IBM Infoprint 6700: `root / (blank)`
+- Minolta QMS Magicolor 3100: `operator / (blank)`, `admin / (blank)`
+- Kyocera EcoLink: `n/a / PASSWORD`
+
+**CVE-2024-51978 (Spiceworks related topics):**
+- Brother printers exposing WBM admin password via SNMP OID em cleartext
+
+**0xabdi.medium.com (LDAP/AD hash capture):**
+- Ataque completo: default creds → EWS → redirect LDAP server → captura NTLM hash → Pass-The-Hash / Domain Admin
+
+### Arquivos modificados
+
+**`src/utils/default_creds.py`:**
+- Fujifilm: adicionado `x-admin/11111` como entrada principal
+- Ricoh: adicionado `ricoh` como senha, `guest/guest` para FTP (EDB-51755), `sysadmin/password` explícito, `:password` (NRG/DSc338)
+- Canon: corrigido username para `ADMIN` (maiúsculo) para modelos com senha `canon`; adicionado `Printix` como senha
+- Xerox: adicionado `22222`, `2222`, `x-admin` (admin), `11111/x-admin`
+- Novos vendors: `zebra`, `axis`, `dell`, `minolta`, `ibm`, `develop`/`ineo`
+- _ALIASES expandido com: `fujifilm business innovation`, `brother industries`, `zebra technologies`, `nrg`, `nashuatec`, `lanier`, `savin`, `gestetner`, `infotec`, `qms`, `docucentre`, `apeosport`
+
+**`wordlists/printer_default_creds.txt`:**
+- Canon: adicionado `ADMIN:canon`, `ADMIN:` (blank), `admin:Printix`
+- Ricoh: adicionado `sysadmin:password`, `:password` (blank user), `guest:guest`
+- Xerox: adicionado `admin:22222`, `admin:2222`, `11111:x-admin`, `admin:x-admin`
+- Fujifilm: nova seção com `x-admin:11111`, `11111:x-admin`, `admin:1111`
+- Axis Print Server: nova seção com `root:pass`
+- IBM Infoprint: nova seção com `root:` e `USERID:PASSW0RD`
+- Minolta QMS: nova seção com `operator:`, `:0`
+- Kyocera: nova seção com `:PASSWORD`, `:3500`, `:2800`, `:4000`, `:2500`
+
+### Novos módulos de exploit
+
+**`xpl/research/research-ldap-hash-capture/`:**
+- Ataque: Printer LDAP/AD Integration — NTLM Hash Capture via Rogue Server
+- Detecta vendor, localiza página de config LDAP, extrai configuração
+- Com `rogue_ip` + `dry_run=False`: redireciona LDAP server e força hash transmission
+- Tags: `lateral-movement`, `domain-escalation`, `ntlm`, `ldap`, `hash-capture`
+- Referência: 0xabdi.medium.com, Metasploit `auxiliary/server/capture/smb`
+
+**`xpl/edb-cve-2024-51978/`:**
+- CVE-2024-51978 (CVSS 7.5): Brother printers expõem senha WBM admin via SNMP OID
+- OID: `1.3.6.1.4.1.2435.2.3.9.4.2.1.5.5.2.0` — lê senha em cleartext
+- Testa credenciais default (initpass, access) via HTTP
+- Modelos afetados: MFC-L8900CDW, MFC-L5700DN, DCP-L3550CDW, HL-L8360CDW e centenas de outros
+
+### Status final
+- Total de módulos: **39** (eram 37)
+- Novas credenciais: **15+ entradas** em `default_creds.py` e `printer_default_creds.txt`
+- Novos vendors suportados: Zebra, Axis, IBM, Minolta QMS, Dell, Develop/Ineo
+- Aliases novos: 14 aliases de marca OEM adicionados
+
+---
 
 ---
 

@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 # ──────────────────────────────────────────────────────────────────────────────
 [project]
 name = "printer-reaper"
-version = "3.7.0"
+version = "3.14.0"
 description = "Advanced Printer Penetration Testing Toolkit — PJL, PostScript, PCL, CVE scanner, brute-force, pivot"
 readme = { file = "README.md", content-type = "text/markdown" }
 license = { file = "LICENSE" }

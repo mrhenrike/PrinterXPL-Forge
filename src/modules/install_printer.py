@@ -114,13 +114,27 @@ Write-Host "To print: Get-Printer -Name '$PrinterName' | Out-Null ; Start-Proces
 _PS_INSTALL_IPP_TEMPLATE = r"""
 $ErrorActionPreference = 'Stop'
 $PrinterName = '{name}'
-$IPPUri      = '{ipp_uri}'
-$DriverName  = 'Microsoft IPP Class Driver'
+$PrinterIP   = '{host}'
+$PortName    = 'TCP_{host}'
 
-Get-Printer -Name $PrinterName -ErrorAction SilentlyContinue | Remove-Printer -ErrorAction SilentlyContinue
+# Remove existing (idempotent)
+Get-Printer   -Name $PrinterName -ErrorAction SilentlyContinue | Remove-Printer    -ErrorAction SilentlyContinue
+Get-PrinterPort -Name $PortName  -ErrorAction SilentlyContinue | Remove-PrinterPort -ErrorAction SilentlyContinue
 
-Add-Printer -Name $PrinterName -ConnectionName $IPPUri -DriverName $DriverName
-Write-Host "IPP Printer '$PrinterName' installed."
+# Create Standard TCP/IP port (port 9100 by default; works for RAW and LPD passthrough)
+Add-PrinterPort -Name $PortName -PrinterHostAddress $PrinterIP
+
+# Pick best available driver (Generic / Text Only is always present on Windows)
+$candidates = @('Microsoft IPP Class Driver','Epson Universal Print Driver','Generic / Text Only')
+$driver = 'Generic / Text Only'
+foreach ($d in $candidates) {{
+    if (Get-PrinterDriver -Name $d -ErrorAction SilentlyContinue) {{
+        $driver = $d; break
+    }}
+}}
+
+Add-Printer -Name $PrinterName -DriverName $driver -PortName $PortName
+Write-Host "Printer '$PrinterName' installed — driver: $driver  port: $PortName"
 """
 
 _PS_PRINT_TEST_TEMPLATE = r"""
@@ -151,7 +165,7 @@ def _install_windows(host: str, printer_name: str,
     if driver_mode in ('cups-ipp', 'auto') and ipp_ok:
         ipp_uri = f'http://{host}:631/ipp/print'
         ps_script = _PS_INSTALL_IPP_TEMPLATE.format(
-            name=printer_name, ipp_uri=ipp_uri,
+            name=printer_name, host=host, ipp_uri=ipp_uri,
         )
         protocol = 'IPP'
     else:

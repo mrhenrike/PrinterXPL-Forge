@@ -1,0 +1,283 @@
+.TH PRINTER\-REAPER 1 "2026-03-25" "3.7.0" "Printer Penetration Testing"
+.SH NAME
+printer\-reaper \- Advanced Printer Penetration Testing Toolkit
+.SH SYNOPSIS
+.B printer\-reaper
+[\fItarget\fR]
+[\fImode\fR]
+[\fIoptions\fR]
+.SH DESCRIPTION
+.B printer\-reaper
+is a complete, modular framework for security assessment of network printers.
+It covers PJL, PostScript, PCL, and ESC/P printer languages across all common
+network protocols (RAW/9100, IPP/631, LPD/515, HTTP/HTTPS, SNMP, FTP, SMB, Telnet).
+.PP
+Features include: banner grab, NVD/CVE lookup, ML-assisted fingerprinting,
+39+ exploit modules, wordlist-driven credential brute-force, lateral movement
+via SSRF, network mapping, storage and firmware analysis, Cross-Site Printing
+payload generation, and an interactive PJL/PS/PCL shell with 109+ commands.
+.SH ARGUMENTS
+.TP
+.I target
+Printer IP address or hostname.
+.TP
+.I mode
+Printer language to use interactively: \fBpjl\fR, \fBps\fR, \fBpcl\fR, or \fBauto\fR.
+.SH OPTIONS
+.SS General
+.TP
+.B \-h, \-\-help
+Show help message and exit.
+.TP
+.B \-\-version
+Show program version and exit.
+.TP
+.B \-q, \-\-quiet
+Suppress banner and warnings.
+.TP
+.B \-d, \-\-debug
+Show raw bytes sent and received.
+.TP
+.B \-s, \-\-safe
+Verify language support before connecting.
+.TP
+.BI "\-i " file
+Execute commands from file (batch mode).
+.TP
+.BI "\-o " file
+Log raw sent data to file.
+.TP
+.BI "\-\-config " PATH
+Custom config.json path.
+.TP
+.B \-I, \-\-interactive
+Launch guided interactive menu.
+.SS Discovery
+.TP
+.B \-\-discover\-local
+SNMP sweep across local networks + enumerate installed printers on this host.
+.TP
+.B \-\-discover\-online
+Online discovery via Shodan/Censys (requires API keys in config.json).
+.TP
+.B \-\-osint
+Passive OSINT check for target IP (Shodan/Censys lookup, no direct connection).
+.TP
+.B \-\-auto\-detect
+Detect which printer languages are supported by the target.
+.SS Reconnaissance
+.TP
+.B \-\-scan
+Banner grab + CVE/NVD lookup + attack surface assessment. No payloads sent.
+.TP
+.B \-\-scan\-ml
+Same as \-\-scan plus ML-assisted fingerprinting and attack scoring.
+.TP
+.B \-\-no\-nvd
+Skip NVD API CVE lookup during \-\-scan (faster, offline).
+.TP
+.B \-\-xpl
+Auto-match exploits after \-\-scan.
+.SS Brute\-Force Login
+.TP
+.B \-\-bruteforce
+Brute-force printer login using wordlist credentials. Tests HTTP, FTP, SNMP, Telnet.
+.TP
+.BI "\-\-bf\-vendor " VENDOR
+Override vendor for credential selection (e.g. epson, hp, ricoh, brother).
+.TP
+.BI "\-\-bf\-serial " SERIAL
+Device serial number. Expands \fB__SERIAL__\fR tokens in the wordlist.
+.TP
+.BI "\-\-bf\-mac " MAC
+MAC address. Expands \fB__MAC6__\fR and \fB__MAC12__\fR tokens.
+.TP
+.BI "\-\-bf\-wordlist " FILE
+Custom wordlist file (format: user:pass per line). REPLACES the default wordlist.
+.TP
+.BI "\-\-bf\-cred " USER:PASS
+Add individual credential (repeatable). Tested before wordlist entries.
+.TP
+.B \-\-bf\-no\-variations
+Disable password variation engine (leet, reverse, CamelCase).
+.TP
+.BI "\-\-bf\-delay " SECS
+Delay in seconds between login attempts (default: 0.3).
+.SS Exploit Library
+.TP
+.B \-\-xpl\-list
+List all available exploits in the xpl/ directory.
+.TP
+.BI "\-\-xpl\-source " SOURCE
+Filter exploit list by source: metasploit, exploit-db, research, custom.
+.TP
+.BI "\-\-xpl\-check " EXPLOIT_ID
+Non-destructive vulnerability check for a specific exploit module.
+.TP
+.BI "\-\-xpl\-run " EXPLOIT_ID
+Run a specific exploit (dry-run by default; add \-\-no\-dry to execute).
+.TP
+.B \-\-xpl\-update
+Rebuild xpl/index.json from exploit modules in xpl/ directory.
+.TP
+.BI "\-\-xpl\-fetch " EDB_ID
+Download a raw exploit from ExploitDB by ID.
+.SS Attack Campaign
+.TP
+.B \-\-attack\-matrix
+Run the full BlackHat 2017 attack matrix (dry-run by default).
+.TP
+.B \-\-no\-dry
+Disable dry-run for \-\-attack\-matrix, \-\-xpl\-run, \-\-ipp\-submit, and \-\-firmware\-reset.
+.SS Lateral Movement
+.TP
+.B \-\-pivot
+SSRF audit via IPP/WSD, internal host discovery.
+.TP
+.BI "\-\-pivot\-scan " INTERNAL_HOST
+Port-scan INTERNAL_HOST via printer SSRF.
+.TP
+.B \-\-network\-map
+Full network map from the printer's perspective.
+.TP
+.BI "\-\-implant " KEY=VALUE
+Persistent configuration implant (smtp_host, dns, snmp_community, etc).
+.SS Storage & Firmware
+.TP
+.B \-\-storage
+Storage audit: FTP, web file manager, SNMP MIB dump, saved print jobs.
+.TP
+.B \-\-firmware
+Firmware audit: version extraction, upload endpoint, NVRAM probe.
+.TP
+.BI "\-\-firmware\-reset " METHOD
+Attempt factory reset via: pjl, web, or ipp. DANGEROUS — authorized labs only.
+.SS IPP & Send Job
+.TP
+.B \-\-ipp
+Full IPP security audit.
+.TP
+.B \-\-ipp\-submit
+Submit anonymous IPP print job (dry-run by default).
+.TP
+.BI "\-\-send\-job " FILE
+Send a file to the printer. Supported formats: .ps .pcl .pdf .txt .png .jpg and raw.
+.TP
+.BI "\-\-send\-proto " PROTO
+Protocol for send-job: raw (9100), ipp (631), lpd (515). Default: raw.
+.TP
+.BI "\-\-send\-copies " N
+Number of copies to print (default: 1).
+.TP
+.BI "\-\-send\-queue " QUEUE
+LPD queue name for \-\-send\-job with \-\-send\-proto lpd (default: lp).
+.SS Cross-Site Printing
+.TP
+.BI "\-\-xsp " ATTACK_TYPE
+Generate Cross-Site Printing payload. Types: info, capture, dos, nvram, exfil.
+.TP
+.BI "\-\-xsp\-callback " URL
+Attacker callback URL for \-\-xsp exfil payloads.
+.SS Payload Injection
+.TP
+.BI "\-\-payload " LANG:TYPE
+Inject a language-specific payload: pjl:reset, pjl:offline, ps:loop, ps:info, escpr:info.
+.TP
+.BI "\-\-payload\-data " STRING
+Custom payload string for \-\-payload LANG:custom.
+.SS Configuration
+.TP
+.B \-\-check\-config
+Show which API features are configured and exit.
+.SH WORDLIST FORMAT
+Wordlists use one \fIuser\fR:\fIpass\fR pair per line.
+Lines starting with \fB#\fR are comments.
+Vendor sections are declared with \fB# ── VendorName ──\fR headers.
+.PP
+Dynamic tokens expanded at runtime:
+.RS
+.TP
+.B __SERIAL__
+Replaced by the value of \-\-bf\-serial.
+.TP
+.B __MAC6__
+Replaced by the last 6 hex characters of \-\-bf\-mac (no separators).
+.TP
+.B __MAC12__
+Replaced by the full 12-character MAC without separators.
+.RE
+.PP
+Default wordlist location: \fB/usr/share/printer-reaper/wordlists/printer_default_creds.txt\fR
+(or \fBwordlists/printer_default_creds.txt\fR relative to the working directory).
+.SH EXAMPLES
+.TP
+Discover printers on the local network:
+.B printer\-reaper \-\-discover\-local
+.TP
+Passive fingerprint + CVE scan:
+.B printer\-reaper 192.168.1.100 \-\-scan
+.TP
+Open PJL interactive shell:
+.B printer\-reaper 192.168.1.100 pjl
+.TP
+Brute-force Epson with serial number:
+.B printer\-reaper 192.168.1.100 \-\-bruteforce \-\-bf\-vendor epson \-\-bf\-serial XAABT77481
+.TP
+Run full attack matrix (dry-run):
+.B printer\-reaper 192.168.1.100 \-\-attack\-matrix
+.TP
+List all exploit modules:
+.B printer\-reaper 192.168.1.100 \-\-xpl\-list
+.TP
+Check and run an exploit:
+.B printer\-reaper 192.168.1.100 \-\-xpl\-check edb-35151
+.br
+.B printer\-reaper 192.168.1.100 \-\-xpl\-run edb-35151 \-\-no\-dry
+.TP
+Scan and immediately auto-match exploits:
+.B printer\-reaper 192.168.1.100 \-\-scan \-\-xpl
+.TP
+Map internal network from printer's perspective:
+.B printer\-reaper 192.168.1.100 \-\-network\-map
+.TP
+Non-interactive batch mode:
+.B printer\-reaper 192.168.1.100 pjl \-i commands.txt \-o session.log \-q
+.SH FILES
+.TP
+.I /usr/share/printer-reaper/wordlists/printer_default_creds.txt
+Default credential wordlist (195+ entries, vendor-sectioned).
+.TP
+.I /usr/share/printer-reaper/wordlists/snmp_communities.txt
+SNMP community strings wordlist.
+.TP
+.I /usr/share/printer-reaper/wordlists/ftp_creds.txt
+FTP credentials wordlist.
+.TP
+.I /usr/share/printer-reaper/config.json.example
+Example API keys configuration file. Copy to config.json.
+.TP
+.I /usr/share/printer-reaper/xpl/
+Exploit library directory (39+ modules).
+.SH LEGAL
+This tool is provided for \fBauthorized security research and penetration testing only\fR.
+Using printer\-reaper against systems without explicit written authorization is illegal.
+The author accepts no liability for misuse or damage caused by this software.
+.SH AUTHOR
+Andre Henrique (@mrhenrike)
+.br
+GitHub: https://github.com/mrhenrike
+.br
+LinkedIn: https://linkedin.com/in/mrhenrike
+.br
+X/Twitter: https://x.com/mrhenrike
+.SH SEE ALSO
+.BR nmap (1),
+.BR snmpwalk (1),
+.BR snmpget (1),
+.BR hydra (1)
+.PP
+Project home: https://github.com/mrhenrike/PrinterReaper
+.br
+Wiki: https://github.com/mrhenrike/PrinterReaper/wiki
+.br
+BlackHat 2017 paper: https://www.blackhat.com/docs/us-17/thursday/us-17-Mueller-Exploiting-Network-Printers.pdf

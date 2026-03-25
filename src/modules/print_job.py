@@ -213,7 +213,8 @@ def _probe_ipp(host: str, port: int = 631, timeout: float = 6.0) -> Tuple[bool, 
         """Build a Get-Printer-Attributes request with no document payload."""
         def _s(name: str, value: str, tag: int = 0x44) -> bytes:
             nb = name.encode(); vb = value.encode()
-            return struct.pack('>BHH', tag, len(nb), len(nb)) + nb + struct.pack('>H', len(vb)) + vb
+            return (bytes([tag]) + struct.pack('>H', len(nb)) + nb +
+                    struct.pack('>H', len(vb)) + vb)
         uri   = f'ipp://{host}:{port}/ipp/print'
         attrs = b'\x01'
         attrs += _s('attributes-charset', 'utf-8', 0x47)
@@ -410,11 +411,96 @@ def _text_to_escp(text: str, copies: int = 1) -> bytes:
     return bytes(buf)
 
 
+def _image_to_pwg_raster(img: object, dpi: int = 150, color: bool = True) -> bytes:
+    """
+    Convert a PIL Image to PWG Raster (image/pwg-raster, RaS3 sync word).
+
+    PWG Raster is the AirPrint/Mopria native format accepted by Epson
+    L-series inkjets via IPP/IPPS.  Field offsets follow cups_page_header2_t
+    (CUPS 2.x source: cups/raster.h).
+
+    Args:
+        img:   PIL Image object.
+        dpi:   Output resolution (150 is sufficient for inkjets).
+        color: True → srgb_8 (24-bit), False → sgray_8 (8-bit grayscale).
+    """
+    try:
+        from PIL import Image as _PIL  # type: ignore
+    except ImportError:
+        return b''
+
+    if color:
+        img = img.convert('RGB')  # type: ignore[union-attr]
+        cs, bpc, bpp, nc = 19, 8, 24, 3   # sRGB
+    else:
+        img = img.convert('L')    # type: ignore[union-attr]
+        cs, bpc, bpp, nc = 18, 8, 8, 1    # sGray
+
+    pw = int(8.27  * dpi)
+    ph = int(11.69 * dpi)
+    ratio = pw / img.width       # type: ignore[union-attr]
+    new_h = min(int(img.height * ratio), ph)  # type: ignore[union-attr]
+    img   = img.resize((pw, new_h), resample=3)  # type: ignore[union-attr]
+    W, H  = img.size             # type: ignore[union-attr]
+    bpl   = W * (bpp // 8)
+
+    hdr = bytearray(1796)
+
+    def _u32(off: int, v: int) -> None:
+        struct.pack_into('>I', hdr, off, v)
+
+    def _f32(off: int, v: float) -> None:
+        struct.pack_into('>f', hdr, off, v)
+
+    def _stn(off: int, s: str, ln: int = 64) -> None:
+        b = s.encode('ascii')[:ln - 1]
+        hdr[off:off + len(b)] = b
+        hdr[off + len(b)] = 0
+
+    # String fields (4 × 64 B = offsets 0-255)
+    _stn(0,   'PwgRaster')   # MediaClass — REQUIRED for PWG Raster (RaS3)
+    _stn(64,  '')
+    _stn(128, 'Plain')
+    _stn(192, '')             # OutputType — must be empty
+
+    # uint32 / float fields (offsets 256+)
+    for off in range(256, 276, 4):
+        _u32(off, 0)
+    _u32(276, dpi); _u32(280, dpi)                    # HWResolution x, y
+    _u32(284, 0); _u32(288, 0); _u32(292, 595); _u32(296, 842)  # ImagingBBox
+    for off in range(300, 340, 4):
+        _u32(off, 0)
+    _u32(340, 1)               # NumCopies
+    _u32(344, 0)               # Orientation (portrait)
+    _u32(348, 0)               # OutputFaceUp
+    _u32(352, 595); _u32(356, 842)   # PageSize A4 in pts (1 pt = 1/72 in)
+    for off in range(360, 372, 4):
+        _u32(off, 0)
+    _u32(372, W);  _u32(376, H)       # cupsWidth, cupsHeight (pixels)
+    _u32(380, 0)
+    _u32(384, bpc); _u32(388, bpp); _u32(392, bpl)
+    _u32(396, 0)               # cupsColorOrder (chunked)
+    _u32(400, cs)              # cupsColorSpace (18=sGray, 19=sRGB)
+    _u32(404, 0)               # cupsCompression (raw, uncompressed)
+    for off in range(408, 420, 4):
+        _u32(off, 0)
+    _u32(420, nc)              # cupsNumColors
+    _f32(424, 0.0)
+    _f32(428, 595.28); _f32(432, 841.89)   # cupsPageSize (pts, float)
+    _f32(436, 0.0); _f32(440, 0.0)
+    _f32(444, 595.28); _f32(448, 841.89)   # cupsImagingBBox
+    _stn(1732, 'iso_a4_210x297mm')         # cupsPageSizeName
+
+    raster = img.tobytes()  # type: ignore[union-attr]
+    return b'RaS\x03' + bytes(hdr) + raster
+
+
 def _image_to_escp_bitmap(img: object) -> bytes:  # img: PIL.Image.Image
     """
     Convert a PIL Image to ESC/P 24-pin bitmap stream (ESC * mode 39).
-    Scales to printable width, dithers to 1-bit, encodes band-by-band.
-    Compatible with Epson inkjets via LPD passthrough (ESC/P native mode).
+    NOTE: This is a dot-matrix / legacy format — NOT suitable for Epson
+    inkjet printers (L-series, EcoTank).  Use _image_to_pwg_raster() for
+    inkjets when printing via IPP/IPPS.
     """
     ESC = b'\x1b'
 
@@ -523,12 +609,14 @@ def _convert_to_ps(path: str) -> Optional[bytes]:
 
 
 def _prepare_payload(path: str, copies: int = 1,
-                     prefer_escp: bool = False) -> Tuple[bytes, str]:
+                     prefer_escp: bool = False,
+                     prefer_pwg:  bool = False) -> Tuple[bytes, str]:
     """
     Prepare the print payload and return (data, description).
 
     Args:
         prefer_escp: When True, prefer ESC/P over JPEG/PS (use for LPD → Epson inkjets).
+        prefer_pwg:  When True, generate PWG Raster for images (use for IPP → Epson inkjets).
     """
     fmt      = _detect_format(path)
     raw_data = Path(path).read_bytes()
@@ -553,19 +641,39 @@ def _prepare_payload(path: str, copies: int = 1,
         return data, 'ESC/P (Epson native text mode)'
 
     if fmt in ('pdf', 'image', 'word'):
-        # 1. Try Ghostscript/LibreOffice → PostScript
+        # 1. PWG Raster (AirPrint/Mopria native) for IPP to Epson inkjets
+        if prefer_pwg:
+            try:
+                from PIL import Image as _PIL  # type: ignore
+                img  = _PIL.open(path) if fmt == 'image' else None
+                if img is None:
+                    raise ValueError("Not a direct image — needs conversion")
+                pwg = _image_to_pwg_raster(img, dpi=150, color=True)
+                if pwg:
+                    return pwg, 'PWG Raster srgb_8 @ 150 DPI (AirPrint/Mopria)'
+            except Exception as exc:
+                _log.debug("PWG Raster conversion failed: %s", exc)
+
+        # 2. Try Ghostscript/LibreOffice → PostScript
         ps = _convert_to_ps(path)
         if ps:
             return ps, 'PostScript (converted)'
-        # 2. ESC/P bitmap via Pillow (inkjet-safe)
-        try:
-            from PIL import Image as _PIL  # type: ignore
-            img  = _PIL.open(path)
-            data = _image_to_escp_bitmap(img)
-            return data, 'ESC/P bitmap via Pillow'
-        except ImportError:
-            pass
-        # 3. Raw bytes (IPP may auto-handle JPEG/PNG)
+
+        # 3. ESC/P bitmap via Pillow — images only (LPD passthrough, NOT for inkjet IPP)
+        if prefer_escp and fmt == 'image':
+            try:
+                from PIL import Image as _PIL  # type: ignore
+                img  = _PIL.open(path)
+                data = _image_to_escp_bitmap(img)
+                return data, 'ESC/P bitmap via Pillow (LPD passthrough)'
+            except (ImportError, Exception):
+                pass
+
+        # 4. For PDF/Word: send raw bytes (some printers parse natively)
+        if fmt in ('pdf', 'word'):
+            return raw_data, f'{fmt.upper()} (raw bytes — use OS driver for reliable printing)'
+
+        # 5. Raw image bytes
         _log.warning("No conversion available for '%s'; sending raw bytes", fmt)
         return raw_data, f'raw {fmt} bytes (no conversion tools found)'
 
@@ -631,18 +739,30 @@ def send_ipp(host: str, port: int, data: bytes,
     mime = doc_format or _detect_mime(data)
 
     def _s(name: str, value: str, tag: int = 0x44) -> bytes:
+        """Encode one IPP attribute per RFC 8011 §3.1.5 (tag + name-len + name + val-len + val)."""
         nb = name.encode(); vb = value.encode()
-        return struct.pack('>BHH', tag, len(nb), len(nb)) + nb + struct.pack('>H', len(vb)) + vb
+        return (bytes([tag]) + struct.pack('>H', len(nb)) + nb +
+                struct.pack('>H', len(vb)) + vb)
 
-    scheme      = 'ipps' if use_tls else 'ipp'
-    printer_uri = f'{scheme}://{host}:{port}/ipp/print'
+    def _si(name: str, value: int, tag: int = 0x21) -> bytes:
+        """Encode one IPP integer attribute."""
+        nb = name.encode()
+        return (bytes([tag]) + struct.pack('>H', len(nb)) + nb +
+                struct.pack('>Hi', 4, value))
+
+    # Epson firmware requires ipp:// URI even over TLS connections
+    printer_uri = f'ipp://{host}:{port}/ipp/print'
     ipp_attrs   = b'\x01'
     ipp_attrs  += _s('attributes-charset',          'utf-8', 0x47)
-    ipp_attrs  += _s('attributes-natural-language', 'en-us', 0x48)
+    ipp_attrs  += _s('attributes-natural-language', 'en',    0x48)
     ipp_attrs  += _s('printer-uri',                 printer_uri, 0x45)
     ipp_attrs  += _s('requesting-user-name',        'printerreaper', 0x42)
     ipp_attrs  += _s('job-name',                    job_name, 0x42)
     ipp_attrs  += _s('document-format',             mime, 0x49)
+    ipp_attrs  += b'\x02'
+    ipp_attrs  += _s('media',                       'iso_a4_210x297mm', 0x44)
+    ipp_attrs  += _si('copies',                     1)
+    ipp_attrs  += _si('print-quality',              4)
     ipp_attrs  += b'\x03'
 
     ipp_req = struct.pack('>BBHI', 1, 1, 0x0002, 1) + ipp_attrs + data
@@ -764,27 +884,43 @@ def send_ipp(host: str, port: int, data: bytes,
 
 def _classify_ipp_error(status: int, mime: str) -> str:
     """Return an operator-friendly hint for a given IPP error status."""
+    install_hint = (
+        "Como alternativa, instale a impressora no SO com --install-printer "
+        "e tente imprimir normalmente pelo driver do sistema operacional."
+    )
     if status == _IPP_FORMAT_NOT_SUPPORTED:
         return (
-            f"Printer does not accept '{mime}' via IPP. "
-            "Try --send-proto lpd (LPD/ESC-P) or install the printer driver "
-            "with --install-printer and print through the OS."
+            f"A impressora não aceita o formato '{mime}' via IPP. "
+            f"Tente --send-proto lpd (LPD/ESC-P) ou: {install_hint}"
+        )
+    if status == 0x0400:   # client-error-bad-request
+        return (
+            "Requisição IPP rejeitada pela impressora (Bad Request). "
+            "A impressora pode estar ocupada ou o formato de dados é incompatível. "
+            f"{install_hint}"
         )
     if status == _IPP_STATUS_BUSY:
         return (
-            "Printer is busy processing another job. "
-            "Wait for it to finish (check front-panel LED) and retry."
+            "A impressora está ocupada processando outro job. "
+            "Aguarde o LED do painel frontal apagar e tente novamente. "
+            f"{install_hint}"
         )
     if status in (_IPP_NOT_AUTHORIZED, 0x0402):
         return (
-            "Printer requires authentication for IPP printing — hardened configuration. "
-            "Use --install-printer to add it as a local OS printer and print normally."
+            "A impressora exige autenticação para impressão via IPP (configuração reforçada). "
+            f"{install_hint}"
         )
     if status == _IPP_DEVICE_ERROR:
-        return "Printer hardware error — check paper, ink, and cover."
+        return "Erro de hardware na impressora — verifique papel, tinta e tampa."
     if status == _IPP_OP_NOT_SUPPORTED:
-        return "Printer does not support IPP Print-Job operations."
-    return f"Check printer status (IPP 0x{status:04X}). Use --install-printer as alternative."
+        return (
+            "A impressora não suporta operação IPP Print-Job via rede. "
+            f"{install_hint}"
+        )
+    return (
+        f"Verifique o status da impressora (IPP 0x{status:04X}). "
+        f"{install_hint}"
+    )
 
 
 def send_lpd(host: str, port: int, data: bytes,
@@ -851,6 +987,127 @@ def send_lpd(host: str, port: int, data: bytes,
         )
 
 
+def send_os_print(path: str, printer_name: str = '',
+                  timeout: float = 30.0) -> PrintJobResult:
+    """
+    Print a file via the locally installed OS printer (Windows/Linux/macOS).
+
+    On Windows: uses PowerShell Start-Process with -Verb PrintTo.
+    On Linux/macOS: uses lpr command.
+
+    Args:
+        path:         File to print.
+        printer_name: OS printer name. Empty → system default.
+        timeout:      Wait timeout in seconds.
+    """
+    import platform
+    t0 = time.time()
+    p  = Path(path)
+    if not p.exists():
+        return PrintJobResult(
+            success=False, protocol='os', host='localhost', port=0,
+            file_path=path, file_size=0,
+            error=f'File not found: {path}',
+        )
+
+    os_name = platform.system()
+
+    try:
+        if os_name == 'Windows':
+            # Choose the best print method based on file type
+            suffix = p.suffix.lower()
+            img_exts = {'.jpg', '.jpeg', '.png', '.bmp', '.gif', '.tiff', '.tif', '.webp'}
+
+            if suffix in img_exts:
+                # Images: use mspaint /pt which works for common image formats
+                mspaint = shutil.which('mspaint') or 'mspaint'
+                args_list = [mspaint, '/pt', str(p.resolve())]
+                if printer_name:
+                    args_list.append(printer_name)
+                r = subprocess.run(args_list, capture_output=True, timeout=timeout)
+            elif suffix == '.txt':
+                # Plain text: use notepad /pt
+                notepad = shutil.which('notepad') or 'notepad'
+                args_list = [notepad, '/pt', str(p.resolve())]
+                if printer_name:
+                    args_list += [printer_name, printer_name, '']
+                r = subprocess.run(args_list, capture_output=True, timeout=timeout)
+            else:
+                # PDF and others: try -Verb PrintTo via PowerShell
+                pname_esc = printer_name.replace('"', '\\"')
+                ps_cmd = (
+                    f'Start-Process -FilePath "{p.resolve()}" -Verb PrintTo '
+                    + (f'-ArgumentList "{pname_esc}"' if printer_name else '')
+                    + ' -Wait -ErrorAction Stop'
+                )
+                r = subprocess.run(
+                    ['powershell', '-NoProfile', '-NonInteractive',
+                     '-ExecutionPolicy', 'Bypass', '-Command', ps_cmd],
+                    capture_output=True, timeout=timeout,
+                )
+
+            success = r.returncode == 0
+            stderr  = r.stderr.decode('utf-8', errors='replace').strip()
+            if not success:
+                return PrintJobResult(
+                    success=False, protocol='os', host='localhost', port=0,
+                    file_path=path, file_size=p.stat().st_size,
+                    elapsed_ms=(time.time() - t0) * 1000,
+                    error=f'OS print failed (rc={r.returncode}): {stderr}',
+                    hint=('Verifique se a impressora está instalada em Configurações → '
+                          'Impressoras. Execute --install-printer para adicioná-la.'),
+                )
+        else:
+            lpr = shutil.which('lpr') or shutil.which('lp')
+            if not lpr:
+                return PrintJobResult(
+                    success=False, protocol='os', host='localhost', port=0,
+                    file_path=path, file_size=p.stat().st_size,
+                    error='lpr/lp not found — CUPS not installed',
+                    hint='Install CUPS: sudo apt install cups  (Debian/Ubuntu) '
+                         'or brew install cups  (macOS)',
+                )
+            cmd = [lpr]
+            if printer_name:
+                cmd += ['-P', printer_name]
+            cmd.append(str(p.resolve()))
+            r = subprocess.run(cmd, capture_output=True, timeout=timeout)
+            success = r.returncode == 0
+            stderr  = r.stderr.decode('utf-8', errors='replace').strip()
+            if not success:
+                return PrintJobResult(
+                    success=False, protocol='os', host='localhost', port=0,
+                    file_path=path, file_size=p.stat().st_size,
+                    elapsed_ms=(time.time() - t0) * 1000,
+                    error=f'lpr failed (rc={r.returncode}): {stderr}',
+                    hint=('Check that the printer is configured in CUPS. '
+                          'Run --install-printer to add it.'),
+                )
+
+        return PrintJobResult(
+            success=True, protocol='os', host='localhost', port=0,
+            file_path=path, file_size=p.stat().st_size,
+            elapsed_ms=(time.time() - t0) * 1000,
+            message=(f'File sent to OS printer '
+                     f'"{printer_name or "default"}" via {os_name} spooler'),
+        )
+    except subprocess.TimeoutExpired:
+        return PrintJobResult(
+            success=False, protocol='os', host='localhost', port=0,
+            file_path=path, file_size=p.stat().st_size,
+            elapsed_ms=(time.time() - t0) * 1000,
+            error='OS print command timed out',
+            hint='Printer may be offline or unresponsive.',
+        )
+    except OSError as exc:
+        return PrintJobResult(
+            success=False, protocol='os', host='localhost', port=0,
+            file_path=path, file_size=p.stat().st_size,
+            elapsed_ms=(time.time() - t0) * 1000,
+            error=str(exc),
+        )
+
+
 # ── Public API ────────────────────────────────────────────────────────────────
 
 def send_print_job(
@@ -906,10 +1163,15 @@ def send_print_job(
     actual_port    = port or default_ports.get(proto, 9100)
     use_tls        = bool(caps and caps.ipp_requires_tls) if proto == 'ipp' else False
 
-    # Prepare payload — prefer ESC/P when sending via LPD to Epson inkjets
+    # Prepare payload
     prefer_escp = (proto == 'lpd')
+    prefer_pwg  = (proto == 'ipp')   # IPP to Epson inkjets → PWG Raster
     try:
-        payload, fmt_desc = _prepare_payload(str(p), copies=copies, prefer_escp=prefer_escp)
+        payload, fmt_desc = _prepare_payload(
+            str(p), copies=copies,
+            prefer_escp=prefer_escp,
+            prefer_pwg=prefer_pwg,
+        )
     except Exception as exc:
         return PrintJobResult(
             success=False, protocol=proto, host=host, port=actual_port,
@@ -924,6 +1186,7 @@ def send_print_job(
     result: PrintJobResult
     if proto == 'raw':
         result = send_raw(host, actual_port, payload, timeout=timeout)
+
     elif proto == 'ipp':
         mime = _detect_mime(payload)
         result = send_ipp(
@@ -933,18 +1196,36 @@ def send_print_job(
             use_tls    = use_tls,
             timeout    = timeout,
         )
-        # If IPP fails due to format rejection, fall back to LPD if available
+        # Fallback 1: LPD (ESC/P) if available
         if not result.success and caps and caps.lpd_available:
             _log.info("IPP rejected — falling back to LPD with ESC/P")
-            escp_payload, escp_desc = _prepare_payload(str(p), copies=copies, prefer_escp=True)
+            escp_payload, escp_desc = _prepare_payload(
+                str(p), copies=copies, prefer_escp=True)
             lpd_result = send_lpd(host, 515, escp_payload, queue=queue,
                                   job_name=p.stem, timeout=timeout)
             if lpd_result.success:
                 lpd_result.message = f"[IPP failed → LPD fallback] {lpd_result.message}"
                 result = lpd_result
+
+        # Annotate failure with OS install suggestion
+        if not result.success:
+            _log.info("All network protocols failed for %s — OS printing may work", path)
+            if not result.hint:
+                result.hint = (
+                    "Não foi possível imprimir via protocolos de rede (IPP/LPD). "
+                    "Tente instalar a impressora no SO com --install-printer e "
+                    "imprimir normalmente pelo spooler do sistema operacional."
+                )
+
     elif proto == 'lpd':
         result = send_lpd(host, actual_port, payload, queue=queue,
                           job_name=p.stem, timeout=timeout)
+        if not result.success and not result.hint:
+            result.hint = (
+                "Falha no envio via LPD. Se a impressora estiver instalada "
+                "localmente via driver do SO, tente imprimir normalmente. "
+                "Caso contrário, use --install-printer."
+            )
     else:
         return PrintJobResult(
             success=False, protocol=proto, host=host, port=actual_port,

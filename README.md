@@ -634,6 +634,30 @@ All flow diagrams are editable in [diagrams.net / draw.io](https://app.diagrams.
 
 ---
 
+## OS Packaging (3 caminhos + pipx)
+
+Todo o empacotamento operacional foi centralizado em `packages/`:
+
+| Path | Objetivo | Arquivo principal |
+|------|----------|-------------------|
+| `packages/01-pypi/` | Wheel/sdist + publicação PyPI | `build.sh` / `build.ps1` |
+| `packages/02-deb/` | Pacote `.deb` (Debian/Ubuntu/Kali) | `prepare.sh` + `build.sh` |
+| `packages/03-rpm/` | Pacote `.rpm` (RHEL/Fedora/Rocky) | `build.sh` + `printer-reaper.spec` |
+| `packages/04-pipx/` | Instalação isolada via `pipx` | `validate.sh` / `validate.ps1` |
+
+Fluxo recomendado:
+
+```bash
+./packages/01-pypi/build.sh
+./packages/02-deb/prepare.sh && ./packages/02-deb/build.sh
+./packages/03-rpm/build.sh
+./packages/04-pipx/validate.sh
+```
+
+Guia central: `packages/README.md`
+
+---
+
 ## Version History
 
 | Version | Date | Highlights |

@@ -2,6 +2,46 @@
 
 ---
 
+## Entry Point + GitHub Wiki — v3.7.0
+
+**Data:** 2026-03-25
+**Status:** COMPLETO
+
+### Entry point atualizado
+
+- `printer-reaper.py` reescrito como entry point limpo e definitivo para v3.7.0
+- Usa `os.path.abspath(__file__)` para localizar `src/` independente do CWD
+- Trata `KeyboardInterrupt` e `ImportError` com mensagens claras
+- Docstring com exemplos de uso direto no arquivo
+- Verificado: `python printer-reaper.py --version` → `printerreaper Version 3.7.0 (2026-03-25)`
+
+### GitHub Wiki criada e publicada
+
+Repositório: `https://github.com/mrhenrike/PrinterReaper/wiki`
+
+| Página | Conteúdo |
+|--------|----------|
+| Home | Índice da wiki, quick reference |
+| Installation | Requisitos, venv, Windows/Linux/macOS/Termux |
+| Quick Start | 5 passos para o primeiro scan |
+| Discovery | `--discover-local`, Shodan/Censys, WSD |
+| Reconnaissance | `--scan`, `--scan-ml`, `--no-nvd`, auto-exploit matching |
+| Interactive Shell | PJL (60+ comandos), PS (20+ comandos), PCL, batch mode |
+| Brute Force | Todas as flags `--bf-*`, wordlists, tokens, variações, protocolos |
+| Exploit Library | `--xpl-*`, catálogo completo, como escrever módulo custom |
+| Attack Matrix | `--attack-matrix`, todas as categorias BlackHat 2017 + CVEs 2024-2025 |
+| Lateral Movement | SSRF pivot, `--network-map`, LDAP hash capture, SMB hash capture |
+| Storage & Firmware | `--storage`, `--firmware`, `--firmware-reset`, `--implant` |
+| Cross-Site Printing | XSP tipos (info/capture/dos/nvram/exfil), CORS spoofing, deployment |
+| Send Job | `--send-job`, protocolos, formatos, copias, queue LPD |
+| Wordlists | Formato, seções de vendor, tokens dinâmicos, wordlists customizadas |
+| Configuration | `config.json`, todas as keys, field reference |
+| Supported Vendors | 15 vendors com creds padrão, protocolos, CVEs, exploits |
+
+**Push realizado:** `afc36d7..fb02d5c master -> master` (wiki repo)
+
+---
+
 ## README + Diagramas SVG originais
 
 **Data:** 2026-03-25

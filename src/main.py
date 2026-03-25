@@ -168,10 +168,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--discover-online",
         action="store_true",
         help=(
-            "Run online discovery via Shodan/Censys using structured dorks. "
-            "Requires at least one --dork-* filter OR a direct target IP. "
-            "Printer context is always implicit — no need to specify 'printer'. "
-            "Requires API keys in config.json."
+            "Run online discovery across search engines (Shodan, Censys, FOFA, ZoomEye, Netlas). "
+            "Use --shodan / --censys / --fofa / --zoomeye / --netlas to select engines, "
+            "or --dork-engine A,B for multiple. Default: all engines with configured API keys. "
+            "Requires at least one --dork-* filter. "
+            "Printer context is always implicit — no need to specify 'printer'."
         ),
     )
     # Dork filters for --discover-online
@@ -262,15 +263,51 @@ def build_parser() -> argparse.ArgumentParser:
         default=100,
         help="Maximum results per query (default: 100).",
     )
+    # ── Per-engine shortcut flags (use one or more together) ──────────────────
+    _dork_group.add_argument(
+        "--shodan",
+        action="store_true",
+        dest="engine_shodan",
+        default=False,
+        help="Use Shodan for this discovery run (requires shodan.api_key in config.json).",
+    )
+    _dork_group.add_argument(
+        "--censys",
+        action="store_true",
+        dest="engine_censys",
+        default=False,
+        help="Use Censys for this discovery run (requires censys credentials in config.json).",
+    )
+    _dork_group.add_argument(
+        "--fofa",
+        action="store_true",
+        dest="engine_fofa",
+        default=False,
+        help="Use FOFA for this discovery run (requires fofa.email + fofa.api_key in config.json).",
+    )
+    _dork_group.add_argument(
+        "--zoomeye",
+        action="store_true",
+        dest="engine_zoomeye",
+        default=False,
+        help="Use ZoomEye for this discovery run (requires zoomeye.api_key in config.json).",
+    )
+    _dork_group.add_argument(
+        "--netlas",
+        action="store_true",
+        dest="engine_netlas",
+        default=False,
+        help="Use Netlas for this discovery run (requires netlas.api_key in config.json).",
+    )
     _dork_group.add_argument(
         "--dork-engine",
-        metavar="ENGINE[,ENGINE]",
+        metavar="ENGINE,ENGINE",
         default=None,
         help=(
-            "Comma-separated list of search engines to use. "
+            "Comma-separated engine list when you want several at once without individual flags. "
             "Choices: shodan, censys, fofa, zoomeye, netlas. "
-            "Default: all engines with configured API keys. "
-            "Example: --dork-engine shodan,fofa,netlas"
+            "Example: --dork-engine shodan,fofa,netlas  "
+            "(Individual flags --shodan --fofa etc. are the preferred shorthand.)"
         ),
     )
     # Reconnaissance / scanning
@@ -1475,21 +1512,30 @@ def main() -> None:
                 )
                 sys.exit(1)
 
-            # Parse --dork-engine whitelist
-            _engine_arg = getattr(args, 'dork_engine', None)
-            _engines    = [e.strip().lower() for e in _engine_arg.split(',') if e.strip()] \
-                          if _engine_arg else None
-
-            # Validate engine names
+            # ── Resolve engine whitelist ──────────────────────────────────────
+            # Priority: individual flags (--shodan, --fofa …) > --dork-engine > all configured
             _VALID_ENGINES = {'shodan', 'censys', 'fofa', 'zoomeye', 'netlas'}
-            if _engines:
-                _bad = [e for e in _engines if e not in _VALID_ENGINES]
+            _flag_engines: list = []
+            for _eng in _VALID_ENGINES:
+                if getattr(args, f'engine_{_eng}', False):
+                    _flag_engines.append(_eng)
+
+            _dork_engine_arg = getattr(args, 'dork_engine', None)
+            _dork_engines: list = []
+            if _dork_engine_arg:
+                _dork_engines = [e.strip().lower() for e in _dork_engine_arg.split(',') if e.strip()]
+                _bad = [e for e in _dork_engines if e not in _VALID_ENGINES]
                 if _bad:
                     output().errmsg(
-                        f"Unknown engine(s): {', '.join(_bad)}\n"
+                        f"Unknown engine(s) in --dork-engine: {', '.join(_bad)}\n"
                         f"Valid choices: {', '.join(sorted(_VALID_ENGINES))}"
                     )
                     sys.exit(1)
+
+            # Merge: individual flags union dork-engine (deduplicated, order preserved)
+            _combined = _flag_engines + [e for e in _dork_engines if e not in _flag_engines]
+            # None = "all configured engines" (decided later inside OnlineDiscoveryManager)
+            _engines = _combined if _combined else None
 
             # Load credentials for all engines
             try:

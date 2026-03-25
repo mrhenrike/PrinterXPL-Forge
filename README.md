@@ -119,7 +119,9 @@ python printer-reaper.py [target] [mode] [options]
 | `python printer-reaper.py 192.168.1.100 --bruteforce --bf-vendor epson` | Credential brute-force |
 | `python printer-reaper.py 192.168.1.100 --auto-exploit` | Auto exploit selection + execution |
 | `python printer-reaper.py 192.168.1.100 --attack-matrix` | Full attack campaign |
-| `python printer-reaper.py --discover-online --dork-vendor hp --dork-country BR` | Dork-based online discovery |
+| `python printer-reaper.py --discover-online --shodan --dork-vendor hp --dork-country BR` | Dork discovery via Shodan only |
+| `python printer-reaper.py --discover-online --fofa --netlas --dork-vendor epson --dork-port 9100` | Dork discovery via FOFA + Netlas |
+| `python printer-reaper.py --discover-online --dork-vendor hp --dork-country BR` | Dork discovery via all configured engines |
 
 ---
 
@@ -198,34 +200,49 @@ python printer-reaper.py --discover-online \
   --dork-port 515
 
 # HP DeskJet Pro 5500 in Brazil — Shodan + FOFA only
-python printer-reaper.py --discover-online \
+python printer-reaper.py --discover-online --shodan --fofa \
   --dork-vendor hp \
   --dork-model "deskjet pro 5500" \
-  --dork-country brazil \
-  --dork-engine shodan,fofa
+  --dork-country brazil
 
-# All printers in São Paulo port 9100 — all engines
+# All printers in São Paulo port 9100 — all configured engines
 python printer-reaper.py --discover-online \
   --dork-country BR \
   --dork-city "Sao Paulo" \
   --dork-port 9100
 
-# Kyocera in Europe, 200 results, Netlas only
-python printer-reaper.py --discover-online \
+# Kyocera in Europe, 200 results — Netlas only
+python printer-reaper.py --discover-online --netlas \
   --dork-vendor kyocera \
   --dork-region europe \
-  --dork-limit 200 \
-  --dork-engine netlas
+  --dork-limit 200
 
-# Multiple vendors and countries, ZoomEye + Shodan
-python printer-reaper.py --discover-online \
+# Multiple vendors and countries — ZoomEye + Shodan
+python printer-reaper.py --discover-online --shodan --zoomeye \
   --dork-vendor hp --dork-vendor canon \
   --dork-country BR --dork-country AR \
-  --dork-port 9100 --dork-port 631 \
-  --dork-engine shodan,zoomeye
+  --dork-port 9100 --dork-port 631
+
+# Three engines at once via --dork-engine (alternative to individual flags)
+python printer-reaper.py --discover-online \
+  --dork-engine shodan,fofa,netlas \
+  --dork-vendor epson --dork-port 9100
 ```
 
-**Dork flags:**
+**Engine selection flags** (only engines with credentials in `config.json` are used):
+
+| Flag | Description |
+|------|-------------|
+| `--shodan` | Use Shodan |
+| `--censys` | Use Censys |
+| `--fofa` | Use FOFA |
+| `--zoomeye` | Use ZoomEye |
+| `--netlas` | Use Netlas |
+| `--dork-engine A,B` | Use multiple engines by name (when `--shodan` etc. feel verbose) |
+
+Omit all engine flags to query **all engines with configured API keys** automatically.
+
+**Dork filter flags:**
 
 | Flag | Repeatable | Description |
 |------|-----------|-------------|
@@ -238,7 +255,6 @@ python printer-reaper.py --discover-online \
 | `--dork-org ORG` | No | Organization/ISP name |
 | `--dork-cpe CPE` | No | CPE filter (Censys/Netlas) |
 | `--dork-limit N` | No | Max results per query (default: 100) |
-| `--dork-engine ENGINE[,ENGINE]` | No | Engines to query: `shodan`, `censys`, `fofa`, `zoomeye`, `netlas`. Default: all configured. |
 
 **Query syntax generated per engine (implicit + your filters):**
 

@@ -107,8 +107,16 @@ KNOWN_DEFAULT_CREDS = [
 
 # ── A. FTP file operations ────────────────────────────────────────────────────
 
+def _ftp_default_port() -> int:
+    try:
+        from utils.ports import PortConfig
+        return PortConfig.resolve('ftp')
+    except Exception:
+        return 21
+
+
 def ftp_list(
-    host: str, port: int = 21, timeout: float = 8,
+    host: str, port: int = 0, timeout: float = 8,
     username: str = 'anonymous', password: str = 'pentest@example.com',
 ) -> Dict:
     """
@@ -117,6 +125,7 @@ def ftp_list(
     Many printers expose FTP with anonymous access or weak credentials.
     Returns dict with files, dirs, writable, and credentials used.
     """
+    port = port or _ftp_default_port()
     result = {
         'host': host, 'port': port,
         'accessible': False, 'writable': False,
@@ -184,7 +193,7 @@ def ftp_download(
     host:      str,
     remote:    str,
     local_dir: str  = '.',
-    port:      int  = 21,
+    port:      int  = 0,
     timeout:   float= 10,
     username:  str  = 'anonymous',
     password:  str  = 'pentest@example.com',
@@ -194,6 +203,7 @@ def ftp_download(
 
     Returns raw bytes or None on failure.
     """
+    port = port or _ftp_default_port()
     try:
         ftp = ftplib.FTP(timeout=timeout)
         ftp.connect(host, port, timeout)
@@ -216,12 +226,13 @@ def ftp_upload(
     host:      str,
     local:     str,
     remote:    str,
-    port:      int  = 21,
+    port:      int  = 0,
     timeout:   float= 10,
     username:  str  = 'anonymous',
     password:  str  = 'pentest@example.com',
 ) -> bool:
     """Upload *local* file to printer via FTP. Returns True on success."""
+    port = port or _ftp_default_port()
     try:
         ftp = ftplib.FTP(timeout=timeout)
         ftp.connect(host, port, timeout)
@@ -363,10 +374,11 @@ def snmp_dump(
         _log.error("pysnmp not installed — SNMP dump unavailable")
         return result
 
+    from utils.ports import PortConfig as _PC
     engine    = SnmpEngine()
     community_obj = CommunityData(community, mpModel=1)   # v2c
     transport = UdpTransportTarget(
-        (host, 161), timeout=timeout, retries=1,
+        (host, _PC.resolve('snmp')), timeout=timeout, retries=1,
     )
     context   = ContextData()
 
@@ -433,11 +445,12 @@ def snmp_write(
         import warnings
         warnings.filterwarnings('ignore', category=RuntimeWarning)
 
+        from utils.ports import PortConfig as _PC
         engine = SnmpEngine()
         for err_ind, err_stat, _, var_binds in setCmd(
             engine,
             CommunityData(community, mpModel=1),
-            UdpTransportTarget((host, 161), timeout=timeout, retries=0),
+            UdpTransportTarget((host, _PC.resolve('snmp')), timeout=timeout, retries=0),
             ContextData(),
             ObjectType(ObjectIdentity(oid), OctetString(value)),
         ):

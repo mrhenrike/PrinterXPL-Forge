@@ -319,8 +319,9 @@ def pjl_network_info(host: str, timeout: float = 10) -> Dict[str, str]:
     cmds.append(b'@PJL INFO NETINFO\r\n')
     cmds.append(UEL)
 
+    from utils.ports import PortConfig as _PC
     try:
-        s = socket.create_connection((host, 9100), timeout=timeout)
+        s = socket.create_connection((host, _PC.resolve('raw')), timeout=timeout)
         s.settimeout(timeout)
         for cmd in cmds:
             s.sendall(cmd)
@@ -639,7 +640,7 @@ def wsd_discover(host: str, timeout: float = 5) -> List[Dict]:
 
 def generate_xsp_payload(
     printer_ip:    str,
-    printer_port:  int  = 9100,
+    printer_port:  int  = 0,
     attack_type:   str  = 'info',
     callback_url:  str  = '',
     exfil_url:     str  = '',
@@ -665,6 +666,9 @@ def generate_xsp_payload(
     Returns:
         dict with 'html', 'javascript', 'postscript', 'pjl' payloads.
     """
+    from utils.ports import PortConfig as _PC
+    if not printer_port:
+        printer_port = _PC.resolve('raw')
     UEL = r'\x1b%-12345X'
 
     # PostScript for CORS spoofing — printer acts as HTTP server

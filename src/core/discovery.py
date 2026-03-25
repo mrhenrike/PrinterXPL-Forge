@@ -232,8 +232,10 @@ def _snmp_get(ip, oid):
     if not cmd:
         return None
     try:
+        from utils.ports import PortConfig as _PC
+        _snmp_port = _PC.resolve('snmp')
         return subprocess.check_output(
-            [cmd, '-v1', '-c', 'public', '-Oqv', '-t', '1', '-r', '1', f'{ip}:161', oid],
+            [cmd, '-v1', '-c', 'public', '-Oqv', '-t', '1', '-r', '1', f'{ip}:{_snmp_port}', oid],
             stderr=subprocess.DEVNULL,
             text=True
         ).strip()

@@ -94,7 +94,7 @@ class PrinterFingerprint:
 
 # ── Port scanner ──────────────────────────────────────────────────────────────
 
-PRINTER_PORTS = {
+_PRINTER_PORT_LABELS = {
     80:   'HTTP',
     443:  'HTTPS',
     515:  'LPD',
@@ -106,13 +106,59 @@ PRINTER_PORTS = {
     3702: 'WSD',
     5357: 'WSD-HTTP',
     9000: 'AltHTTP',
+    23:   'Telnet',
+    21:   'FTP',
 }
 
+# Keep backwards-compat alias
+PRINTER_PORTS = _PRINTER_PORT_LABELS
 
-def scan_ports(host: str, timeout: float = 2.0) -> List[int]:
-    """Return list of open TCP ports from the standard printer port set."""
+
+def _resolved_printer_ports() -> dict:
+    """
+    Return the full set of ports to scan, merging PortConfig overrides and extras
+    with the static defaults.  UDP ports (SNMP/WSD) are excluded — they're probed
+    separately in _grab_snmp / _grab_wsd.
+    """
+    try:
+        from utils.ports import PortConfig
+        ports = dict(_PRINTER_PORT_LABELS)
+        for proto, label in (('raw', 'RAW'), ('ipp', 'IPP'), ('lpd', 'LPD'),
+                              ('http', 'HTTP'), ('https', 'HTTPS'), ('smb', 'SMB'),
+                              ('ftp', 'FTP'), ('telnet', 'Telnet')):
+            resolved = PortConfig.resolve(proto)
+            default  = PortConfig.default(proto)
+            if resolved != default:
+                # Remove old default entry, add override
+                ports.pop(default, None)
+                ports[resolved] = label
+        for ep in PortConfig.extra_scan_ports():
+            ports.setdefault(ep, f'Custom({ep})')
+        return ports
+    except Exception:
+        return dict(_PRINTER_PORT_LABELS)
+
+
+def scan_ports(host: str,
+               timeout: float = 2.0,
+               extra_ports: Optional[List[int]] = None) -> List[int]:
+    """
+    Return list of open TCP ports from the printer port set.
+
+    Merges PortConfig overrides (via _resolved_printer_ports) with any
+    additional ports passed directly in extra_ports.
+
+    Args:
+        host:        Target IP or hostname.
+        timeout:     Per-port connection timeout in seconds.
+        extra_ports: Additional ports to probe beyond the standard set.
+    """
+    ports_to_probe = dict(_resolved_printer_ports())
+    for p in (extra_ports or []):
+        ports_to_probe.setdefault(int(p), f'Custom({p})')
+
     open_ports = []
-    for port in PRINTER_PORTS:
+    for port in ports_to_probe:
         try:
             s = socket.create_connection((host, port), timeout=timeout)
             s.close()
@@ -125,9 +171,10 @@ def scan_ports(host: str, timeout: float = 2.0) -> List[int]:
 # ── Individual protocol grabbers ──────────────────────────────────────────────
 
 def _grab_http(host: str, timeout: float) -> dict:
+    from utils.ports import PortConfig
     result = {}
     for scheme in ('http', 'https'):
-        port = 443 if scheme == 'https' else 80
+        port = PortConfig.resolve(scheme)
         try:
             r = requests.get(
                 f'{scheme}://{host}:{port}/',
@@ -173,12 +220,14 @@ def _grab_ipp(host: str, timeout: float) -> dict:
         body += b'\x03'                          # end-of-attributes
         return body
 
+    from utils.ports import PortConfig
+    _ipp_port = PortConfig.resolve('ipp')
     result = {}
     candidates = [
-        ('http',  631, '/ipp/'),
-        ('http',  631, '/ipp/print'),
-        ('https', 631, '/ipp/print'),
-        ('https', 631, '/ipp/'),
+        ('http',  _ipp_port, '/ipp/'),
+        ('http',  _ipp_port, '/ipp/print'),
+        ('https', _ipp_port, '/ipp/print'),
+        ('https', _ipp_port, '/ipp/'),
     ]
     for scheme, port, path in candidates:
         try:
@@ -243,10 +292,11 @@ def _grab_ipp(host: str, timeout: float) -> dict:
 
 
 def _grab_pjl(host: str, timeout: float) -> dict:
-    """Send PJL INFO ID to port 9100 and capture the response."""
+    """Send PJL INFO ID to the RAW/JetDirect port and capture the response."""
+    from utils.ports import PortConfig
     result = {}
     try:
-        s = socket.create_connection((host, 9100), timeout=timeout)
+        s = socket.create_connection((host, PortConfig.resolve('raw')), timeout=timeout)
         s.settimeout(timeout)
         uel = b'\x1b%-12345X'
         s.sendall(uel + b'@PJL INFO ID\r\n' + uel)
@@ -275,10 +325,11 @@ def _grab_pjl(host: str, timeout: float) -> dict:
 
 
 def _grab_lpd(host: str, timeout: float) -> dict:
-    """Probe LPD port 515 for queue names and capabilities."""
+    """Probe LPD port for queue names and capabilities."""
+    from utils.ports import PortConfig
     result = {}
     try:
-        s = socket.create_connection((host, 515), timeout=timeout)
+        s = socket.create_connection((host, PortConfig.resolve('lpd')), timeout=timeout)
         s.settimeout(timeout)
         # LPD: receive any banner, then request queue status
         s.sendall(b'\x03default\n')   # receive queue state
@@ -350,9 +401,10 @@ def _grab_snmp(host: str, timeout: float) -> dict:
             getCmd, nextCmd, CommunityData, UdpTransportTarget,
             ContextData, ObjectType, ObjectIdentity, SnmpEngine,
         )
+        from utils.ports import PortConfig
         engine    = SnmpEngine()
         community = CommunityData('public', mpModel=0)
-        transport = UdpTransportTarget((host, 161), timeout=timeout, retries=0)
+        transport = UdpTransportTarget((host, PortConfig.resolve('snmp')), timeout=timeout, retries=0)
         context   = ContextData()
 
         oids = {

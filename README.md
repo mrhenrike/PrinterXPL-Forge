@@ -2,7 +2,7 @@
 
 <a href="https://www.uniaogeek.com.br"><img src="img/logotype-uniaogeek-2.png" width="240" alt="União Geek"></a>
 
-# PrinterReaper v3.9.0
+# PrinterReaper v3.10.0
 
 *Advanced Printer Penetration Testing Toolkit*
 
@@ -10,7 +10,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-3.9.0-red)](https://github.com/mrhenrike/PrinterReaper/releases)
+[![Version](https://img.shields.io/badge/Version-3.10.0-red)](https://github.com/mrhenrike/PrinterReaper/releases)
 [![Wiki](https://img.shields.io/badge/Wiki-GitHub-orange)](https://github.com/mrhenrike/PrinterReaper/wiki)
 
 > **"Is your printer safe from the void? Find out before someone else does."**
@@ -120,6 +120,51 @@ python printer-reaper.py [target] [mode] [options]
 | `python printer-reaper.py 192.168.1.100 --auto-exploit` | Auto exploit selection + execution |
 | `python printer-reaper.py 192.168.1.100 --attack-matrix` | Full attack campaign |
 | `python printer-reaper.py --discover-online --dork-vendor hp --dork-country BR` | Dork-based online discovery |
+
+---
+
+## Custom Port Overrides
+
+By default PrinterReaper uses standard printer port numbers for each protocol. When the target printer listens on non-standard ports, override them globally via CLI flags — all modules automatically pick up the new ports:
+
+```bash
+# Printer with RAW on 3910 instead of 9100
+python printer-reaper.py 192.168.1.100 pjl --port-raw 3910
+
+# Full scan on a printer with non-standard ports
+python printer-reaper.py 192.168.1.100 --scan \
+  --port-raw 3910 \
+  --port-ipp 8631 \
+  --port-snmp 1161
+
+# Add extra ports to banner scan sweep
+python printer-reaper.py 192.168.1.100 --scan \
+  --extra-ports 9200 --extra-ports 7100
+
+# Brute-force with custom HTTP and FTP ports
+python printer-reaper.py 192.168.1.100 --bruteforce \
+  --port-http 8080 --port-ftp 2121 --port-telnet 2323
+
+# Attack campaign respects all overrides
+python printer-reaper.py 192.168.1.100 --attack-matrix --port-raw 3910
+```
+
+**Port override flags:**
+
+| Flag | Protocol | Default |
+|------|----------|---------|
+| `--port-raw PORT` | RAW/PJL/JetDirect | 9100 |
+| `--port-ipp PORT` | IPP | 631 |
+| `--port-lpd PORT` | LPD/LPR | 515 |
+| `--port-snmp PORT` | SNMP | 161 |
+| `--port-ftp PORT` | FTP management | 21 |
+| `--port-http PORT` | HTTP (EWS) | 80 |
+| `--port-https PORT` | HTTPS (EWS) | 443 |
+| `--port-smb PORT` | SMB/CIFS | 445 |
+| `--port-telnet PORT` | Telnet management | 23 |
+| `--extra-ports PORT` | Extra scan port (repeatable) | — |
+
+Overrides are applied globally at startup — every module (banner scan, PJL, firmware, SNMP, FTP, brute-force, attack orchestrator, XSP payload) reads from `PortConfig` instead of using hardcoded constants.
 
 ---
 
@@ -582,7 +627,8 @@ All flow diagrams are editable in [diagrams.net / draw.io](https://app.diagrams.
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| **3.9.0** | 2026-03-25 | 5-engine dork discovery (Shodan, Censys, FOFA, ZoomEye, Netlas), `--dork-engine` selector, per-engine query syntax, zero-filter enforcement |
+| **3.10.0** | 2026-03-25 | Custom port overrides for every protocol (`--port-raw`, `--port-ipp`, `--port-snmp`, ...), `PortConfig` central resolver, `--extra-ports` scan flag |
+| 3.9.0 | 2026-03-25 | 5-engine dork discovery (Shodan, Censys, FOFA, ZoomEye, Netlas), `--dork-engine` selector, per-engine query syntax, zero-filter enforcement |
 | 3.8.0 | 2026-03-25 | Structured dork discovery (Shodan/Censys), `--auto-exploit` pipeline, `DiscoveryParams`, `DorkQueryBuilder`, `auto_exploit()` |
 | 3.7.0 | 2026-03-25 | Zero hardcoded creds, wordlist engine, draw.io diagrams, PNG assets |
 | 3.6.2 | 2026-03-25 | LDAP hash capture, CVE-2024-51978, 5 new vendors |

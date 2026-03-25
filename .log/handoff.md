@@ -857,3 +857,60 @@ Ver handoff anterior para histórico das versões 3.0.0–3.4.1.
 ### Status
 - Repository: https://github.com/mrhenrike/PrinterReaper — push confirmado (4c03781..9696c24)
 - Wiki: https://github.com/mrhenrike/PrinterReaper/wiki — push confirmado (afc36d7)
+
+---
+
+## v3.14.0 — 2026-03-24
+
+### Contexto
+Sessão de troubleshooting de impressão real na Epson L3250 (192.168.0.152), com correções de bugs detectados em produção e novos recursos de instalação de impressora no host.
+
+### Arquivos removidos
+- `_test_text.txt` — artefato de teste temporário
+- `_test_image.jpg` — artefato de teste temporário
+- `_create_test_files.py` — script de teste temporário
+- `config.yaml` — duplicado (API key real exposta; config.json é canônico)
+- `config.yaml.example` — redundante com config.json.example
+
+### Arquivos alterados
+- `src/modules/print_job.py` — reescrito completamente:
+  - `probe_printer()`: sonda IPP/LPD/RAW + SNMP status antes de enviar
+  - `_probe_ipp()`: detecta se precisa de TLS (426 ou connection-reset)
+  - `send_ipp()`: auto-upgrade TLS ao detectar ConnectionResetError (comportamento Epson)
+  - `send_lpd()`: usa `l` (passthrough) no control file para ESC/P chegar ao motor
+  - `_prepare_payload()`: prefer_escp=True para LPD → Epson inkjets (evita JPEG via LPD travado)
+  - `_text_to_escp()`: geração de ESC/P nativo (idioma Epson, zero dependências)
+  - `_image_to_escp_bitmap()`: conversão de imagem para ESC/P 24-pin via Pillow
+  - `_classify_ipp_error()`: mensagens claras de restrição por código IPP
+  - `PrinterCapabilities`: dataclass com resultado de probe + best_protocol
+  - `PrintJobResult`: adicionado campo `hint` para orientação ao operador
+  - Fallback IPP → LPD automático quando formato rejeitado e LPD disponível
+- `src/modules/install_printer.py` — **novo módulo**:
+  - Windows: PowerShell Add-Printer (RAW TCP/IP ou IPP Class Driver)
+  - Linux/macOS: CUPS lpadmin (IPP Everywhere ou RAW socket)
+  - Drivers: auto, generic, epson, hp, cups-ipp
+- `src/main.py`:
+  - `_run_send_job()`: redesign UX — probe antes de enviar, status SNMP, warnings de busy, hints de erro
+  - `_run_install_printer()`: novo handler para --install-printer
+  - `--send-proto`: default changed raw → auto (smart probe)
+  - `--install-printer`, `--install-driver`, `--install-name`: novos flags
+- `src/version.py`: bumped 3.13.0 → 3.14.0
+- `README.md`: logo e versão União Geek removidos do header e footer
+
+### Bugs corrigidos
+- **Job JPEG via LPD travava a impressora**: JPEG raw não é formato nativo da Epson inkjet; corrigido para ESC/P via `prefer_escp=True` em LPD
+- **IPP falha com WinError 10054**: Epson reseta conexões sem TLS; corrigido com retry automático via TLS ao detectar ConnectionResetError
+- **Mensagens de erro genéricas**: substituídas por classificação por código IPP com hints acionáveis
+- **send-proto padrão raw**: mudado para auto (probe automático)
+
+### Testes executados
+- `probe_printer(192.168.0.152)`: IPP=True (TLS required), LPD=True, RAW=False
+- `python printer-reaper.py 192.168.0.152 --scan-ml --no-nvd`: executado (ver resultados abaixo)
+- Import validation: `from modules.print_job import probe_printer, send_print_job` ✓
+- `--help`: --install-printer, --install-driver, --install-name exibidos ✓
+
+### Próximos passos
+- Testar `--send-job` com `--send-proto auto` (requer printer idle)
+- Testar `--install-printer 192.168.0.152` no host Windows
+- Avaliar geração PWG Raster para envio via IPPS
+

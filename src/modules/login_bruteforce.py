@@ -761,11 +761,24 @@ def bruteforce(
         print(f"  Variations: {'YES' if enable_variations else 'NO'}")
         print()
 
+    from utils.ports import PortConfig as _PC
+    _http_port    = _PC.resolve('http')
+    _https_port   = _PC.resolve('https')
+    _ftp_port     = _PC.resolve('ftp')
+    _snmp_port    = _PC.resolve('snmp')
+    _telnet_port  = _PC.resolve('telnet')
+
     all_results: List[LoginResult] = []
 
-    # ── HTTP (port 80)
-    if test_http and (not ports or 80 in ports or 443 in ports or 8080 in ports):
-        for port, scheme in [(80, 'http'), (443, 'https'), (8080, 'http'), (8443, 'https')]:
+    # ── HTTP
+    _http_candidates = [
+        (_http_port,  'http'),
+        (_https_port, 'https'),
+        (8080, 'http'),
+        (8443, 'https'),
+    ]
+    if test_http and (not ports or any(p in ports for p, _ in _http_candidates)):
+        for port, scheme in _http_candidates:
             if ports and port not in ports:
                 continue
             r = bruteforce_http(
@@ -777,28 +790,28 @@ def bruteforce(
             if stop_on_first and any(x.success for x in r):
                 break
 
-    # ── FTP (port 21)
-    if test_ftp and (not ports or 21 in ports):
+    # ── FTP
+    if test_ftp and (not ports or _ftp_port in ports):
         r = bruteforce_ftp(
-            host, 21, vendor, serial, mac,
+            host, _ftp_port, vendor, serial, mac,
             timeout, delay, enable_variations, stop_on_first, extra_creds,
             effective_wordlist, verbose,
         )
         all_results.extend(r)
 
-    # ── SNMP (port 161)
-    if test_snmp and (not ports or 161 in ports or True):  # always try SNMP
+    # ── SNMP (always try unless explicitly excluded)
+    if test_snmp and (not ports or _snmp_port in ports or True):
         r = bruteforce_snmp(
-            host, 161, vendor, serial, mac,
+            host, _snmp_port, vendor, serial, mac,
             timeout, enable_variations, stop_on_first=False, extra_creds=extra_creds,
             wordlist_path=effective_wordlist, verbose=verbose,
         )
         all_results.extend(r)
 
-    # ── Telnet (port 23)
-    if test_telnet and (not ports or 23 in ports):
+    # ── Telnet
+    if test_telnet and (not ports or _telnet_port in ports):
         r = bruteforce_telnet(
-            host, 23, vendor, serial, mac,
+            host, _telnet_port, vendor, serial, mac,
             timeout, delay, enable_variations, stop_on_first, extra_creds,
             effective_wordlist, verbose,
         )

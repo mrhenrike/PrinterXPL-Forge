@@ -2,6 +2,59 @@
 
 ---
 
+## v3.10.0 — Custom Port Overrides for Every Protocol
+
+**Data:** 2026-03-25
+**Status:** COMPLETO
+
+### Arquivos alterados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `src/utils/ports.py` | NOVO — `PortConfig` singleton com defaults e overrides por protocolo |
+| `src/main.py` | +10 flags (`--port-raw`, `--port-ipp`, `--port-lpd`, `--port-snmp`, `--port-ftp`, `--port-http`, `--port-https`, `--port-smb`, `--port-telnet`, `--extra-ports`); `PortConfig.configure_from_args()` aplicado logo após parse; linhas com 9100 hardcoded corrigidas |
+| `src/utils/banner_grabber.py` | `scan_ports()` usa `_resolved_printer_ports()` + `extra_ports`; `_grab_pjl`, `_grab_lpd`, `_grab_ipp`, `_grab_http`, `_grab_snmp` usam `PortConfig.resolve()` |
+| `src/core/attack_orchestrator.py` | `run_campaign()` usa `PortConfig.resolve('raw')` e `resolve('ipp')` em lugar de 9100/631 literais |
+| `src/modules/pjl.py` | DoS flood usa `PortConfig.resolve('raw')` |
+| `src/modules/login_bruteforce.py` | Orquestrador `bruteforce()` usa `PortConfig` para HTTP/FTP/SNMP/Telnet ports |
+| `src/protocols/firmware.py` | 4 `create_connection((host, 9100))` → `PortConfig.resolve('raw')`; `UdpTransportTarget((host, 161))` → `PortConfig.resolve('snmp')` |
+| `src/protocols/network_map.py` | PJL probe e `generate_xsp_payload()` usam `PortConfig.resolve('raw')` |
+| `src/protocols/storage.py` | `snmp_dump` e `snmp_write` usam `PortConfig.resolve('snmp')`; FTP functions usam `_ftp_default_port()` |
+| `src/core/discovery.py` | `_snmp_get()` usa `PortConfig.resolve('snmp')` no CLI snmpget |
+| `src/version.py` | 3.9.0 → 3.10.0 |
+| `README.md` | Nova seção "Custom Port Overrides" com tabela e exemplos |
+| `.log/handoff.md` | Este arquivo |
+
+### Como funciona
+
+`PortConfig` é um singleton de classe (sem instância necessária). Resolve na ordem:
+1. Override do usuário (via `configure()` ou `configure_from_args()`)
+2. Default do protocolo: RAW=9100, IPP=631, LPD=515, SNMP=161, FTP=21, HTTP=80, HTTPS=443, SMB=445, Telnet=23
+3. Fallback opcional passado como argumento
+4. 9100 como último recurso
+
+### Exemplos de uso
+
+```bash
+# Impressora com RAW na 3910, SNMP na 1161
+python printer-reaper.py 192.168.1.100 --scan --port-raw 3910 --port-snmp 1161
+
+# Portas extras no scan de fingerprint
+python printer-reaper.py 192.168.1.100 --scan --extra-ports 9200 --extra-ports 7100
+
+# Brute-force com HTTP na 8080
+python printer-reaper.py 192.168.1.100 --bruteforce --port-http 8080
+
+# Campanha completa respeitando porta customizada
+python printer-reaper.py 192.168.1.100 --attack-matrix --port-raw 3910
+```
+
+### Regra de design
+Nenhum módulo usa porta literal para conexão. Todos chamam `PortConfig.resolve('<proto>')`.
+Módulos que precisam de porta default em assinatura usam `port: int = 0` e resolvem via `PortConfig` internamente.
+
+---
+
 ## v3.9.0 — 5-Engine Dork Discovery (FOFA + ZoomEye + Netlas)
 
 **Data:** 2026-03-25

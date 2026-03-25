@@ -2,6 +2,40 @@
 
 ---
 
+## README + Diagramas SVG originais
+
+**Data:** 2026-03-25
+**Status:** COMPLETO — README reescrito para v3.7.0; 4 diagramas SVG originais criados e publicados no GitHub
+
+### Diagramas criados (originais, não copiados das slides)
+
+| Arquivo | Conteúdo |
+|---------|----------|
+| `img/printer_architecture.svg` | Superfície de ataque de uma impressora: canais de protocolo (RAW/IPP/LPD/SMB/HTTP/SNMP/FTP/Telnet), interpretadores internos (PJL/PS/PCL/ESC-P/EWS), categorias de impacto (DoS/ProtBypass/JobManip/InfoDisc/Lateral/CredAttack) |
+| `img/printerreaper_workflow.svg` | Fluxo operacional em 6 fases: Discover → Fingerprint → Assess → Exploit → Pivot → Report, com flags CLI e output esperado por fase |
+| `img/attack_coverage_matrix.svg` | Matriz de cobertura baseada em Müller et al. BlackHat 2017 + CVEs 2024-2025; eixos: categoria de ataque vs protocolo; indicadores: suportado/parcial/N/A; lista dos 20+ vendors testados |
+| `img/credential_wordlist_flow.svg` | Arquitetura da nova engine de credenciais (v3.7.0): fluxo das 4 wordlists → wordlist_loader.py → token expansion → 4 protocolos de BF (HTTP/SNMP/FTP/Telnet) |
+
+### README reescrito — seções principais
+- Versão bumped para 3.7.0 no header
+- Diagrama de arquitetura com explicação de superfície de ataque
+- Tabela de workflow por fase com flags CLI
+- Tabela de cobertura BlackHat 2017 (25 linhas de ataques documentados)
+- Seção dedicada à arquitetura de wordlist (formato, tokens, flags)
+- Exploit library: estrutura xpl/, check/run API
+- Tabela de vendors suportados (14 linhas com default creds e exploits conhecidos)
+- Version history completo v2.5.x → v3.7.0
+- Legal disclaimer
+
+### Commits publicados no GitHub
+- `c3466d3` — docs: rewrite README v3.7.0 + 4 original SVG diagrams
+- Push: `608740e..c3466d3 master → master`
+
+---
+
+
+---
+
 ## v3.7.0 — Wordlist-driven credentials (sem hardcode) + lab execution
 
 **Data:** 2026-03-25

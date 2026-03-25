@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PCL Module for PrinterReaper v2.4.0
+PCL Module for PrinterReaper
 ===================================
 Complete PCL (Printer Command Language) penetration testing module
 

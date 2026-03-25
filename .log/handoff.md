@@ -2,6 +2,108 @@
 
 ---
 
+## v3.15.1 — Sanitização de Código + Fixes de UI + Git LF
+
+**Data:** 2026-03-24
+**Status:** COMPLETO
+
+### Alterações
+
+| Arquivo | O que mudou |
+|---------|-------------|
+| `src/main.py` | Corrigido "Version Version" no banner (linha 1641); adicionado `args.mode = args.mode or 'auto'` para resolver `KeyError: None` ao chamar com target sem mode; `--version` usa `get_version_string()` sem prefixo duplicado |
+| `src/modules/pjl.py` | Removido "v2.3.1" hardcoded no `do_help()`; agora usa `from version import __version__` dinamicamente |
+| `src/ui/interactive.py` | `_menu_header()` reescrito com fórmula matemática de padding (`_w - 4 - len(text)`) para garantir alinhamento perfeito do box Unicode em qualquer versão |
+| `src/modules/pcl.py` | Removido "v2.4.0" do docstring |
+| `src/modules/ps.py` | Removido "v2.4.0" do docstring |
+| `src/payloads/__init__.py` | Removido "v2.4.0" do docstring |
+| `src/protocols/__init__.py` | Removido "v2.4.0" do docstring |
+| `src/utils/exploit_manager.py` | User-Agent atualizado de `PrinterReaper/3.4` para `PrinterReaper/3.15` |
+| `src/utils/fuzzer.py` | Removido "v2.3.3" do comentário interno |
+| `src/utils/operators.py` | Removidas referências a "v2.4.0" e blocos de comentário de versão legados |
+| `.gitattributes` | Criado para forçar `eol=lf` em todos os arquivos Python/config |
+
+### Comandos executados
+```
+git config core.autocrlf false
+git config core.eol lf
+```
+
+### PRET — Análise de Módulos
+
+**Repositório clonado:** `dev/IoT/pret/` (github.com/RUB-NDS/PRET)
+
+**Módulos relevantes analisados:**
+- `printer.py` — Classe base com loop cmd, conexão TCP (socket raw porta 9100)
+- `capabilities.py` — Fingerprint via IPP, HTTP, HTTPS, SNMP; útil para detecção de capacidades
+- `helper.py` — Classe `conn` para socket TCP; classe `output` para logging colorido
+- `pjl.py` — Comandos PJL: `do_status`, `do_id`, `do_env`, `do_nvram`, `do_lock`/`do_unlock`, `put` (upload via FSDOWNLOAD)
+
+**Conclusão:** PRET é uma ferramenta de pen-testing de impressoras, **não possui envio direto de print jobs**. O `put()` faz upload via PJL FSDOWNLOAD (filesystem da impressora), não submissão de trabalho de impressão. O PrinterReaper já supera o PRET em todas as funcionalidades relevantes, incluindo `print_job.py` com suporte a IPP/LPD/RAW/OS.
+
+### Status final
+- `KeyError: None` → **CORRIGIDO** (auto-detecta modo quando não especificado)
+- `"Version Version"` → **CORRIGIDO**
+- `v2.3.1` no PJL shell → **CORRIGIDO** (dinâmico via `version.py`)
+- Alinhamento do box interativo → **CORRIGIDO** (fórmula matemática de padding)
+- Versões antigas em módulos → **SANITIZADAS**
+
+---
+
+## v3.15.0 — Fix IPP Encoding + PWG Raster + OS Print Fallback
+
+**Data:** 2026-03-25
+**Status:** COMPLETO
+**Commit:** `8473231`
+
+### Bugs críticos corrigidos
+
+| Módulo | Bug | Correção |
+|---|---|---|
+| `print_job.py` | Encoding IPP `struct.pack('>BHH', ...)` inseria 2 bytes extras antes do nome do atributo, corrompendo toda requisição IPP | Corrigido para `bytes([tag]) + struct.pack('>H', name_len)` per RFC 8011 §3.1.5 |
+| `print_job.py` | `printer-uri` usava `ipps://` mesmo em conexões TLS — Epson exige `ipp://` no atributo mesmo sobre TLS | Corrigido: sempre `ipp://` no valor do atributo IPP |
+| `print_job.py` | Atributo `printer-resolution` no Print-Job causava `0x0400 Bad Request` na Epson L3250 | Removido do bloco de atributos do job |
+| `print_job.py` | Fallback LPD tentava abrir PDF com `PIL.Image.open()` causando `UnidentifiedImageError` | Condição `prefer_escp and fmt == 'image'` antes de abrir com PIL |
+| `install_printer.py` | Template PowerShell usava `{host}` sem passar `host=host` no `.format()` | Corrigido o call `.format(name=..., host=host, ipp_uri=...)` |
+| `install_printer.py` | `Add-PrinterPort -PortNumber 631 -SNMP:$false` inválido no Windows | Simplificado: usa port padrão 9100 + driver detectado automaticamente |
+
+### Descobertas durante debug (Epson L3250)
+
+| Descoberta | Detalhe |
+|---|---|
+| Formatos IPP aceitos | `image/pwg-raster`, `application/vnd.epson.escpr`, `application/octet-stream` |
+| Sync word PWG Raster | `b"RaS\x03"` (0x52615303), NÃO `b"RaS3"` (0x52615333) |
+| `document-format-supported` | Confirmado via Get-Printer-Attributes com encoding correto |
+| `pwg-raster-document-type-supported` | `sgray_8`, `srgb_8` |
+| Driver real instalado | `EPSON L3250 Series` via WSD (auto-discovery pelo Windows) |
+
+### Novos recursos
+
+| Funcionalidade | Detalhes |
+|---|---|
+| `_image_to_pwg_raster()` | Gera PWG Raster (`RaS\x03`, 1796-byte header correto, srgb_8/sgray_8) para IPP inkjet |
+| `send_os_print()` | Imprime via spooler OS: `mspaint /pt` (imagens), `notepad /pt` (texto), `Start-Process -Verb PrintTo` (PDF/outros), `lpr` (Linux/macOS) |
+| Mensagens de erro bilíngues | Erros IPP com sugestão de usar `--install-printer` e tentar pelo driver do SO |
+| `_prepare_payload(prefer_pwg=True)` | Gera PWG Raster automaticamente quando protocolo é IPP para inkjets Epson |
+
+### Testes realizados
+
+| Teste | Resultado |
+|---|---|
+| `Get-Printer-Attributes` com encoding corrigido | 0x0000 — lista completa de formatos retornada |
+| Print-Job via IPP (printer busy) | 0x0507 Busy — exibido aviso correto |
+| PDF via OS (`EPSON L3250 Series` WSD driver) | Job na fila: "Printing, Retained" (imprimindo) |
+| Imagem via OS (`mspaint /pt`) | Job na fila: "Normal" (aguardando PDF) |
+| `printer-reaper.py --send-job test.pdf --send-proto auto` | IPP falha (busy) → LPD fallback OK (236KB aceito) |
+
+### Próximos passos sugeridos
+
+1. Testar `--send-job imagem.jpg` quando impressora estiver idle (state=3) para validar PWG Raster via IPP
+2. Implementar `--os-printer` como flag CLI para usar `send_os_print()` diretamente
+3. Validar se `application/vnd.epson.escpr` aceita ESCPR1 via IPP (formato do driver Linux)
+
+---
+
 ## v3.13.0 — Fix ZoomEye/Netlas APIs + Repo Cleanup
 
 **Data:** 2026-03-24

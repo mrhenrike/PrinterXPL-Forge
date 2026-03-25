@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Network Protocols Package for PrinterReaper v2.4.0
+Network Protocols Package for PrinterReaper
 ==================================================
 Support for multiple network printing protocols:
 - LPD (Line Printer Daemon) - Port 515

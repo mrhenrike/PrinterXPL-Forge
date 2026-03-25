@@ -1521,7 +1521,8 @@ class pjl(printer):
         """Show help for commands"""
         if not arg:
             print()
-            print("PrinterReaper v2.3.1 - PJL Commands (100% Attack Coverage)")
+            from version import __version__
+            print(f"PrinterReaper v{__version__} - PJL Commands (100% Attack Coverage)")
             print("=" * 70)
             print("Available command categories:")
             print("  filesystem   - File system operations (13 commands)")

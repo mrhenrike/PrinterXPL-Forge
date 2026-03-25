@@ -5,19 +5,13 @@ PostScript Operators Database
 ===============================
 This module contains a comprehensive list of PostScript operators organized by category.
 
-CURRENT STATUS: Reserved for future use in v2.4.0
-================================================
-⚠️ THIS MODULE IS INTENTIONALLY NOT IMPORTED ANYWHERE
-⚠️ IT IS RESERVED FOR THE POSTSCRIPT MODULE (ps.py) PLANNED FOR v2.4.0
-⚠️ DO NOT REMOVE - THIS IS NOT UNUSED CODE
-
 Contains 400+ PostScript operators including:
 - Standard operators (file, exec, run, etc.)
 - Proprietary operators (Brother, HP, etc.)
 - Security-relevant operators for testing
 - 16 categories covering all PS functionality
 
-PLANNED USAGE (v2.4.0):
+PLANNED USAGE:
 =======================
 from utils.operators import operators
 

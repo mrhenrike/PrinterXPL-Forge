@@ -549,14 +549,21 @@ _MAIN_MENU = [
 def _menu_header() -> None:
     from version import __version__
     print()
-    print(f"  {_CYN}╔{'═'*58}╗{_RST}")
-    print(f"  {_CYN}║{_RST}  {_RED}{_BLD}PrinterReaper{_RST} {_DIM}v{__version__}{_RST}"
-          f"{' ' * (42 - len(__version__))}  {_CYN}║{_RST}")
-    print(f"  {_CYN}║{_RST}  {_DIM}Advanced Printer Penetration Testing Toolkit{_RST}"
-          f"          {_CYN}║{_RST}")
-    print(f"  {_CYN}╠{'═'*58}╣{_RST}")
-    print(f"  {_CYN}║{_RST}  Choose an action:                                        {_CYN}║{_RST}")
-    print(f"  {_CYN}╚{'═'*58}╝{_RST}")
+    _w   = 58  # inner box width (number of ═ chars)
+    _ver = f"PrinterReaper v{__version__}"
+    _sub = "Advanced Printer Penetration Testing Toolkit"
+    _act = "Choose an action:"
+    # Each content line: 2 leading spaces + text + padding + 2 trailing spaces = _w
+    def _row(text: str, bold: str = '') -> str:
+        pad = ' ' * (_w - 4 - len(text))
+        inner = f"  {bold}{text}{_RST}{pad}  "
+        return f"  {_CYN}║{_RST}{inner}{_CYN}║{_RST}"
+    print(f"  {_CYN}╔{'═'*_w}╗{_RST}")
+    print(_row(_ver, f"{_RED}{_BLD}"))
+    print(_row(_sub, _DIM))
+    print(f"  {_CYN}╠{'═'*_w}╣{_RST}")
+    print(_row(_act))
+    print(f"  {_CYN}╚{'═'*_w}╝{_RST}")
     print()
 
 

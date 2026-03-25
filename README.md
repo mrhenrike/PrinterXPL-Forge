@@ -1,8 +1,6 @@
 <div align="center">
 
-<a href="https://www.uniaogeek.com.br"><img src="img/logotype-uniaogeek-2.png" width="240" alt="União Geek"></a>
-
-# PrinterReaper v3.13.0
+# PrinterReaper
 
 *Advanced Printer Penetration Testing Toolkit*
 
@@ -10,12 +8,12 @@
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-3.13.0-red)](https://github.com/mrhenrike/PrinterReaper/releases)
+[![GitHub](https://img.shields.io/badge/GitHub-mrhenrike-black?logo=github)](https://github.com/mrhenrike/PrinterReaper)
 [![Wiki](https://img.shields.io/badge/Wiki-GitHub-orange)](https://github.com/mrhenrike/PrinterReaper/wiki)
 
 > **"Is your printer safe from the void? Find out before someone else does."**
 
-**[Website](https://www.uniaogeek.com.br/printer-reaper)** · **[Wiki](https://github.com/mrhenrike/PrinterReaper/wiki)** · **[Issues](https://github.com/mrhenrike/PrinterReaper/issues)** · **[Releases](https://github.com/mrhenrike/PrinterReaper/releases)**
+**[Wiki](https://github.com/mrhenrike/PrinterReaper/wiki)** · **[Issues](https://github.com/mrhenrike/PrinterReaper/issues)** · **[Releases](https://github.com/mrhenrike/PrinterReaper/releases)**
 
 </div>
 
@@ -679,19 +677,10 @@ PrinterReaper is developed for **authorized security research, penetration testi
 
 <div align="center">
 
-**PrinterReaper v3.7.0**
-*Advanced Printer Penetration Testing Toolkit*
+**PrinterReaper** · *Advanced Printer Penetration Testing Toolkit*
 
 Made with care for the security community.
 
 [Documentation](https://github.com/mrhenrike/PrinterReaper/wiki) | [Issues](https://github.com/mrhenrike/PrinterReaper/issues) | [Releases](https://github.com/mrhenrike/PrinterReaper/releases)
-
----
-
-### Powered by União Geek
-
-<a href="https://www.uniaogeek.com.br"><img src="img/logotype-uniaogeek-2.png" width="240" alt="União Geek"></a>
-
-**[www.uniaogeek.com.br](https://www.uniaogeek.com.br)**
 
 </div>

@@ -690,9 +690,45 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--send-proto",
         metavar="PROTO",
-        default="raw",
-        choices=["raw", "ipp", "lpd"],
-        help="Protocol for send-job: raw (9100), ipp (631), lpd (515). Default: raw",
+        default="auto",
+        choices=["auto", "raw", "ipp", "lpd"],
+        help=(
+            "Protocol for --send-job. "
+            "auto (default) = smart probe → picks best available protocol. "
+            "raw = JetDirect/9100 (HP/PCL), ipp = IPP/IPPS-631 (AirPrint), "
+            "lpd = LPD/515 (ESC-P, Epson inkjets)."
+        ),
+    )
+    parser.add_argument(
+        "--install-printer",
+        action="store_true",
+        default=False,
+        help=(
+            "Install the target printer on this host using the OS printer subsystem. "
+            "Windows: Add-Printer (PowerShell, requires admin). "
+            "Linux/macOS: CUPS lpadmin. "
+            "After installation, print normally from any application. "
+            "Use --install-driver to select the driver (auto|generic|epson|hp|cups-ipp)."
+        ),
+    )
+    parser.add_argument(
+        "--install-driver",
+        metavar="DRIVER",
+        default="auto",
+        choices=["auto", "generic", "epson", "hp", "cups-ipp"],
+        help=(
+            "Driver mode for --install-printer. "
+            "auto = IPP Everywhere / AirPrint if port 631 is open, else generic RAW. "
+            "epson = Epson universal inkjet. hp = HP Universal PCL6. "
+            "cups-ipp = CUPS IPP Everywhere (best for Linux/macOS). "
+            "generic = text/RAW passthrough (default fallback)."
+        ),
+    )
+    parser.add_argument(
+        "--install-name",
+        metavar="NAME",
+        default=None,
+        help="Custom printer name for --install-printer (default: PrinterReaper-<IP>).",
     )
     parser.add_argument(
         "--send-copies",
@@ -942,44 +978,149 @@ def _run_scan(args) -> None:
 # --------------------------------------------------------------------------- #
 # Send job dispatcher
 # --------------------------------------------------------------------------- #
+def _run_install_printer(args) -> None:
+    """Install the target printer on the current host OS."""
+    from modules.install_printer import install_printer
+
+    _CYN = '\033[1;36m'; _GRN = '\033[1;32m'; _YEL = '\033[1;33m'
+    _RED = '\033[1;31m'; _DIM = '\033[2;37m';  _RST = '\033[0m'; _BLD = '\033[1m'
+
+    target      = args.target
+    driver_mode = getattr(args, 'install_driver', 'auto')
+    name        = getattr(args, 'install_name',   None)
+
+    print(f"\n  {_CYN}{_BLD}[ Install Printer ]{_RST}")
+    print(f"  {_DIM}{'─' * 48}{_RST}")
+    print(f"  {_DIM}Target  : {target}{_RST}")
+    print(f"  {_DIM}Driver  : {driver_mode}{_RST}")
+    if name:
+        print(f"  {_DIM}Name    : {name}{_RST}")
+    print()
+
+    import platform
+    print(f"  {_CYN}[*] Installing on {platform.system()}…{_RST}")
+
+    result = install_printer(host=target, name=name, driver_mode=driver_mode)
+    print()
+
+    if result.success:
+        print(f"  {_GRN}[+] Printer installed successfully!{_RST}")
+        print(f"  {_DIM}    Name     : {result.printer_name}{_RST}")
+        print(f"  {_DIM}    Protocol : {result.protocol}{_RST}")
+        print(f"  {_DIM}    OS       : {result.os_type}{_RST}")
+        if result.message:
+            print(f"  {_DIM}    Detail   : {result.message}{_RST}")
+        if result.hint:
+            print()
+            print(f"  {_GRN}[*] Next step:{_RST}")
+            print(f"  {_DIM}    {result.hint}{_RST}")
+    else:
+        print(f"  {_RED}[-] Installation failed.{_RST}")
+        print(f"  {_DIM}    Error : {result.error}{_RST}")
+        if result.hint:
+            print()
+            print(f"  {_YEL}[!] Suggestion: {result.hint}{_RST}")
+        if result.commands:
+            print()
+            print(f"  {_DIM}    Manual command:{_RST}")
+            for cmd in result.commands:
+                print(f"  {_DIM}    $ {cmd}{_RST}")
+
+
 def _run_send_job(args) -> None:
     """Send a file/text to the target printer for printing."""
-    from modules.print_job import send_print_job
+    from modules.print_job import (
+        send_print_job, probe_printer,
+        _SNMP_STATUS_LABEL, PrinterCapabilities,
+    )
 
-    _CYN = '\033[1;36m'; _GRN = '\033[1;32m'
-    _RED = '\033[1;31m';  _DIM = '\033[2;37m'; _RST = '\033[0m'
+    _CYN = '\033[1;36m'; _GRN = '\033[1;32m'; _YEL = '\033[1;33m'
+    _RED = '\033[1;31m'; _DIM = '\033[2;37m';  _RST = '\033[0m'
+    _BLD = '\033[1m'
 
     target   = args.target
     filepath = args.send_job
-    proto    = getattr(args, 'send_proto',  'raw')
+    proto    = getattr(args, 'send_proto',  'auto')
     copies   = getattr(args, 'send_copies', 1)
     queue    = getattr(args, 'send_queue',  'lp')
-    port     = getattr(args, 'port', 0) or 0
+    port_ovr = getattr(args, 'port', 0) or 0
 
-    from utils.ports import PortConfig
-    proto_ports  = {p: PortConfig.resolve(p) for p in ('raw', 'ipp', 'lpd')}
-    display_port = port or proto_ports.get(proto, PortConfig.resolve('raw'))
-
-    print(f"\n  {_CYN}[ Send Job ]{_RST}")
-    print(f"  {_DIM}Target   : {target}:{display_port}{_RST}")
+    print(f"\n  {_CYN}{_BLD}[ Send Job ]{_RST}")
+    print(f"  {_DIM}{'─' * 48}{_RST}")
     print(f"  {_DIM}File     : {filepath}{_RST}")
     print(f"  {_DIM}Protocol : {proto.upper()}{_RST}")
     print(f"  {_DIM}Copies   : {copies}{_RST}")
     print()
 
+    # ── Step 1: probe printer capabilities ───────────────────────────────────
+    print(f"  {_CYN}[*] Probing {target}…{_RST}")
+    caps = probe_printer(target, timeout=6.0)
+
+    snmp_label = _SNMP_STATUS_LABEL.get(caps.snmp_status, f'code {caps.snmp_status}')
+    proto_info = []
+    if caps.ipp_available:
+        proto_info.append(f"IPP{'S' if caps.ipp_requires_tls else ''}")
+    if caps.lpd_available:
+        proto_info.append("LPD")
+    if caps.raw_available:
+        proto_info.append("RAW")
+
+    avail_str = ', '.join(proto_info) if proto_info else 'none detected'
+    print(f"  {_DIM}Printer  : {target}{_RST}")
+    print(f"  {_DIM}Protocols: {avail_str}{_RST}")
+    print(f"  {_DIM}Status   : {snmp_label}{_RST}")
+    print()
+
+    # Warn if printer is busy
+    if caps.printer_busy:
+        print(f"  {_YEL}[!] Printer is currently BUSY (printing another job).{_RST}")
+        print(f"  {_YEL}    Wait for it to finish, then retry.{_RST}")
+        print()
+
+    # Warn if nothing is available
+    if not proto_info:
+        print(f"  {_RED}[!] No compatible print protocols detected on {target}.{_RST}")
+        print(f"  {_RED}    The printer may be hardened or not reachable.{_RST}")
+        print(f"  {_DIM}    Suggestion: try --install-printer to add via OS driver,{_RST}")
+        print(f"  {_DIM}    or verify the IP and that the printer is powered on.{_RST}")
+        return
+
+    # ── Step 2: send the job ─────────────────────────────────────────────────
+    best = caps.best_protocol if proto == 'auto' else proto
+    port = port_ovr or {'raw': 9100, 'ipp': 631, 'lpd': 515}.get(best, 631)
+    tls_note = ' (IPPS/TLS)' if (best == 'ipp' and caps.ipp_requires_tls) else ''
+    print(f"  {_CYN}[*] Sending via {best.upper()}{tls_note} → {target}:{port}{_RST}")
+
     result = send_print_job(
         host=target, path=filepath,
-        protocol=proto, port=display_port,
+        protocol=proto, port=port_ovr,
         copies=copies, queue=queue,
+        caps=caps,
     )
 
+    print()
     if result.success:
-        print(f"  {_GRN}[+] Print job sent successfully{_RST}")
-        print(f"  {_DIM}    {result.file_size} bytes  elapsed {result.elapsed_ms:.0f}ms{_RST}")
+        print(f"  {_GRN}[+] Print job accepted!{_RST}")
+        print(f"  {_DIM}    Protocol : {result.protocol.upper()}{_RST}")
+        print(f"  {_DIM}    Payload  : {result.file_size:,} bytes{_RST}")
+        print(f"  {_DIM}    Elapsed  : {result.elapsed_ms:.0f} ms{_RST}")
         if result.message:
-            print(f"  {_DIM}    {result.message}{_RST}")
+            print(f"  {_DIM}    Detail   : {result.message}{_RST}")
+        print()
+        print(f"  {_GRN}    Check the printer — the job should print shortly.{_RST}")
     else:
-        print(f"  {_RED}[-] Send failed: {result.error}{_RST}")
+        print(f"  {_RED}[-] Print job failed.{_RST}")
+        print(f"  {_DIM}    Error  : {result.error}{_RST}")
+        if result.hint:
+            print()
+            print(f"  {_YEL}[!] Suggestion:{_RST}")
+            for line in result.hint.split('. '):
+                line = line.strip()
+                if line:
+                    print(f"  {_DIM}    {line}.{_RST}")
+        print()
+        print(f"  {_DIM}    Tip: use --install-printer to add this printer via OS driver{_RST}")
+        print(f"  {_DIM}    and print through the system spooler instead.{_RST}")
 
 
 # Attack module dispatcher
@@ -1790,6 +1931,14 @@ def main() -> None:
             output().errmsg("--auto-exploit requires a target IP: python printer-reaper.py <IP> --auto-exploit")
             sys.exit(1)
         _run_auto_exploit(args)
+        sys.exit(0)
+
+    # ── --install-printer: install printer on host OS ────────────────────────
+    if getattr(args, 'install_printer', False):
+        if not args.target:
+            output().errmsg("--install-printer requires a target: printer-reaper.py <ip> --install-printer")
+            sys.exit(1)
+        _run_install_printer(args)
         sys.exit(0)
 
     # ── --send-job: send file/text to printer ────────────────────────────────

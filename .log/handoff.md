@@ -2,6 +2,65 @@
 
 ---
 
+## v3.12.0 — CSV Multi-Value Dork Filters + City/Country Guard
+
+**Data:** 2026-03-24
+**Status:** COMPLETO
+
+### Problema resolvido
+Todos os filtros de dork (`--dork-vendor`, `--dork-country`, `--dork-port`, `--dork-city`, `--dork-region`) agora aceitam:
+1. **Valor único**: `--dork-country BR`
+2. **CSV num único flag**: `--dork-country BR,AR,US`
+3. **Flags repetidos**: `--dork-country BR --dork-country AR`
+4. **Nomes compostos com aspas**: `--dork-city "São Paulo",'Rio de Janeiro'`
+
+Regra adicional: `--dork-city` é bloqueado quando 0 ou 2+ países são especificados.
+
+### Arquivos alterados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `src/main.py` | +`_expand_csv()` e `_expand_csv_int()` helpers; +imports `csv`, `io`; todos os args de dork agora `action="append"` + processados com expand; `DiscoveryParams` recebe `cities` (list) em vez de `city` (str); validação city/country guard antes de construir params |
+| `src/utils/discovery_online.py` | `DiscoveryParams.city` → `cities: List[str]`; todos os `_*_city_part()` atualizados para OR-join múltiplas cidades com sintaxe nativa de cada engine; adicionados `_fofa_city_part()`, `_zoomeye_city_part()`, `_netlas_city_part()`; `_geo_label()` e `describe()` atualizados |
+| `src/version.py` | 3.11.0 → 3.12.0 |
+| `.log/handoff.md` | Este arquivo |
+
+### Exemplos válidos
+
+```bash
+# Um vendor, um país
+python printer-reaper.py --discover-online --dork-vendor hp --dork-country BR
+
+# Múltiplos vendors e países via CSV
+python printer-reaper.py --discover-online --dork-vendor hp,canon,epson --dork-country BR,AR,US
+
+# Múltiplos flags repetidos
+python printer-reaper.py --discover-online \
+  --dork-vendor hp --dork-vendor canon \
+  --dork-country BR --dork-country AR \
+  --dork-port 9100 --dork-port 631 \
+  --dork-engine shodan,zoomeye
+
+# Cidades (single country obrigatório)
+python printer-reaper.py --discover-online \
+  --dork-country BR \
+  --dork-city "São Paulo",Belém,"Rio de Janeiro"
+```
+
+### Erros gerados automaticamente
+
+```
+# 0 países com --dork-city → ERRO
+--dork-city 'Sao Paulo'  (sem --dork-country)
+→ "--dork-city requires exactly one --dork-country"
+
+# 2+ países com --dork-city → ERRO
+--dork-country BR --dork-country AR --dork-city 'Sao Paulo'
+→ "--dork-city cannot be used with multiple countries (BR, AR)"
+```
+
+---
+
 ## v3.11.0 — Engine Selection UX Fix, FOFA Key-Only, ZoomEye/Netlas Keys
 
 **Data:** 2026-03-24

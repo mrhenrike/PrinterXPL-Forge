@@ -1,0 +1,245 @@
+# PrinterReaper — Master Default Credentials Wordlist
+# Format: username:password
+# Sources: vendor manuals, FCC filings, SecLists, known CVEs, community research
+# Last updated: 2026-03-24
+# Author: Andre Henrique (@mrhenrike)
+
+# ── UNIVERSAL / GENERIC ─────────────────────────────────────────────────────
+admin:
+admin:admin
+admin:password
+admin:1234
+admin:12345
+admin:123456
+admin:admin123
+admin:password123
+admin:printer
+admin:print
+admin:p@ssw0rd
+admin:P@ssw0rd
+root:
+root:root
+root:admin
+root:password
+root:toor
+user:user
+user:password
+guest:
+guest:guest
+manager:manager
+supervisor:supervisor
+operator:operator
+service:service
+tech:tech
+support:support
+sa:sa
+sysadmin:sysadmin
+administrator:administrator
+Administrator:Administrator
+Administrator:
+Administrator:admin
+Administrator:password
+
+# ── HP (Hewlett-Packard) ─────────────────────────────────────────────────────
+# HP JetDirect / LaserJet / OfficeJet / DeskJet
+admin:
+admin:admin
+admin:1234
+Admin:Admin
+jetdirect:
+user:
+# HP EWS (Embedded Web Server) — blank password is HP default
+# HP FutureSmart: blank or serial number
+admin:HP_serial_number
+admin:0000000000
+admin:00000000
+admin:hpinvent!
+
+# ── Epson ────────────────────────────────────────────────────────────────────
+# Epson EcoTank, WorkForce, Expression series
+admin:
+admin:admin
+admin:12345
+admin:epson
+EPSONXXXXXXXX:EPSONXXXXXXXX
+# Epson initial password = serial number (documented in manual)
+# admin:__SERIAL__
+
+# ── Brother ─────────────────────────────────────────────────────────────────
+# Brother MFC, DCP, HL series
+admin:access
+admin:initpass
+admin:
+admin:Admin
+Administrator:access
+admin:brother
+user:user
+# Brother default WebUI: admin/access or blank
+# Older models: initpass
+
+# ── Canon ────────────────────────────────────────────────────────────────────
+# Canon imageRUNNER, PIXMA, i-SENSYS
+admin:
+admin:canon
+ADMIN:ADMIN
+7654321:7654321
+admin:7654321
+NSL:
+NSL:NSL
+admin:12345678
+administrator:
+# Canon Remote UI default: blank or admin/admin
+
+# ── Ricoh ─────────────────────────────────────────────────────────────────
+# Ricoh MP, SP, Aficio series
+admin:
+admin:password
+admin:ricoh
+admin:ricohmp
+admin:Admin
+supervisor:
+supervisor:password
+admin:ricoh2
+user:password
+sysadmin:sysadmin
+
+# ── Xerox ────────────────────────────────────────────────────────────────────
+# Xerox WorkCentre, VersaLink, AltaLink
+admin:1111
+admin:
+admin:Admin
+admin:11111
+x-admin:
+admin:xerox
+admin:Xerox
+Administrator:
+Administrator:1111
+Administrator:11111
+ftpuser:1111
+ftpuser:
+scan:
+scan:scan
+
+# ── Kyocera ─────────────────────────────────────────────────────────────────
+# Kyocera ECOSYS, TASKalfa series
+Admin:Admin
+admin:admin
+Admin:admin
+Admin:admin00
+admin:00000000
+Admin:00000000
+Admin:
+admin:
+user:
+# Kyocera KM-NET default: Admin/Admin
+# Some panels show reset code: 08 (service menu)
+Admin:Admin123
+admin:Admin123
+
+# ── Konica Minolta ─────────────────────────────────────────────────────────
+# Konica Minolta bizhub series
+Administrator:
+Administrator:12345678
+Administrator:1234567812345678
+Administrator:admin
+admin:
+admin:12345678
+admin:1234567812345678
+admin:Admin
+# KM PageScope Web Connection default: Administrator/blank
+user:user
+# CE password (Customer Engineer): some models use 92729272
+
+# ── Samsung ──────────────────────────────────────────────────────────────────
+# Samsung CLP, CLX, SCX series (now HP)
+admin:sec00000
+admin:
+admin:samsung
+admin:Admin
+admin:12345
+root:root
+root:
+# Samsung SyncThru Web Service default: admin/sec00000
+
+# ── OKI ─────────────────────────────────────────────────────────────────────
+# OKI B, C, MC series
+admin:
+admin:aaaaaa
+admin:Admin
+admin:password
+# OKI default: last 6 hex chars of MAC address (all lowercase)
+# admin:__MAC6__
+
+# ── Lexmark ──────────────────────────────────────────────────────────────────
+# Lexmark MS, MX, CS, CX series
+admin:
+admin:lexmark
+admin:Admin
+admin:1234
+admin:password
+
+# ── Sharp ────────────────────────────────────────────────────────────────────
+# Sharp MX, MXC series
+admin:
+admin:Admin
+admin:Sharp
+Admin:Admin
+admin:admin
+admin:12345
+admin:sharp123
+Sharp:Sharp
+
+# ── Toshiba ─────────────────────────────────────────────────────────────────
+# Toshiba e-STUDIO series
+admin:
+admin:toshiba
+admin:123456
+admin:Admin
+Admin:Admin
+
+# ── Panasonic ──────────────────────────────────────────────────────────────
+# Panasonic KX series
+admin:
+admin:12345
+admin:panasonic
+Admin:Admin
+user:user
+
+# ── Dell (Lexmark OEM) ──────────────────────────────────────────────────────
+admin:
+admin:Admin
+admin:dell
+admin:password
+admin:1234
+
+# ── Zebra ────────────────────────────────────────────────────────────────────
+# Zebra label printers (ZT, ZD series)
+admin:1234
+admin:
+admin:admin
+# Zebra SetGet over TCP/UDP 9100, FTP user: anonymous
+
+# ── Sindoh ──────────────────────────────────────────────────────────────────
+admin:
+admin:admin
+admin:1234
+
+# ── Printronix ─────────────────────────────────────────────────────────────
+admin:
+admin:admin
+admin:access
+
+# ── Tektronix / Xerox Phaser ────────────────────────────────────────────────
+admin:
+admin:Admin
+admin:1111
+
+# ── Develop (Konica Minolta OEM) ───────────────────────────────────────────
+Administrator:
+Administrator:12345678
+admin:12345678
+
+# ── Common default serial number patterns (tokens expanded at runtime) ──────
+# admin:__SERIAL__     → replaced with actual device serial
+# admin:__MAC6__       → last 6 hex chars of MAC (OKI, Brother)
+# admin:__MAC12__      → full MAC without colons

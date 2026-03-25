@@ -304,6 +304,46 @@ def build_parser() -> argparse.ArgumentParser:
         default=0.3,
         help="Delay in seconds between login attempts (default: 0.3s). Increase to avoid lockouts.",
     )
+    parser.add_argument(
+        "--bf-wordlist",
+        metavar="FILE",
+        default=None,
+        help=(
+            "Custom wordlist file for brute-force (format: user:pass per line, # = comment). "
+            "Merged with vendor defaults. Example: --bf-wordlist wordlists/printer_default_creds.txt"
+        ),
+    )
+    # ── Send print job ─────────────────────────────────────────────────────────
+    parser.add_argument(
+        "--send-job",
+        metavar="FILE",
+        default=None,
+        help=(
+            "Send a file to the printer for printing. "
+            "Supported: .ps, .pcl, .pdf, .txt, .png, .jpg, .doc, .docx and any raw format. "
+            "Example: --send-job report.pdf"
+        ),
+    )
+    parser.add_argument(
+        "--send-proto",
+        metavar="PROTO",
+        default="raw",
+        choices=["raw", "ipp", "lpd"],
+        help="Protocol for send-job: raw (9100), ipp (631), lpd (515). Default: raw",
+    )
+    parser.add_argument(
+        "--send-copies",
+        metavar="N",
+        type=int,
+        default=1,
+        help="Number of copies to print (default: 1)",
+    )
+    parser.add_argument(
+        "--send-queue",
+        metavar="QUEUE",
+        default="lp",
+        help="LPD queue name for --send-job with --send-proto lpd (default: lp)",
+    )
     # ── Interactive mode ───────────────────────────────────────────────────────
     parser.add_argument(
         "--interactive", "-I",
@@ -480,6 +520,48 @@ def _run_scan(args) -> None:
         output().warning("  Could not determine printer language. Try: auto mode")
 
 # --------------------------------------------------------------------------- #
+# --------------------------------------------------------------------------- #
+# Send job dispatcher
+# --------------------------------------------------------------------------- #
+def _run_send_job(args) -> None:
+    """Send a file/text to the target printer for printing."""
+    from modules.print_job import send_print_job
+
+    _CYN = '\033[1;36m'; _GRN = '\033[1;32m'
+    _RED = '\033[1;31m';  _DIM = '\033[2;37m'; _RST = '\033[0m'
+
+    target   = args.target
+    filepath = args.send_job
+    proto    = getattr(args, 'send_proto',  'raw')
+    copies   = getattr(args, 'send_copies', 1)
+    queue    = getattr(args, 'send_queue',  'lp')
+    port     = getattr(args, 'port', 0) or 0
+
+    proto_ports = {'raw': 9100, 'ipp': 631, 'lpd': 515}
+    display_port = port or proto_ports.get(proto, 9100)
+
+    print(f"\n  {_CYN}[ Send Job ]{_RST}")
+    print(f"  {_DIM}Target   : {target}:{display_port}{_RST}")
+    print(f"  {_DIM}File     : {filepath}{_RST}")
+    print(f"  {_DIM}Protocol : {proto.upper()}{_RST}")
+    print(f"  {_DIM}Copies   : {copies}{_RST}")
+    print()
+
+    result = send_print_job(
+        host=target, path=filepath,
+        protocol=proto, port=display_port,
+        copies=copies, queue=queue,
+    )
+
+    if result.success:
+        print(f"  {_GRN}[+] Print job sent successfully{_RST}")
+        print(f"  {_DIM}    {result.file_size} bytes  elapsed {result.elapsed_ms:.0f}ms{_RST}")
+        if result.message:
+            print(f"  {_DIM}    {result.message}{_RST}")
+    else:
+        print(f"  {_RED}[-] Send failed: {result.error}{_RST}")
+
+
 # Attack module dispatcher
 # --------------------------------------------------------------------------- #
 def _run_attack_modules(args) -> None:
@@ -802,6 +884,24 @@ def _run_attack_modules(args) -> None:
             else:
                 extra_creds.append((cred_str, None))
 
+        # Load wordlist from --bf-wordlist FILE
+        bf_wordlist = getattr(args, 'bf_wordlist', None)
+        if bf_wordlist:
+            try:
+                with open(bf_wordlist, encoding='utf-8', errors='ignore') as wf:
+                    for line in wf:
+                        line = line.strip()
+                        if not line or line.startswith('#'):
+                            continue
+                        if ':' in line:
+                            u, p = line.split(':', 1)
+                            extra_creds.append((u.strip(), p.strip()))
+                        else:
+                            extra_creds.append((line, ''))
+                output().message(f"  [bf] Loaded wordlist: {bf_wordlist} (+{len(extra_creds)} entries)")
+            except OSError as exc:
+                output().warning(f"  [bf] Could not load wordlist {bf_wordlist}: {exc}")
+
         output().green(
             f"\n>> Brute Force Login: {target} | vendor={bf_vendor} | "
             f"serial={bf_serial or '?'} | variations={'off' if bf_novary else 'on'}"
@@ -1080,6 +1180,14 @@ def main() -> None:
                 output().warning("Download failed — check EDB ID or connection")
         except Exception as exc:
             output().errmsg(f"xpl-fetch error: {exc}")
+        sys.exit(0)
+
+    # ── --send-job: send file/text to printer ────────────────────────────────
+    if getattr(args, 'send_job', None):
+        if not args.target:
+            output().errmsg("--send-job requires a target: python src/main.py <ip> --send-job <file>")
+            sys.exit(1)
+        _run_send_job(args)
         sys.exit(0)
 
     # ── --scan / --scan-ml: reconnaissance without payloads ─────────────────

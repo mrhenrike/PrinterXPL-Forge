@@ -526,15 +526,24 @@ class DorkQueryBuilder:
         """
         Builds Netlas Lucene queries.
 
-        Netlas syntax: Elasticsearch/Lucene — field:value AND/OR/NOT
-        Fields: port, geo.country_name, geo.city.name, host.name, data.response, protocol, asn.org
-        Ref: https://docs.netlas.io/reference/
+        Verified field names (Netlas API 2026-03):
+          port              port number
+          geo.country       ISO-2 country code (e.g. "BR")
+          geo.city          city name (string)
+          isp               ISP/org name
+          http.title        HTTP page title (for web-exposed printers)
+          protocol          protocol name (e.g. "raw_tcp", "http")
+
+        Note: raw TCP ports (9100, 515) have no text banner — vendor matching
+        is done via http.title for web printers, or port-only for raw TCP.
+        Ref: https://docs.netlas.io/knowledge-base/field-reference/responses/
         """
         geo_part   = self._netlas_geo_part()
         port_part  = self._netlas_port_part()
         city_part  = self._netlas_city_part()
-        org_part   = f' AND asn.org:"{self.params.org}"' if self.params.org else ''
-        model_part = f' AND data.response:"{self.params.model}"' if self.params.model else ''
+        org_part   = f' AND isp:"{self.params.org}"' if self.params.org else ''
+        # Model search uses http.title (web-exposed printers) when model specified
+        model_part = f' AND http.title:"{self.params.model}"' if self.params.model else ''
         suffix     = f"{geo_part}{city_part}{org_part}{model_part}{port_part}"
 
         queries: List[Dict[str, str]] = []
@@ -543,25 +552,35 @@ class DorkQueryBuilder:
             for vendor in self.params.vendors:
                 vendor_key = vendor.lower()
                 raw_terms  = _VENDOR_SEARCH_TERMS.get(vendor_key, [f'"{vendor}"'])
-                nl_terms   = [t.strip('"') for t in raw_terms[:2]]
+                nl_terms   = [t.strip('"') for t in raw_terms[:1]]   # 1 term per vendor in Netlas
                 for term in nl_terms:
-                    q = f'data.response:"{term}"{suffix}'
+                    # Try http.title (web-exposed printers) first, then pure port filter
+                    q_web = f'http.title:"{term}"{suffix}'
                     if not port_part:
-                        q += ' AND (port:9100 OR port:515 OR port:631)'
+                        q_web += ' AND (port:80 OR port:443 OR port:631)'
                     queries.append({
-                        'query':       q,
-                        'description': f"{vendor.title()} printers (Netlas){self._geo_label()}",
+                        'query':       q_web,
+                        'description': f"{vendor.title()} printers via web (Netlas){self._geo_label()}",
+                        'vendor':      vendor,
+                    })
+                    # Also add a port-only fallback (broader, for raw TCP printers)
+                    q_port = f'(port:9100 OR port:515){suffix}'
+                    queries.append({
+                        'query':       q_port,
+                        'description': f"{vendor.title()} raw-TCP printers (Netlas){self._geo_label()}",
                         'vendor':      vendor,
                     })
         else:
-            generic_terms = ['data.response:"@PJL"', 'data.response:"PJL READY"']
-            for term in generic_terms:
-                q = f'{term}{suffix}'
-                if not port_part:
-                    q += ' AND (port:9100 OR port:515)'
+            # No vendor: just search by printer ports
+            generic_terms = [
+                ('(port:9100 OR port:515)',  'RAW/LPD printers'),
+                ('(port:631 OR port:9100)',  'IPP/RAW printers'),
+            ]
+            for q_base, desc in generic_terms:
+                q = f'{q_base}{suffix}'
                 queries.append({
                     'query':       q,
-                    'description': f"Generic PJL printers (Netlas){self._geo_label()}",
+                    'description': f"{desc} (Netlas){self._geo_label()}",
                     'vendor':      None,
                 })
         return queries
@@ -571,8 +590,8 @@ class DorkQueryBuilder:
         if not codes:
             return ''
         if len(codes) == 1:
-            return f' AND geo.country_code:"{codes[0]}"'
-        return ' AND (' + ' OR '.join(f'geo.country_code:"{c}"' for c in codes) + ')'
+            return f' AND geo.country:{codes[0]}'
+        return ' AND (' + ' OR '.join(f'geo.country:{c}' for c in codes) + ')'
 
     def _netlas_port_part(self) -> str:
         if not self.params.ports:
@@ -585,8 +604,8 @@ class DorkQueryBuilder:
         if not self.params.cities:
             return ''
         if len(self.params.cities) == 1:
-            return f' AND geo.city.name:"{self.params.cities[0]}"'
-        return ' AND (' + ' OR '.join(f'geo.city.name:"{c}"' for c in self.params.cities) + ')'
+            return f' AND geo.city:"{self.params.cities[0]}"'
+        return ' AND (' + ' OR '.join(f'geo.city:"{c}"' for c in self.params.cities) + ')'
 
     # ── Labels ────────────────────────────────────────────────────────────────
 
@@ -833,14 +852,15 @@ class FOFASearcher:
 
 class ZoomEyeSearcher:
     """
-    Wraps the ZoomEye API (zoomeye.org) for structured printer searches.
+    Wraps the ZoomEye API for structured printer searches.
 
-    API endpoint: GET https://api.zoomeye.org/host/search
-    Auth: Authorization: JWT <api_key>
-    Docs: https://www.zoomeye.org/doc
+    API endpoint: GET https://api.zoomeye.ai/host/search
+    Auth: API-KEY header (preferred over deprecated JWT since 2025).
+    Note: api.zoomeye.org redirects non-CN users to api.zoomeye.ai.
+    Docs: https://www.zoomeye.ai/doc
     """
 
-    _BASE = "https://api.zoomeye.org/host/search"
+    _BASE = "https://api.zoomeye.ai/host/search"
 
     def __init__(self, api_key: str) -> None:
         if not REQUESTS_AVAILABLE:
@@ -849,8 +869,8 @@ class ZoomEyeSearcher:
         import requests as _r
         self._session = _r.Session()
         self._session.headers.update({
-            'Authorization': f'JWT {self._api_key}',
-            'Content-Type':  'application/json',
+            'API-KEY':      self._api_key,
+            'Content-Type': 'application/json',
         })
 
     def search(self, params: 'DiscoveryParams', builder: 'DorkQueryBuilder') -> List['PrinterHit']:
@@ -910,6 +930,10 @@ class ZoomEyeSearcher:
                         break
                     page += 1
             except Exception as exc:
+                msg = str(exc)
+                if '402' in msg or 'credits' in msg.lower():
+                    _log.warning("ZoomEye: insufficient API credits — upgrade plan at https://www.zoomeye.ai")
+                    break
                 _log.warning("ZoomEye search error (%s): %s", qd['query'][:60], exc)
         return hits
 
@@ -937,7 +961,16 @@ class NetlasSearcher:
         self._session.headers.update({'X-API-Key': self._api_key})
 
     def search(self, params: 'DiscoveryParams', builder: 'DorkQueryBuilder') -> List['PrinterHit']:
-        """Execute all Netlas Lucene queries derived from params."""
+        """Execute all Netlas Lucene queries derived from params.
+
+        Netlas field reference (verified 2026-03):
+          geo.country        ISO-2 country code (e.g. "BR")
+          geo.city           city name (string)
+          port               port number (integer)
+          isp                ISP name
+          host               hostname/IP string
+          @timestamp         scan timestamp
+        """
         hits:  List[PrinterHit] = []
         seen:  set              = set()
         limit  = params.limit
@@ -951,12 +984,10 @@ class NetlasSearcher:
                 resp = self._session.get(
                     self._BASE,
                     params={
-                        'q':       qd['query'],
-                        'indices': 'responses',
-                        'size':    min(limit - len(hits), 100),
-                        'start':   0,
+                        'q':    qd['query'],
+                        'size': min(limit - len(hits), 100),
                     },
-                    timeout=25,
+                    timeout=60,    # Netlas can be slow on country-filtered queries
                 )
                 resp.raise_for_status()
                 data  = resp.json()
@@ -969,22 +1000,21 @@ class NetlasSearcher:
                     if not ip or ip in seen:
                         continue
                     seen.add(ip)
-                    geo   = attrs.get('geo', {})
-                    asn   = attrs.get('asn', {})
+                    geo = attrs.get('geo', {})
                     hits.append(PrinterHit(
                         ip           = ip,
                         port         = int(attrs.get('port', 9100)),
                         source       = 'netlas',
-                        country      = geo.get('country_name', ''),
-                        country_code = geo.get('country_code', ''),
-                        city         = geo.get('city', {}).get('name', '') if isinstance(geo.get('city'), dict) else geo.get('city', ''),
-                        org          = asn.get('org', ''),
-                        hostnames    = attrs.get('host', {}).get('name', []) or [],
-                        banner       = str(attrs.get('data', {}).get('response', ''))[:600],
-                        product      = attrs.get('data', {}).get('product', ''),
-                        version      = attrs.get('data', {}).get('version', ''),
+                        country      = geo.get('country', ''),
+                        country_code = geo.get('country', ''),
+                        city         = geo.get('city', '') if isinstance(geo.get('city'), str) else '',
+                        org          = attrs.get('isp', ''),
+                        hostnames    = [attrs.get('host', '')] if attrs.get('host') else [],
+                        banner       = '',        # raw TCP has no banner; HTTP captured separately
+                        product      = '',
+                        version      = '',
                         vendor       = qd.get('vendor'),
-                        timestamp    = item.get('date', ''),
+                        timestamp    = attrs.get('@timestamp', ''),
                     ))
             except Exception as exc:
                 _log.warning("Netlas search error (%s): %s", qd['query'][:60], exc)

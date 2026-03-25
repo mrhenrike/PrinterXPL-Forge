@@ -74,9 +74,18 @@ ARCHITECTURE_*.md
 ARCHITECTURE_*.txt
 src/utils/docs/
 
-# Discovery results
+# Discovery results (auto-generated, not for repository)
 discovery_results*/
 *_results/
+.log/discovery_*.json
+
+# Build / packaging artifacts (not tracked)
+build/
+dist/
+debian/
+packaging/
+tests/
+tools/
 
 # HTTP server logs
 *.server.log

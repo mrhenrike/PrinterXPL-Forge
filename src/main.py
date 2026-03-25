@@ -758,7 +758,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument(
         "--version",
         action="version",
-        version=f"%(prog)s {VERSION}",
+        version=f"%(prog)s {get_version_string()}",
         help="Show program version and exit",
     )
     return parser.parse_args()
@@ -1638,7 +1638,7 @@ def intro(quiet: bool) -> None:
         "",
         "",
         f"{APP_NAME} :: Advanced Printer Penetration Testing Toolkit",
-        f"Version {VERSION}",
+        VERSION,
         "Author : Andre Henrique",
         "Contact: X / LinkedIn @mrhenrike",
         "",
@@ -2009,6 +2009,9 @@ def main() -> None:
         except KeyboardInterrupt:
             print()
         sys.exit(0)
+
+    # Default to auto-detect when no mode is specified
+    args.mode = args.mode or 'auto'
 
     # Auto-detect printer language support if mode is 'auto'
     if args.mode == 'auto':

@@ -66,7 +66,7 @@ class fuzzer():
     blind = vol+var             # blind fuzzing
     
     # ====================================================================
-    # DYNAMIC FUZZING METHODS (Added in v2.3.3)
+    # DYNAMIC FUZZING METHODS
     # ====================================================================
     
     def fuzz_paths(self):

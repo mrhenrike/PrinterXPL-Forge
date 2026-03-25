@@ -1,0 +1,27 @@
+printer-reaper (3.7.0-1) unstable; urgency=medium
+
+  * v3.7.0: Zero hardcoded credentials — wordlist-driven brute-force engine
+  * New wordlist_loader.py module with vendor sections and token expansion
+  * Replace SVG diagrams with PNG + draw.io source files
+  * 3 new draw.io diagram sources (workflow, credential flow, attack matrix)
+  * Restore União Geek branding to README
+  * Add PRET benchmark comparison table
+  * Clean up obsolete scripts and duplicate config files
+
+ -- Andre Henrique <mrhenrike@users.noreply.github.com>  Tue, 25 Mar 2026 00:00:00 +0000
+
+printer-reaper (3.6.2-1) unstable; urgency=medium
+
+  * v3.6.2: LDAP NTLM hash capture module
+  * CVE-2024-51978 exploit (Brother WBM SNMP password leak)
+  * 5 new vendor credential sets (Fujifilm, Axis, Zebra, Pantum, Sindoh)
+
+ -- Andre Henrique <mrhenrike@users.noreply.github.com>  Mon, 24 Mar 2026 00:00:00 +0000
+
+printer-reaper (3.0.0-1) unstable; urgency=low
+
+  * Initial Debian packaging
+  * Forked and rewritten from PRET (Printer Exploitation Toolkit)
+  * Added IPv6, SMB, pysnmp v5/v7, IPP/TLS, local printer discovery
+
+ -- Andre Henrique <mrhenrike@users.noreply.github.com>  Mon, 24 Mar 2026 00:00:00 +0000

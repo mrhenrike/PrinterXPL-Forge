@@ -244,6 +244,16 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Run exploit matching after --scan: shows available exploits for detected printer",
     )
+    parser.add_argument(
+        "--xpl-source",
+        metavar="SOURCE",
+        default=None,
+        choices=["metasploit", "exploit-db", "research", "custom"],
+        help=(
+            "Filter --xpl-list or --xpl-run by exploit source. "
+            "Choices: metasploit, exploit-db, research, custom"
+        ),
+    )
     # ── Brute force login ──────────────────────────────────────────────────────
     parser.add_argument(
         "--bruteforce",
@@ -762,8 +772,13 @@ def _run_attack_modules(args) -> None:
     if getattr(args, 'xpl_list', False):
         try:
             from utils.exploit_manager import load_all_exploits, print_exploit_list
-            xpls = load_all_exploits()
-            print_exploit_list(xpls, title=f'PrinterReaper Exploit Library ({len(xpls)} exploits)')
+            src_filter = getattr(args, 'xpl_source', None)
+            xpls = load_all_exploits(source_filter=src_filter)
+            src_label  = f' [{src_filter}]' if src_filter else ''
+            print_exploit_list(
+                xpls,
+                title=f'PrinterReaper Exploit Library{src_label} ({len(xpls)} exploits)'
+            )
         except Exception as exc:
             output().errmsg(f"xpl-list error: {exc}")
 
@@ -1152,8 +1167,13 @@ def main() -> None:
     if getattr(args, 'xpl_list', False):
         try:
             from utils.exploit_manager import load_all_exploits, print_exploit_list
-            xpls = load_all_exploits()
-            print_exploit_list(xpls, title=f'PrinterReaper Exploit Library ({len(xpls)} exploits)')
+            src_filter = getattr(args, 'xpl_source', None)
+            xpls = load_all_exploits(source_filter=src_filter)
+            src_label = f' [{src_filter}]' if src_filter else ''
+            print_exploit_list(
+                xpls,
+                title=f'PrinterReaper Exploit Library{src_label} ({len(xpls)} exploits)'
+            )
         except Exception as exc:
             output().errmsg(f"xpl-list error: {exc}")
         sys.exit(0)

@@ -2,6 +2,62 @@
 
 ---
 
+## v3.13.0 — Fix ZoomEye/Netlas APIs + Repo Cleanup
+
+**Data:** 2026-03-24
+**Status:** COMPLETO
+
+### Bugs corrigidos
+
+| Engine | Problema | Correção |
+|---|---|---|
+| ZoomEye | 403 — `api.zoomeye.org` restrito por região; auth `JWT` inválido | Migrado para `api.zoomeye.ai`; auth header mudado para `API-KEY` |
+| ZoomEye | 402 — créditos insuficientes (plano free) | Handle gracioso: aviso + skip sem crash |
+| Netlas | 400 — parâmetro `indices=responses` inválido | Removido; apenas `q` e `size` usados |
+| Netlas | Campos errados: `geo.country_code`, `geo.city.name`, `data.response` | Corrigidos para `geo.country`, `geo.city` (confirmados via API real) |
+| Netlas | `data.response` não existe para raw TCP | Queries refeitas: usa `http.title` para web + `port:9100` para raw TCP |
+| Netlas | Timeout 20s insuficiente para queries com filtro de país | Aumentado para 60s |
+
+### Testes realizados (validados)
+
+| Teste | Resultado |
+|---|---|
+| `--discover-local` | OK — Epson L3250 (192.168.0.152) detectada localmente |
+| `--scan 192.168.0.152 --no-nvd` | OK — 3 CVEs Epson, 3 vendor, 3 genéricos; 10 exploits mapeados |
+| `--discover-online --shodan --dork-vendor epson --dork-country BR --dork-limit 2` | OK — 2 impressoras Epson no BR |
+| `--discover-online --netlas --dork-country BR --dork-port 9100 --dork-limit 2` | OK — 2 impressoras RAW no BR |
+| `--discover-online --dork-engine shodan,netlas --dork-vendor hp --dork-country BR --dork-limit 2` | OK — 6 impressoras HP no BR via 2 engines |
+| ZoomEye (créditos insuficientes) | Skip gracioso com aviso |
+| Censys (sem key configurada) | Skip gracioso com aviso |
+
+### Limpeza do repositório
+
+| Item removido | Motivo |
+|---|---|
+| `tests/` | Arquivos de teste auto-gerados, não solicitados |
+| `tools/` | Scripts internos de dev (add_author, db_merge, release_notes) |
+| `debian/` | Artefato de packaging não necessário |
+| `packaging/` | Artefato de packaging não necessário |
+| `build/` | Artefato de build |
+| `src/printer_reaper.egg-info/` | Artefato de build |
+| `.log/_api_probe.py` | Script de debug temporário |
+| `.log/discovery_*.json` | Resultados de teste em runtime |
+
+### .gitignore atualizado
+
+Adicionadas entradas para: `tests/`, `tools/`, `debian/`, `packaging/`, `.log/discovery_*.json`.
+
+### Arquivos alterados
+
+| Arquivo | Mudança |
+|---|---|
+| `src/utils/discovery_online.py` | ZoomEye: URL→`api.zoomeye.ai`, header→`API-KEY`, handle 402; Netlas: remove `indices`, corrige campos geo, queries refeitas |
+| `src/version.py` | 3.12.0 → 3.13.0 |
+| `.gitignore` | +tests/, tools/, debian/, packaging/, .log/discovery_*.json |
+| `.log/handoff.md` | Este arquivo |
+
+---
+
 ## v3.12.0 — CSV Multi-Value Dork Filters + City/Country Guard
 
 **Data:** 2026-03-24

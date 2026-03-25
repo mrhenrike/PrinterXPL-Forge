@@ -987,10 +987,56 @@ def send_lpd(host: str, port: int, data: bytes,
         )
 
 
+def _clear_os_print_queue(printer_name: str = '') -> None:
+    """Clear stuck/errored/paused jobs from the OS print queue before sending.
+
+    On Windows: uses PowerShell Get-PrintJob | Remove-PrintJob.
+    On Linux/macOS: uses lprm -a or cancel -a.
+
+    Args:
+        printer_name: Target printer name. Empty → clears all printers' queues.
+    """
+    import platform
+    os_name = platform.system()
+    try:
+        if os_name == 'Windows':
+            if printer_name:
+                pname_esc = printer_name.replace('"', '\\"')
+                ps_cmd = (
+                    f'Get-PrintJob -PrinterName "{pname_esc}" '
+                    f'| Remove-PrintJob'
+                )
+            else:
+                ps_cmd = (
+                    'Get-Printer | ForEach-Object { '
+                    '  try { Get-PrintJob -PrinterName $_.Name '
+                    '    | Remove-PrintJob } catch {} '
+                    '}'
+                )
+            subprocess.run(
+                ['powershell', '-NoProfile', '-NonInteractive',
+                 '-ExecutionPolicy', 'Bypass', '-Command', ps_cmd],
+                capture_output=True, timeout=15,
+            )
+        else:
+            if printer_name:
+                subprocess.run(['cancel', '-a', '-U', printer_name],
+                               capture_output=True, timeout=10)
+            else:
+                subprocess.run(['cancel', '-a'],
+                               capture_output=True, timeout=10)
+    except Exception as exc:
+        _log.debug("Queue clear warning (non-fatal): %s", exc)
+
+
 def send_os_print(path: str, printer_name: str = '',
-                  timeout: float = 30.0) -> PrintJobResult:
+                  timeout: float = 30.0,
+                  clear_queue: bool = True) -> PrintJobResult:
     """
     Print a file via the locally installed OS printer (Windows/Linux/macOS).
+
+    Clears stuck/errored jobs from the queue before sending to avoid
+    the printer staying offline or blocked by a previous failed job.
 
     On Windows: uses PowerShell Start-Process with -Verb PrintTo.
     On Linux/macOS: uses lpr command.
@@ -999,6 +1045,7 @@ def send_os_print(path: str, printer_name: str = '',
         path:         File to print.
         printer_name: OS printer name. Empty → system default.
         timeout:      Wait timeout in seconds.
+        clear_queue:  If True, clears stuck jobs before printing (default: True).
     """
     import platform
     t0 = time.time()
@@ -1011,6 +1058,12 @@ def send_os_print(path: str, printer_name: str = '',
         )
 
     os_name = platform.system()
+
+    # Clear the print queue before submitting to avoid blocked/offline state
+    if clear_queue:
+        _log.info("Clearing OS print queue before sending job...")
+        _clear_os_print_queue(printer_name)
+        time.sleep(0.5)  # brief pause so the spooler resets
 
     try:
         if os_name == 'Windows':

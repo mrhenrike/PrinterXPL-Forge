@@ -39,6 +39,13 @@ _WHT = '\033[1;37m'
 
 W = shutil.get_terminal_size((80, 24)).columns
 
+# ── Session state (persists across menu actions) ──────────────────────────────
+_session: dict = {
+    'target': '',
+    'vendor': '',
+    'serial': '',
+}
+
 
 # ── Low-level I/O helpers ────────────────────────────────────────────────────
 
@@ -156,24 +163,36 @@ def _banner_mini() -> None:
 
 
 def _target_prompt(current: str = '') -> str:
-    """Ask for target IP/hostname with validation hint."""
+    """Ask for target IP/hostname, reusing the session target if already set.
+
+    If a target was used in a previous menu action this session, it becomes
+    the default — the user can press Enter to confirm it, or type a new one.
+    """
+    effective = current or _session.get('target', '')
     while True:
-        t = _ask("Target IP or hostname", current or '192.168.x.x')
+        t = _ask("Target IP or hostname", effective or '192.168.x.x')
         if t and t not in ('192.168.x.x', ''):
+            _session['target'] = t
             return t
         print(f"  {_DIM}  Please enter a valid IP or hostname{_RST}")
 
 
 def _serial_prompt() -> str:
-    return _ask("Serial number (leave blank if unknown)", '')
+    val = _ask("Serial number (leave blank if unknown)", _session.get('serial', ''))
+    if val:
+        _session['serial'] = val
+    return val
 
 
 def _vendor_prompt(auto: str = '') -> str:
-    hint = auto or 'epson'
-    return _ask(
+    hint = auto or _session.get('vendor', '') or 'epson'
+    val = _ask(
         "Printer vendor (epson/hp/ricoh/xerox/kyocera/brother/canon/generic)",
-        hint
+        hint,
     )
+    if val:
+        _session['vendor'] = val
+    return val
 
 
 # ── Menu sections ─────────────────────────────────────────────────────────────
@@ -593,7 +612,11 @@ def run_interactive() -> None:
             print(f"  {_YEL}[{i}]{_RST}  {icon_title:<36} {_DIM}{desc}{_RST}")
 
         print()
-        print(f"  {_DIM}[Q]  Exit PrinterReaper{_RST}")
+        # Show current session target if one is set
+        if _session.get('target'):
+            print(f"  {_DIM}Session target:{_RST}  {_GRN}{_session['target']}{_RST}"
+                  f"  {_DIM}· type {_RST}[T]{_DIM} to change{_RST}")
+        print(f"  {_DIM}[T]  Set/change session target    [Q]  Exit PrinterReaper{_RST}")
         print()
 
         try:
@@ -605,6 +628,13 @@ def run_interactive() -> None:
         if raw.lower() in ('q', 'quit', 'exit', ''):
             print(f"\n  {_DIM}Bye.{_RST}\n")
             sys.exit(0)
+
+        # Allow typing 't' to change the session target quickly
+        if raw.lower() == 't':
+            new_t = _ask("New session target IP or hostname", _session.get('target', ''))
+            if new_t and new_t not in ('192.168.x.x',):
+                _session['target'] = new_t
+            continue
 
         try:
             idx = int(raw) - 1

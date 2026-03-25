@@ -1656,6 +1656,28 @@ def intro(quiet: bool) -> None:
 # --------------------------------------------------------------------------- #
 # Main logic
 # --------------------------------------------------------------------------- #
+def _require_target(args: argparse.Namespace, flag: str = 'this operation') -> None:
+    """Prompt the user for a target IP/hostname if not already set in the session.
+
+    Args:
+        args: Parsed argument namespace.
+        flag: Name of the CLI flag or action requiring the target (for display).
+    """
+    if args.target:
+        return
+    try:
+        print()
+        val = input(f"  ? Target IP or hostname ({flag}): ").strip()
+        print()
+    except (EOFError, KeyboardInterrupt):
+        print()
+        sys.exit(0)
+    if not val:
+        output().errmsg("Target IP/hostname is required to proceed.")
+        sys.exit(1)
+    args.target = val
+
+
 def main() -> None:
     """Main program flow."""
     # If called without any arguments → interactive guided menu
@@ -1927,34 +1949,26 @@ def main() -> None:
 
     # ── --auto-exploit: automatic exploit selection, verification & execution ──
     if getattr(args, 'auto_exploit', False):
-        if not getattr(args, 'target', None):
-            output().errmsg("--auto-exploit requires a target IP: python printer-reaper.py <IP> --auto-exploit")
-            sys.exit(1)
+        _require_target(args, '--auto-exploit')
         _run_auto_exploit(args)
         sys.exit(0)
 
     # ── --install-printer: install printer on host OS ────────────────────────
     if getattr(args, 'install_printer', False):
-        if not args.target:
-            output().errmsg("--install-printer requires a target: printer-reaper.py <ip> --install-printer")
-            sys.exit(1)
+        _require_target(args, '--install-printer')
         _run_install_printer(args)
         sys.exit(0)
 
     # ── --send-job: send file/text to printer ────────────────────────────────
     if getattr(args, 'send_job', None):
-        if not args.target:
-            output().errmsg("--send-job requires a target: python src/main.py <ip> --send-job <file>")
-            sys.exit(1)
+        _require_target(args, '--send-job')
         _run_send_job(args)
         sys.exit(0)
 
     # ── --scan / --scan-ml: reconnaissance without payloads ─────────────────
     scan_requested = getattr(args, 'scan', False) or getattr(args, 'scan_ml', False)
     if scan_requested:
-        if not args.target:
-            output().errmsg("--scan requires a target: python src/main.py <ip> --scan")
-            sys.exit(1)
+        _require_target(args, '--scan')
         _run_scan(args)
         sys.exit(0)
 
@@ -1966,9 +1980,7 @@ def main() -> None:
     _any_attack = any(getattr(args, a.replace('-', '_'), None)
                       for a in _needs_target)
     if _any_attack:
-        if not args.target:
-            output().errmsg("Attack flags require a target IP/host.")
-            sys.exit(1)
+        _require_target(args, 'attack/audit flag')
         _run_attack_modules(args)
         sys.exit(0)
 
@@ -2001,8 +2013,25 @@ def main() -> None:
         output().green(f">> Starting {APP_NAME} (Advanced Printer Penetration Testing)")
         print()
 
-    # ── No meaningful args → launch interactive guided menu ──────────────────
-    if not args.target and not args.mode:
+    # ── No meaningful args or --interactive flag → guided menu ───────────────
+    # Also catches: only --quiet or other non-action flags with no target/mode
+    _has_action = (
+        args.target or args.mode
+        or getattr(args, 'discover_local', False)
+        or getattr(args, 'discover_online', False)
+        or getattr(args, 'check_config', False)
+        or getattr(args, 'xpl_list', False)
+        or getattr(args, 'xpl_update', False)
+        or getattr(args, 'xpl_fetch', None)
+        or getattr(args, 'scan', False)
+        or getattr(args, 'scan_ml', False)
+        or getattr(args, 'send_job', None)
+        or getattr(args, 'install_printer', False)
+        or getattr(args, 'bruteforce', False)
+        or getattr(args, 'ipp', False)
+        or getattr(args, 'auto_exploit', False)
+    )
+    if not _has_action or getattr(args, 'interactive', False):
         try:
             from ui.interactive import run_interactive
             run_interactive()

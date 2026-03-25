@@ -7,11 +7,21 @@
     "Features that require credentials:",
     "  shodan       -> --discover-online (Shodan queries)",
     "  censys       -> --discover-online (Censys queries)",
+    "  fofa         -> --discover-online --dork-engine fofa (FOFA queries)",
+    "  zoomeye      -> --discover-online --dork-engine zoomeye (ZoomEye queries)",
+    "  netlas       -> --discover-online --dork-engine netlas (Netlas queries)",
     "  nvd          -> --scan CVE lookup (higher rate limit without key still works)",
     "  virustotal   -> IP/hash reputation (future)",
     "  greynoise    -> IP noise scoring (future)",
     "  abuse_ipdb   -> IP abuse score (future)",
-    "  openai       -> AI-assisted summaries (future)"
+    "  openai       -> AI-assisted summaries (future)",
+    "",
+    "Register for API keys:",
+    "  Shodan  : https://account.shodan.io/",
+    "  Censys  : https://search.censys.io/account/api",
+    "  FOFA    : https://en.fofa.info/api  (requires registered account)",
+    "  ZoomEye : https://www.zoomeye.org/profile",
+    "  Netlas  : https://app.netlas.io/profile/  (50 req/day free)"
   ],
 
   "shodan": [
@@ -21,6 +31,18 @@
 
   "censys": [
     { "label": "primary", "api_id": "YOUR_CENSYS_API_ID", "api_secret": "YOUR_CENSYS_API_SECRET" }
+  ],
+
+  "fofa": [
+    { "label": "primary", "email": "YOUR_FOFA_EMAIL", "api_key": "YOUR_FOFA_API_KEY" }
+  ],
+
+  "zoomeye": [
+    { "label": "primary", "api_key": "YOUR_ZOOMEYE_API_KEY" }
+  ],
+
+  "netlas": [
+    { "label": "primary", "api_key": "YOUR_NETLAS_API_KEY" }
   ],
 
   "nvd": [

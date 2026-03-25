@@ -60,6 +60,24 @@ FEATURE_REQUIREMENTS: Dict[str, Dict] = {
         'keys':    ['api_id', 'api_secret'],
         'url':     'https://search.censys.io/account/api',
     },
+    'fofa_search': {
+        'label':   'FOFA search / --discover-online --dork-engine fofa',
+        'section': 'fofa',
+        'keys':    ['email', 'api_key'],
+        'url':     'https://en.fofa.info/api',
+    },
+    'zoomeye_search': {
+        'label':   'ZoomEye search / --discover-online --dork-engine zoomeye',
+        'section': 'zoomeye',
+        'keys':    ['api_key'],
+        'url':     'https://www.zoomeye.org/profile',
+    },
+    'netlas_search': {
+        'label':   'Netlas search / --discover-online --dork-engine netlas',
+        'section': 'netlas',
+        'keys':    ['api_key'],
+        'url':     'https://app.netlas.io/profile/',
+    },
     'nvd_lookup': {
         'label':   'NVD CVE lookup (higher rate limit)',
         'section': 'nvd',
@@ -98,6 +116,9 @@ FEATURE_REQUIREMENTS: Dict[str, Dict] = {
 _DEFAULTS: Dict = {
     'shodan':      [{'label': 'primary', 'api_key': ''}],
     'censys':      [{'label': 'primary', 'api_id': '', 'api_secret': ''}],
+    'fofa':        [{'label': 'primary', 'email': '', 'api_key': ''}],
+    'zoomeye':     [{'label': 'primary', 'api_key': ''}],
+    'netlas':      [{'label': 'primary', 'api_key': ''}],
     'nvd':         [{'label': 'primary', 'api_key': ''}],
     'virustotal':  [{'label': 'primary', 'api_key': ''}],
     'greynoise':   [{'label': 'primary', 'api_key': ''}],
@@ -403,6 +424,23 @@ def censys_credentials() -> Tuple[str, str]:
     entry = _get_first_entry('censys')
     return (str(entry.get('api_id', '')).strip(),
             str(entry.get('api_secret', '')).strip())
+
+
+def fofa_credentials() -> Tuple[str, str]:
+    """Return (email, api_key) for FOFA."""
+    entry = _get_first_entry('fofa')
+    return (str(entry.get('email', '')).strip(),
+            str(entry.get('api_key', '')).strip())
+
+
+def zoomeye_key() -> str:
+    """Return the ZoomEye API key."""
+    return _get_first_key('zoomeye', 'api_key')
+
+
+def netlas_key() -> str:
+    """Return the Netlas API key."""
+    return _get_first_key('netlas', 'api_key')
 
 
 def nvd_key() -> str:

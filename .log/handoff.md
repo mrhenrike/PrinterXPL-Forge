@@ -2,6 +2,81 @@
 
 ---
 
+## v3.9.0 — 5-Engine Dork Discovery (FOFA + ZoomEye + Netlas)
+
+**Data:** 2026-03-25
+**Status:** COMPLETO
+
+### Arquivos alterados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `src/utils/discovery_online.py` | +`FOFASearcher`, `ZoomEyeSearcher`, `NetlasSearcher`; `DorkQueryBuilder` com `build_fofa_queries()`, `build_zoomeye_queries()`, `build_netlas_queries()`; `OnlineDiscoveryManager` com suporte a 5 engines e `_run_*()` helpers |
+| `src/utils/config.py` | +entradas `fofa_search`, `zoomeye_search`, `netlas_search` em `FEATURE_REQUIREMENTS`; `_DEFAULTS` com fofa/zoomeye/netlas; +`fofa_credentials()`, `zoomeye_key()`, `netlas_key()` |
+| `config.json.example` | +seções `fofa`, `zoomeye`, `netlas` com comentários de registro |
+| `src/main.py` | +`--dork-engine` flag; handler `--discover-online` carrega credenciais de todos os 5 engines; validação de engines inválidos |
+| `src/version.py` | 3.8.0 → 3.9.0 |
+| `README.md` | Seção Discovery atualizada com 5 engines, tabela de sintaxe por engine, exemplos com `--dork-engine` |
+| `.log/handoff.md` | Este arquivo |
+
+### Funcionalidade: Multi-Engine Dork Discovery
+
+**Antes (v3.8.0):** apenas Shodan e Censys.
+**Agora (v3.9.0):** 5 engines com sintaxes nativas por plataforma:
+
+| Engine | Sintaxe | Auth |
+|--------|---------|------|
+| Shodan | `"HP LaserJet" country:BR port:9100` | `api_key` |
+| Censys | `services.banner="HP LaserJet" AND location.country_code="BR"` | `api_id` + `api_secret` |
+| FOFA | `banner="HP LaserJet" && country="BR" && port="9100"` (base64-encoded) | `email` + `api_key` |
+| ZoomEye | `banner:"HP LaserJet" +country:"BR" +port:9100` | `api_key` (JWT) |
+| Netlas | `data.response:"HP LaserJet" AND geo.country_code:"BR" AND port:9100` | `X-API-Key` |
+
+### Regra de filtro obrigatória
+
+- **Nenhum engine executa sem ao menos um filtro** — `DiscoveryParams.has_filters()` é verificado antes de qualquer API call
+- `--dork-engine` inválido causa erro imediato com lista de opções válidas
+- Contexto de impressora é sempre implícito (port=9100/515/631 ou banner=@PJL injetados quando sem filtro de porta)
+
+### Configuração necessária
+
+```json
+{
+  "fofa":    [{ "email": "user@example.com", "api_key": "fofa_key_here" }],
+  "zoomeye": [{ "api_key": "zoomeye_key_here" }],
+  "netlas":  [{ "api_key": "netlas_key_here" }]
+}
+```
+
+### Exemplos de uso
+
+```bash
+# Epson no Brasil via FOFA e Netlas
+python printer-reaper.py --discover-online \
+  --dork-vendor epson --dork-country BR --dork-engine fofa,netlas
+
+# Todas as engines, HP em SP
+python printer-reaper.py --discover-online \
+  --dork-vendor hp --dork-city "Sao Paulo" --dork-port 9100
+
+# ZoomEye somente, impressoras com porta 515 na América Latina
+python printer-reaper.py --discover-online \
+  --dork-port 515 --dork-region latin_america --dork-engine zoomeye
+```
+
+### Status final
+- Sintaxes validadas por testes de saída das funções `build_*_queries()`
+- Filtro obrigatório validado: `ValueError` levantado para `DiscoveryParams()` vazio
+- Sem hardcoded credentials, sem busca aberta
+- Todos os engines aceitam credenciais de `config.json` ou parâmetros diretos
+
+### Próximos passos (opcional)
+- Adicionar `--dork-engine all` como alias explícito
+- Implementar cache de resultados por hash de query (`.log/discovery_cache/`)
+- Suporte a paginação automática em ZoomEye para planos pagos
+
+---
+
 ## v3.8.0 — Dork Discovery + Auto Exploit
 
 **Data:** 2026-03-25

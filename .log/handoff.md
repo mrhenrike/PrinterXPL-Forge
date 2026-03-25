@@ -2,6 +2,77 @@
 
 ---
 
+## v3.8.0 — Dork Discovery + Auto Exploit
+
+**Data:** 2026-03-25
+**Status:** COMPLETO
+
+### Arquivos alterados
+
+| Arquivo | Mudança |
+|---------|---------|
+| `src/utils/discovery_online.py` | Reescrito com `DorkQueryBuilder`, `DiscoveryParams`, `ShodanSearcher`, `CensysSearcher`, `PrinterHit`, `OnlineDiscoveryManager.targeted_search()` |
+| `src/utils/exploit_manager.py` | Adicionados `auto_exploit()`, `_prefill_params()`, `AutoExploitResult`, `print_auto_exploit_summary()` |
+| `src/main.py` | Adicionados flags `--dork-*` (9 flags), `--auto-exploit` (4 flags), handler `_run_auto_exploit()`, handler `--discover-online` reescrito |
+| `src/version.py` | 3.7.0 → 3.8.0 |
+| `README.md` | Seções Discovery e Auto Exploit atualizadas, versão e tabela de dork flags |
+| `.log/handoff.md` | Este arquivo |
+
+### Funcionalidade 1: Dork Discovery (`--discover-online`)
+
+**Antes:** buscava com queries fixas hardcoded, sem filtros.
+**Agora:**
+- Classe `DiscoveryParams` com campos: vendors, model, countries, city, regions, ports, org, cpe, limit
+- Classe `DorkQueryBuilder` gera queries Shodan e Censys a partir dos parâmetros
+- Mapeamento de 12 regiões geográficas (`latin_america`, `south_america`, `europe`, etc.) para códigos ISO
+- Mapeamento de nomes de países em pt-BR e en-US para códigos ISO
+- Mapeamento de 20 vendors para termos de busca específicos
+- `targeted_search()` executa as queries, deduplicando por IP:port
+- Impressão formatada com tabela + estatísticas de distribuição por país
+- Export automático para `.log/discovery_<timestamp>.json`
+- Validação: se nenhum filtro e nenhum IP for fornecido, erro explicativo com sugestão de flags
+
+**Flags adicionadas:**
+```
+--dork-vendor  (repeatable)
+--dork-model
+--dork-country (repeatable)
+--dork-city
+--dork-region  (repeatable)
+--dork-port    (repeatable)
+--dork-org
+--dork-cpe
+--dork-limit
+```
+
+### Funcionalidade 2: Auto Exploit (`--auto-exploit`)
+
+**Fluxo:**
+1. `grab_all()` → fingerprint do alvo
+2. `match_exploits()` → candidatos por make/model/firmware/ports/CVEs
+3. Sort por CVSS desc
+4. `check()` nos top N (não-destrutivo)
+5. `_prefill_params()` → preenche host, port, serial, mac, vendor automaticamente
+6. `run()` nos top M confirmados (dry-run por padrão)
+7. `print_auto_exploit_summary()` → tabela de resultados
+
+**Flags adicionadas:**
+```
+--auto-exploit
+--auto-exploit-limit N   (default: 8)
+--auto-exploit-run N     (default: 1)
+--auto-exploit-file FILE (custom exploit .py, parâmetros auto-preenchidos)
+```
+
+### Documentação
+
+- Wiki: `Online-Discovery-Dorks.md` (novo) + `Auto-Exploit.md` (novo)
+- Wiki: `Home.md` atualizado com links para as novas páginas
+- README: seção Discovery reescrita com dorks, seção Auto Exploit adicionada
+- Versão: 3.7.0 → 3.8.0
+
+---
+
 ## Entry Point + GitHub Wiki — v3.7.0
 
 **Data:** 2026-03-25

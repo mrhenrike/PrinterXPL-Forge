@@ -1,29 +1,37 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PrinterReaper - Online Discovery Module
-Discovers PJL-compatible printers exposed on the internet via Shodan and Censys APIs.
+PrinterReaper — Online Discovery Module
+========================================
+Structured dork-based discovery of exposed printers via Shodan and Censys APIs.
 
-Author: PrinterReaper Team
-License: MIT
+Supports parameterized filters: vendor, model, country, city, region, port, org, CPE.
+Printer search terms are implicit — user does not need to specify "printer".
+Requires at least one filter parameter when no direct IP target is given.
 """
-
 # Author    : Andre Henrique (@mrhenrike)
 # GitHub    : https://github.com/mrhenrike
 # LinkedIn  : https://linkedin.com/in/mrhenrike
 # X/Twitter : https://x.com/mrhenrike
 
-import os
-import json
+from __future__ import annotations
+
 import csv
-import time
-from datetime import datetime
-from collections import defaultdict
-from typing import List, Dict, Set, Optional, Tuple
+import json
+import logging
+import os
 import re
+import time
+from collections import defaultdict
+from dataclasses import dataclass, field
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Optional, Set, Tuple
+
+_log = logging.getLogger(__name__)
 
 try:
-    import shodan
+    import shodan as _shodan_lib
     SHODAN_AVAILABLE = True
 except ImportError:
     SHODAN_AVAILABLE = False
@@ -35,603 +43,646 @@ except ImportError:
     CENSYS_AVAILABLE = False
 
 
-class PrinterDatabase:
-    """Manages the printer models database from pjl.dat"""
-    
-    def __init__(self, db_path: str = "src/core/db/pjl.dat"):
-        self.db_path = db_path
-        self.models = []
-        self.brands = defaultdict(list)
-        self.load_database()
-    
-    def load_database(self) -> None:
-        """Load printer models from pjl.dat"""
-        try:
-            with open(self.db_path, 'r', encoding='utf-8') as f:
-                self.models = [line.strip() for line in f if line.strip()]
-            
-            print(f"[+] Loaded {len(self.models)} printer models from database")
-            self._categorize_by_brand()
-        except FileNotFoundError:
-            print(f"[!] Database file not found: {self.db_path}")
-            raise
-        except Exception as e:
-            print(f"[!] Error loading database: {e}")
-            raise
-    
-    def _categorize_by_brand(self) -> None:
-        """Categorize printer models by brand"""
-        brand_patterns = {
-            'HP': r'(?i)^(HP |LaserJet|DesignJet|OfficeJet|DeskJet|Business Inkjet|Color LaserJet)',
-            'Brother': r'(?i)^Brother',
-            'Xerox': r'(?i)^Xerox|^Phaser|^WorkCentre|^DocuPrint|^DocuColor',
-            'Ricoh': r'(?i)^Aficio|^Ricoh',
-            'Kyocera': r'(?i)^Kyocera|^FS-|^KM-|^TASKalfa',
-            'Lexmark': r'(?i)^Lexmark|^Optra',
-            'Sharp': r'(?i)^Sharp|^AR-|^MX-',
-            'Dell': r'(?i)^Dell',
-            'Konica Minolta': r'(?i)^(KONICA MINOLTA|bizhub|magicolor)',
-            'Toshiba': r'(?i)^TOSHIBA|^e-Studio',
-            'Samsung': r'(?i)^Samsung|^ML-|^CLP|^CLX',
-            'Epson': r'(?i)^EPSON|^EPL-|^AL-',
-            'Canon': r'(?i)^Canon|^imageRunner|^LBP-',
-            'Lenovo': r'(?i)^Lenovo',
-            'OKI': r'(?i)^OKI|^OKIPAGE',
-        }
-        
-        for model in self.models:
-            categorized = False
-            for brand, pattern in brand_patterns.items():
-                if re.match(pattern, model):
-                    self.brands[brand].append(model)
-                    categorized = True
-                    break
-            
-            if not categorized:
-                self.brands['Other'].append(model)
-        
-        print(f"[+] Categorized into {len(self.brands)} brands")
-        for brand, models in sorted(self.brands.items(), key=lambda x: len(x[1]), reverse=True):
-            print(f"    - {brand}: {len(models)} models")
-    
-    def get_search_queries(self, limit_per_brand: int = 5) -> List[Dict[str, str]]:
-        """Generate optimized search queries for APIs"""
-        queries = []
-        
-        # Generic PJL queries
-        queries.append({
-            'type': 'generic',
-            'query': 'port:9100 "PJL"',
-            'description': 'Generic PJL printers on port 9100'
-        })
-        
-        queries.append({
-            'type': 'generic',
-            'query': '"PJL Ready" port:9100',
-            'description': 'Printers with PJL Ready message'
-        })
-        
-        # Brand-specific queries (most popular models)
-        brand_queries = {
-            'HP': ['HP LaserJet', 'Color LaserJet', 'DesignJet'],
-            'Brother': ['Brother HL-', 'Brother MFC-', 'Brother DCP-'],
-            'Xerox': ['Xerox Phaser', 'Xerox WorkCentre'],
-            'Ricoh': ['Aficio MP', 'Aficio SP'],
-            'Kyocera': ['Kyocera FS-', 'Kyocera TASKalfa'],
-            'Lexmark': ['Lexmark MS', 'Lexmark MX', 'Lexmark CS'],
-            'Sharp': ['Sharp MX-', 'Sharp AR-'],
-            'Dell': ['Dell Laser'],
-            'Konica Minolta': ['bizhub', 'magicolor'],
-        }
-        
-        for brand, patterns in brand_queries.items():
-            for pattern in patterns[:limit_per_brand]:
+# ── Geographic region → ISO-3166-1 alpha-2 code map ─────────────────────────
+
+_REGION_COUNTRIES: Dict[str, List[str]] = {
+    'latin_america':   ['AR', 'BO', 'BR', 'CL', 'CO', 'CR', 'CU', 'DO', 'EC',
+                        'GT', 'HN', 'MX', 'NI', 'PA', 'PE', 'PR', 'SV', 'UY', 'VE'],
+    'south_america':   ['AR', 'BO', 'BR', 'CL', 'CO', 'EC', 'GY', 'PE', 'PY', 'SR', 'UY', 'VE'],
+    'central_america': ['CR', 'GT', 'HN', 'MX', 'NI', 'PA', 'SV', 'BZ'],
+    'north_america':   ['US', 'CA', 'MX'],
+    'europe':          ['GB', 'DE', 'FR', 'IT', 'ES', 'PT', 'NL', 'BE', 'CH',
+                        'AT', 'SE', 'NO', 'DK', 'FI', 'PL', 'CZ', 'HU', 'RO',
+                        'BG', 'HR', 'GR', 'IE', 'SK', 'SI', 'EE', 'LT', 'LV'],
+    'asia':            ['CN', 'JP', 'KR', 'IN', 'SG', 'MY', 'TH', 'VN', 'ID',
+                        'PH', 'TW', 'HK', 'BD', 'PK', 'LK', 'MM'],
+    'middle_east':     ['SA', 'AE', 'IL', 'TR', 'EG', 'IR', 'IQ', 'JO', 'KW', 'LB', 'QA', 'OM', 'BH', 'YE'],
+    'africa':          ['ZA', 'NG', 'EG', 'KE', 'MA', 'TN', 'GH', 'ET', 'CI', 'TZ', 'SN', 'UG', 'CM'],
+    'oceania':         ['AU', 'NZ', 'FJ', 'PG', 'WS', 'SB'],
+    'north_africa':    ['EG', 'MA', 'TN', 'LY', 'DZ', 'SD'],
+    'southeast_asia':  ['SG', 'MY', 'TH', 'VN', 'ID', 'PH', 'MM', 'KH', 'LA', 'BN'],
+    'eastern_europe':  ['PL', 'CZ', 'HU', 'RO', 'BG', 'SK', 'UA', 'BY', 'MD', 'RS', 'BA', 'AL', 'MK'],
+}
+
+# Country name → ISO code (pt-BR and en-US)
+_COUNTRY_NAME_TO_CODE: Dict[str, str] = {
+    # Portuguese / Spanish
+    'brasil': 'BR', 'brazil': 'BR',
+    'argentina': 'AR',
+    'mexico': 'MX', 'méxico': 'MX',
+    'colombia': 'CO',
+    'chile': 'CL',
+    'peru': 'PE', 'perú': 'PE',
+    'venezuela': 'VE',
+    'equador': 'EC', 'ecuador': 'EC',
+    'bolivia': 'BO',
+    'paraguai': 'PY', 'paraguay': 'PY',
+    'uruguai': 'UY', 'uruguay': 'UY',
+    'cuba': 'CU',
+    'costa rica': 'CR',
+    'panama': 'PA', 'panamá': 'PA',
+    'guatemala': 'GT',
+    'honduras': 'HN',
+    'el salvador': 'SV',
+    'nicaragua': 'NI',
+    'republica dominicana': 'DO', 'dominican republic': 'DO',
+    # English
+    'united states': 'US', 'usa': 'US', 'united states of america': 'US',
+    'estados unidos': 'US',
+    'canada': 'CA', 'canadá': 'CA',
+    'united kingdom': 'GB', 'uk': 'GB', 'england': 'GB',
+    'reino unido': 'GB',
+    'germany': 'DE', 'alemanha': 'DE', 'deutschland': 'DE',
+    'france': 'FR', 'franca': 'FR', 'frança': 'FR',
+    'italy': 'IT', 'italia': 'IT', 'itália': 'IT',
+    'spain': 'ES', 'espanha': 'ES', 'españa': 'ES',
+    'portugal': 'PT',
+    'netherlands': 'NL', 'holanda': 'NL', 'holland': 'NL',
+    'belgium': 'BE', 'bélgica': 'BE',
+    'switzerland': 'CH', 'suíça': 'CH',
+    'austria': 'AT', 'áustria': 'AT',
+    'sweden': 'SE', 'suécia': 'SE',
+    'norway': 'NO', 'noruega': 'NO',
+    'denmark': 'DK', 'dinamarca': 'DK',
+    'finland': 'FI', 'finlândia': 'FI',
+    'poland': 'PL', 'polônia': 'PL',
+    'russia': 'RU', 'rússia': 'RU',
+    'china': 'CN',
+    'japan': 'JP', 'japão': 'JP',
+    'south korea': 'KR', 'coreia do sul': 'KR',
+    'india': 'IN',
+    'australia': 'AU', 'austrália': 'AU',
+    'new zealand': 'NZ', 'nova zelândia': 'NZ',
+    'south africa': 'ZA', 'africa do sul': 'ZA',
+    'nigeria': 'NG',
+    'egypt': 'EG', 'egito': 'EG',
+    'turkey': 'TR', 'turquia': 'TR',
+    'israel': 'IL',
+    'saudi arabia': 'SA', 'arabia saudita': 'SA',
+    'united arab emirates': 'AE', 'emirates': 'AE', 'emirados arabes': 'AE',
+    'singapore': 'SG', 'singapura': 'SG',
+}
+
+# Vendor name → canonical Shodan/Censys search strings
+_VENDOR_SEARCH_TERMS: Dict[str, List[str]] = {
+    'hp':            ['"HP LaserJet"', '"HP OfficeJet"', '"HP DeskJet"', '"HP Color LaserJet"', '"Hewlett-Packard"'],
+    'epson':         ['"EPSON"', '"Epson"'],
+    'ricoh':         ['"Ricoh"', '"Aficio"', '"RICOH"'],
+    'xerox':         ['"Xerox"', '"Phaser"', '"WorkCentre"'],
+    'brother':       ['"Brother"', '"BROTHER"'],
+    'canon':         ['"Canon"', '"imageRUNNER"', '"CANON"'],
+    'kyocera':       ['"Kyocera"', '"TASKalfa"', '"FS-"', '"KYOCERA"'],
+    'konica':        ['"Konica Minolta"', '"bizhub"', '"KONICA MINOLTA"'],
+    'samsung':       ['"Samsung"', '"SAMSUNG"'],
+    'lexmark':       ['"Lexmark"', '"LEXMARK"'],
+    'sharp':         ['"Sharp"', '"SHARP"', '"MX-"'],
+    'oki':           ['"OKI"', '"OKIDATA"'],
+    'toshiba':       ['"Toshiba"', '"TOSHIBA"', '"e-Studio"'],
+    'fujifilm':      ['"Fujifilm"', '"Fuji Xerox"', '"FUJIFILM"'],
+    'zebra':         ['"Zebra"', '"ZEBRA"'],
+    'pantum':        ['"Pantum"', '"PANTUM"'],
+    'sindoh':        ['"Sindoh"'],
+    'develop':       ['"Develop"', '"ineo"'],
+    'utax':          ['"UTAX"', '"Triumph-Adler"'],
+    'dell':          ['"Dell"', '"DELL"'],
+}
+
+# Implicit printer-related Shodan filter terms (always appended)
+_SHODAN_PRINTER_BASE = '(port:9100 OR port:515 OR port:631)'
+_CENSYS_PRINTER_BASE = '(services.port=9100 OR services.port=515 OR services.port=631)'
+
+# Port → protocol label
+_PORT_LABELS = {9100: 'RAW/PJL', 515: 'LPD', 631: 'IPP', 80: 'HTTP-EWS', 443: 'HTTPS-EWS'}
+
+
+@dataclass
+class DiscoveryParams:
+    """Structured parameters for a targeted online printer search."""
+    vendors:   List[str]       = field(default_factory=list)   # e.g. ['epson', 'ricoh']
+    model:     Optional[str]   = None                           # e.g. "deskjet pro 5500"
+    countries: List[str]       = field(default_factory=list)   # ISO codes e.g. ['BR', 'AR']
+    city:      Optional[str]   = None                           # e.g. "Sao Paulo"
+    regions:   List[str]       = field(default_factory=list)   # e.g. ['latin_america']
+    ports:     List[int]       = field(default_factory=list)   # e.g. [515, 9100]
+    org:       Optional[str]   = None                           # e.g. "Telefonica"
+    cpe:       Optional[str]   = None                           # Censys CPE e.g. "cpe:/h:hp:laserjet"
+    limit:     int             = 100
+
+    def has_filters(self) -> bool:
+        """Returns True if at least one discovery filter was provided."""
+        return bool(
+            self.vendors or self.model or self.countries or
+            self.city or self.regions or self.ports or
+            self.org or self.cpe
+        )
+
+    def resolve_country_codes(self) -> List[str]:
+        """Resolve names to ISO codes and expand regions."""
+        codes: Set[str] = set()
+        for c in self.countries:
+            normalized = c.strip().lower()
+            if len(c) == 2 and c.upper() == c:
+                codes.add(c.upper())
+            elif normalized in _COUNTRY_NAME_TO_CODE:
+                codes.add(_COUNTRY_NAME_TO_CODE[normalized])
+            else:
+                # Try partial match
+                for name, code in _COUNTRY_NAME_TO_CODE.items():
+                    if normalized in name or name in normalized:
+                        codes.add(code)
+                        break
+        for region in self.regions:
+            region_key = region.lower().replace('-', '_').replace(' ', '_')
+            codes.update(_REGION_COUNTRIES.get(region_key, []))
+        return sorted(codes)
+
+
+class DorkQueryBuilder:
+    """
+    Builds structured Shodan and Censys dork queries from DiscoveryParams.
+
+    Printer context is always implicit — user only provides filtering criteria.
+    Supports multi-vendor, multi-country, region expansion, and CPE filtering.
+    """
+
+    def __init__(self, params: DiscoveryParams) -> None:
+        self.params = params
+
+    # ── Shodan ────────────────────────────────────────────────────────────────
+
+    def build_shodan_queries(self) -> List[Dict[str, str]]:
+        """
+        Returns a list of Shodan query dicts: {query, description}.
+
+        Each vendor generates its own query (API-efficient).
+        If no vendor is specified, uses generic printer banner terms.
+        Country/region/port/city are always appended as Shodan filters.
+        """
+        geo_part   = self._shodan_geo_part()
+        port_part  = self._shodan_port_part()
+        city_part  = self._shodan_city_part()
+        org_part   = f' org:"{self.params.org}"' if self.params.org else ''
+        model_part = f' "{self.params.model}"' if self.params.model else ''
+        suffix     = f"{geo_part}{city_part}{org_part}{model_part}{port_part}"
+
+        queries: List[Dict[str, str]] = []
+
+        if self.params.vendors:
+            for vendor in self.params.vendors:
+                vendor_key = vendor.lower()
+                search_terms = _VENDOR_SEARCH_TERMS.get(vendor_key, [f'"{vendor}"'])
+                # Use the first 2 search terms per vendor to avoid too many queries
+                for term in search_terms[:2]:
+                    query = f"{term}{suffix}"
+                    queries.append({
+                        'query': query,
+                        'description': f"{vendor.title()} printers{self._geo_label()}",
+                        'vendor': vendor,
+                    })
+        else:
+            # Generic: use printer banner signatures
+            generic_terms = [
+                '"@PJL INFO"',
+                '"@PJL USTATUS"',
+                '"READY" port:9100',
+                '"PJL"',
+            ]
+            for term in generic_terms:
+                query = f"{term}{suffix}"
+                if not port_part:
+                    query += f" {_SHODAN_PRINTER_BASE}"
                 queries.append({
-                    'type': 'brand',
-                    'brand': brand,
-                    'query': f'"{pattern}" port:9100',
-                    'description': f'{brand} - {pattern}'
+                    'query': query.strip(),
+                    'description': f"Generic printers{self._geo_label()}",
+                    'vendor': None,
                 })
-        
-        # Popular specific models
-        popular_models = [
-            'HP LaserJet 4050', 'HP LaserJet 4250', 'HP LaserJet P3015',
-            'Brother HL-5370DW', 'Xerox Phaser 6500DN', 'Lexmark MS810'
-        ]
-        
-        for model in popular_models:
-            queries.append({
-                'type': 'specific',
-                'query': f'"{model}" port:9100',
-                'description': f'Specific model: {model}'
-            })
-        
+
         return queries
 
+    def _shodan_geo_part(self) -> str:
+        codes = self.params.resolve_country_codes()
+        if not codes:
+            return ''
+        if len(codes) == 1:
+            return f' country:{codes[0]}'
+        # Multiple countries → join with OR in Shodan
+        return ' (' + ' OR '.join(f'country:{c}' for c in codes) + ')'
 
-class ShodanDiscovery:
-    """Handles Shodan API interactions"""
-    
-    def __init__(self, api_key: Optional[str] = None):
-        if not SHODAN_AVAILABLE:
-            raise ImportError("Shodan module not available")
-        
-        self.api_key = api_key or os.environ.get('SHODAN_API_KEY')
-        if not self.api_key:
-            raise ValueError("Shodan API key not provided. Set SHODAN_API_KEY environment variable.")
-        
-        self.api = shodan.Shodan(self.api_key)
-        self.results = []
-        self.total_found = 0
-    
-    def search(self, query: str, max_results: int = 100) -> List[Dict]:
-        """Search Shodan for devices matching query"""
-        try:
-            print(f"[*] Shodan: Searching for '{query}'...")
-            results = self.api.search(query, limit=max_results)
-            
-            matches = results.get('matches', [])
-            total = results.get('total', 0)
-            
-            print(f"[+] Shodan: Found {len(matches)} results (total available: {total})")
-            
-            parsed_results = []
-            for match in matches:
-                parsed_results.append({
-                    'ip': match.get('ip_str', 'N/A'),
-                    'port': match.get('port', 9100),
-                    'hostnames': match.get('hostnames', []),
-                    'org': match.get('org', 'Unknown'),
-                    'country': match.get('location', {}).get('country_name', 'Unknown'),
-                    'country_code': match.get('location', {}).get('country_code', 'N/A'),
-                    'city': match.get('location', {}).get('city', 'Unknown'),
-                    'banner': match.get('data', '')[:500],  # First 500 chars
-                    'timestamp': match.get('timestamp', ''),
-                    'product': match.get('product', 'Unknown'),
-                    'version': match.get('version', 'Unknown'),
-                    'source': 'shodan'
-                })
-            
-            self.results.extend(parsed_results)
-            self.total_found += len(parsed_results)
-            
-            return parsed_results
-            
-        except shodan.APIError as e:
-            print(f"[!] Shodan API Error: {e}")
-            return []
-        except Exception as e:
-            print(f"[!] Shodan Error: {e}")
-            return []
-    
-    def get_api_info(self) -> Dict:
-        """Get API plan information"""
-        try:
-            info = self.api.info()
-            return {
-                'plan': info.get('plan', 'unknown'),
-                'query_credits': info.get('query_credits', 0),
-                'scan_credits': info.get('scan_credits', 0),
-                'usage_limits': info.get('usage_limits', {})
-            }
-        except Exception as e:
-            print(f"[!] Error getting Shodan API info: {e}")
-            return {}
+    def _shodan_port_part(self) -> str:
+        if not self.params.ports:
+            return ''
+        if len(self.params.ports) == 1:
+            return f' port:{self.params.ports[0]}'
+        return ' (' + ' OR '.join(f'port:{p}' for p in self.params.ports) + ')'
 
+    def _shodan_city_part(self) -> str:
+        if not self.params.city:
+            return ''
+        return f' city:"{self.params.city}"'
 
-class CensysDiscovery:
-    """Handles Censys API interactions"""
-    
-    def __init__(self, api_id: Optional[str] = None, api_secret: Optional[str] = None):
-        if not CENSYS_AVAILABLE:
-            raise ImportError("Censys module not available")
-        
-        self.api_id = api_id or os.environ.get('CENSYS_API_ID')
-        self.api_secret = api_secret or os.environ.get('CENSYS_API_SECRET')
-        
-        if not self.api_id or not self.api_secret:
-            raise ValueError("Censys API credentials not provided. Set CENSYS_API_ID and CENSYS_API_SECRET.")
-        
-        self.api = CensysHosts(self.api_id, self.api_secret)
-        self.results = []
-        self.total_found = 0
-    
-    def search(self, query: str, max_results: int = 100) -> List[Dict]:
-        """Search Censys for hosts matching query"""
-        try:
-            print(f"[*] Censys: Searching for '{query}'...")
-            
-            # Convert Shodan query to Censys query format
-            censys_query = self._convert_query(query)
-            
-            results = []
-            count = 0
-            
-            for page in self.api.search(censys_query, per_page=min(100, max_results), pages=-1):
-                for host in page:
-                    if count >= max_results:
-                        break
-                    
-                    results.append({
-                        'ip': host.get('ip', 'N/A'),
-                        'port': 9100,  # Default PJL port
-                        'hostnames': host.get('names', []),
-                        'org': host.get('autonomous_system', {}).get('name', 'Unknown'),
-                        'country': host.get('location', {}).get('country', 'Unknown'),
-                        'country_code': host.get('location', {}).get('country_code', 'N/A'),
-                        'city': host.get('location', {}).get('city', 'Unknown'),
-                        'banner': str(host.get('services', [{}])[0] if host.get('services') else '')[:500],
-                        'timestamp': host.get('last_updated_at', ''),
-                        'product': 'Unknown',
-                        'version': 'Unknown',
-                        'source': 'censys'
+    # ── Censys ────────────────────────────────────────────────────────────────
+
+    def build_censys_queries(self) -> List[Dict[str, str]]:
+        """Returns a list of Censys query dicts: {query, description}."""
+        geo_part  = self._censys_geo_part()
+        port_part = self._censys_port_part()
+        city_part = self._censys_city_part()
+        org_part  = f' AND autonomous_system.name="{self.params.org}"' if self.params.org else ''
+        cpe_part  = f' AND services.software.uniform_resource_identifier="{self.params.cpe}"' if self.params.cpe else ''
+        model_part = f' AND services.banner="{self.params.model}"' if self.params.model else ''
+        suffix     = f"{geo_part}{city_part}{org_part}{cpe_part}{model_part}{port_part}"
+
+        queries: List[Dict[str, str]] = []
+
+        if self.params.vendors:
+            for vendor in self.params.vendors:
+                vendor_key = vendor.lower()
+                raw_terms  = _VENDOR_SEARCH_TERMS.get(vendor_key, [f'"{vendor}"'])
+                # Strip Shodan quoting style → Censys banner search
+                censys_terms = [t.strip('"') for t in raw_terms[:2]]
+                for term in censys_terms:
+                    query = f'services.banner="{term}"{suffix}'
+                    if not port_part:
+                        # Append implicit printer port filter
+                        query += f' AND ({_CENSYS_PRINTER_BASE.lstrip("(")}'
+                    queries.append({
+                        'query': query,
+                        'description': f"{vendor.title()} printers (Censys){self._geo_label()}",
+                        'vendor': vendor,
                     })
-                    count += 1
-                
-                if count >= max_results:
-                    break
-            
-            print(f"[+] Censys: Found {len(results)} results")
-            
-            self.results.extend(results)
-            self.total_found += len(results)
-            
-            return results
-            
-        except Exception as e:
-            print(f"[!] Censys Error: {e}")
-            return []
-    
-    def _convert_query(self, shodan_query: str) -> str:
-        """Convert Shodan query format to Censys format"""
-        # Simple conversion - can be enhanced
-        query = shodan_query
-        
-        # Convert port:9100 to services.port: 9100
-        query = re.sub(r'port:(\d+)', r'services.port: \1', query)
-        
-        # Convert quoted strings to services.banner search
-        if '"' in query and 'port' in query:
-            # Extract quoted string
-            match = re.search(r'"([^"]+)"', query)
-            if match:
-                search_term = match.group(1)
-                query = f'services.banner: "{search_term}" and services.port: 9100'
-        
-        return query
-    
-    def get_api_info(self) -> Dict:
-        """Get API account information"""
+        else:
+            generic_censys = [
+                'services.banner="@PJL"',
+                'services.banner="READY"',
+            ]
+            for term in generic_censys:
+                query = f"{term}{suffix}"
+                if not port_part:
+                    query += f' AND {_CENSYS_PRINTER_BASE}'
+                queries.append({
+                    'query': query,
+                    'description': f"Generic printers (Censys){self._geo_label()}",
+                    'vendor': None,
+                })
+
+        return queries
+
+    def _censys_geo_part(self) -> str:
+        codes = self.params.resolve_country_codes()
+        if not codes:
+            return ''
+        if len(codes) == 1:
+            return f' AND location.country_code="{codes[0]}"'
+        return ' AND (' + ' OR '.join(f'location.country_code="{c}"' for c in codes) + ')'
+
+    def _censys_port_part(self) -> str:
+        if not self.params.ports:
+            return ''
+        if len(self.params.ports) == 1:
+            return f' AND services.port={self.params.ports[0]}'
+        return ' AND (' + ' OR '.join(f'services.port={p}' for p in self.params.ports) + ')'
+
+    def _censys_city_part(self) -> str:
+        if not self.params.city:
+            return ''
+        return f' AND location.city="{self.params.city}"'
+
+    # ── Labels ────────────────────────────────────────────────────────────────
+
+    def _geo_label(self) -> str:
+        parts = []
+        codes = self.params.resolve_country_codes()
+        if codes:
+            parts.append('/'.join(codes[:4]) + ('...' if len(codes) > 4 else ''))
+        if self.params.city:
+            parts.append(self.params.city)
+        if self.params.regions:
+            parts.append('+'.join(self.params.regions))
+        return (', ' + ', '.join(parts)) if parts else ''
+
+    def describe(self) -> str:
+        """Human-readable summary of the query being built."""
+        parts = []
+        if self.params.vendors:
+            parts.append(f"vendors={','.join(self.params.vendors)}")
+        if self.params.model:
+            parts.append(f"model={self.params.model!r}")
+        codes = self.params.resolve_country_codes()
+        if codes:
+            label = ','.join(codes[:6]) + ('...' if len(codes) > 6 else '')
+            parts.append(f"countries=[{label}]")
+        if self.params.city:
+            parts.append(f"city={self.params.city!r}")
+        if self.params.regions:
+            parts.append(f"regions={','.join(self.params.regions)}")
+        if self.params.ports:
+            labels = [_PORT_LABELS.get(p, str(p)) for p in self.params.ports]
+            parts.append(f"ports={','.join(labels)}")
+        if self.params.org:
+            parts.append(f"org={self.params.org!r}")
+        if self.params.cpe:
+            parts.append(f"cpe={self.params.cpe!r}")
+        return ' | '.join(parts) if parts else 'generic (all printers)'
+
+
+# ── Result model ─────────────────────────────────────────────────────────────
+
+@dataclass
+class PrinterHit:
+    """A single discovered printer from Shodan or Censys."""
+    ip:           str
+    port:         int
+    source:       str
+    country:      str  = ''
+    country_code: str  = ''
+    city:         str  = ''
+    org:          str  = ''
+    hostnames:    List[str] = field(default_factory=list)
+    banner:       str  = ''
+    product:      str  = ''
+    version:      str  = ''
+    vendor:       str  = ''
+    timestamp:    str  = ''
+
+    def to_dict(self) -> Dict:
+        return self.__dict__.copy()
+
+
+# ── Shodan search ─────────────────────────────────────────────────────────────
+
+class ShodanSearcher:
+    """Thin wrapper around the Shodan API with structured-query support."""
+
+    def __init__(self, api_key: str) -> None:
+        if not SHODAN_AVAILABLE:
+            raise ImportError("shodan package not installed — pip install shodan")
+        self._api = _shodan_lib.Shodan(api_key)
+
+    def plan_info(self) -> Dict:
         try:
-            account = self.api.account()
-            return {
-                'quota': account.get('quota', {}),
-                'email': account.get('email', 'unknown')
-            }
-        except Exception as e:
-            print(f"[!] Error getting Censys API info: {e}")
+            return self._api.info()
+        except Exception:
             return {}
 
+    def search(self, query: str, limit: int = 100, vendor: str = '') -> List[PrinterHit]:
+        hits: List[PrinterHit] = []
+        try:
+            _log.debug("Shodan query: %s", query)
+            result = self._api.search(query, limit=limit)
+            for m in result.get('matches', []):
+                loc  = m.get('location', {})
+                hits.append(PrinterHit(
+                    ip           = m.get('ip_str', ''),
+                    port         = m.get('port', 9100),
+                    source       = 'shodan',
+                    country      = loc.get('country_name', ''),
+                    country_code = loc.get('country_code', ''),
+                    city         = loc.get('city', ''),
+                    org          = m.get('org', ''),
+                    hostnames    = m.get('hostnames', []),
+                    banner       = (m.get('data', '') or '')[:600],
+                    product      = m.get('product', ''),
+                    version      = m.get('version', ''),
+                    vendor       = vendor,
+                    timestamp    = m.get('timestamp', ''),
+                ))
+        except _shodan_lib.APIError as exc:
+            _log.warning("Shodan API error: %s", exc)
+        except Exception as exc:
+            _log.warning("Shodan search error: %s", exc)
+        return hits
+
+
+# ── Censys search ─────────────────────────────────────────────────────────────
+
+class CensysSearcher:
+    """Thin wrapper around Censys Hosts API with structured-query support."""
+
+    def __init__(self, api_id: str, api_secret: str) -> None:
+        if not CENSYS_AVAILABLE:
+            raise ImportError("censys package not installed — pip install censys")
+        self._api = CensysHosts(api_id, api_secret)
+
+    def search(self, query: str, limit: int = 100, vendor: str = '') -> List[PrinterHit]:
+        hits: List[PrinterHit] = []
+        count = 0
+        try:
+            _log.debug("Censys query: %s", query)
+            for page in self._api.search(query, per_page=min(100, limit), pages=-1):
+                for host in page:
+                    if count >= limit:
+                        break
+                    loc = host.get('location', {})
+                    asn = host.get('autonomous_system', {})
+                    svcs = host.get('services', [{}])
+                    port = svcs[0].get('port', 9100) if svcs else 9100
+                    hits.append(PrinterHit(
+                        ip           = host.get('ip', ''),
+                        port         = port,
+                        source       = 'censys',
+                        country      = loc.get('country', ''),
+                        country_code = loc.get('country_code', ''),
+                        city         = loc.get('city', ''),
+                        org          = asn.get('name', ''),
+                        hostnames    = host.get('names', []),
+                        banner       = str(svcs[0])[:600] if svcs else '',
+                        product      = '',
+                        version      = '',
+                        vendor       = vendor,
+                        timestamp    = host.get('last_updated_at', ''),
+                    ))
+                    count += 1
+                if count >= limit:
+                    break
+        except Exception as exc:
+            _log.warning("Censys search error: %s", exc)
+        return hits
+
+
+# ── Manager (main public API) ─────────────────────────────────────────────────
 
 class OnlineDiscoveryManager:
-    """Main manager for online printer discovery"""
+    """
+    Orchestrates dork-based printer discovery across Shodan and Censys.
 
-    def __init__(self, db_path: str = "src/core/db/pjl.dat",
-                 shodan_key: Optional[str] = None,
-                 censys_id: Optional[str] = None,
-                 censys_secret: Optional[str] = None):
-        # Also load from config.yaml if available
+    Usage:
+        params = DiscoveryParams(vendors=['epson','ricoh'], regions=['latin_america'], ports=[515])
+        mgr    = OnlineDiscoveryManager(shodan_key='...', censys_id='...', censys_secret='...')
+        hits   = mgr.targeted_search(params)
+        mgr.print_results(hits)
+    """
+
+    # ── ANSI colours ──────────────────────────────────────────────────────────
+    _GRN = '\033[0;32m'
+    _YEL = '\033[1;33m'
+    _CYN = '\033[1;36m'
+    _RED = '\033[1;31m'
+    _DIM = '\033[2;37m'
+    _RST = '\033[0m'
+
+    def __init__(self,
+                 shodan_key:     Optional[str] = None,
+                 censys_id:      Optional[str] = None,
+                 censys_secret:  Optional[str] = None) -> None:
+
+        # Try loading credentials from config if not passed directly
         try:
             from utils.config import load_config, shodan_key as _sk, censys_credentials
             load_config()
             if not shodan_key:
                 shodan_key = _sk()
-            if not censys_id:
+            if not (censys_id and censys_secret):
                 censys_id, censys_secret = censys_credentials()
         except Exception:
             pass
-        
-        self.printer_db = PrinterDatabase(db_path)
-        
-        # Initialize Shodan
-        self.shodan = None
-        if shodan_key or os.environ.get('SHODAN_API_KEY'):
+
+        self._shodan:  Optional[ShodanSearcher]  = None
+        self._censys:  Optional[CensysSearcher]  = None
+        self._hits:    List[PrinterHit]           = []
+
+        if shodan_key:
             try:
-                self.shodan = ShodanDiscovery(shodan_key)
-                print("[+] Shodan API initialized")
-            except Exception as e:
-                print(f"[!] Shodan initialization failed: {e}")
-        
-        # Initialize Censys
-        self.censys = None
-        if (censys_id or os.environ.get('CENSYS_API_ID')) and \
-           (censys_secret or os.environ.get('CENSYS_API_SECRET')):
+                self._shodan = ShodanSearcher(shodan_key)
+                _log.info("Shodan API initialized")
+            except Exception as exc:
+                print(f"  {self._YEL}[!]{self._RST} Shodan init failed: {exc}")
+
+        if censys_id and censys_secret:
             try:
-                self.censys = CensysDiscovery(censys_id, censys_secret)
-                print("[+] Censys API initialized")
-            except Exception as e:
-                print(f"[!] Censys initialization failed: {e}")
-        
-        if not self.shodan and not self.censys:
-            print("[!] WARNING: No API credentials provided. Discovery will not work.")
-        
-        self.all_results = []
-        self.stats = defaultdict(int)
-    
-    def discover(self, max_results_per_query: int = 100, 
-                 delay_between_queries: float = 1.0,
+                self._censys = CensysSearcher(censys_id, censys_secret)
+                _log.info("Censys API initialized")
+            except Exception as exc:
+                print(f"  {self._YEL}[!]{self._RST} Censys init failed: {exc}")
+
+    # ── Public entry points ───────────────────────────────────────────────────
+
+    def targeted_search(self, params: DiscoveryParams) -> List[PrinterHit]:
+        """
+        Run a structured dork search using provided parameters.
+
+        Raises ValueError if params.has_filters() returns False (no criteria given).
+        Returns deduplicated list of PrinterHit, sorted by country + IP.
+        """
+        if not params.has_filters():
+            raise ValueError(
+                "At least one discovery filter is required: --dork-vendor, --dork-country, "
+                "--dork-city, --dork-region, --dork-port, --dork-org, --dork-cpe, or --dork-model\n"
+                "When searching without geographic/vendor filters, provide a direct IP target instead."
+            )
+
+        builder = DorkQueryBuilder(params)
+        print(f"\n  {self._CYN}{'='*68}{self._RST}")
+        print(f"  {self._CYN}Online Printer Discovery — Dork Mode{self._RST}")
+        print(f"  Filter: {builder.describe()}")
+        print(f"  Limit : {params.limit} results per query")
+        print(f"  {self._CYN}{'='*68}{self._RST}\n")
+
+        all_hits: List[PrinterHit] = []
+        delay = 1.2  # seconds between API calls
+
+        if self._shodan:
+            queries = builder.build_shodan_queries()
+            print(f"  {self._GRN}[Shodan]{self._RST} {len(queries)} queries")
+            for idx, q in enumerate(queries, 1):
+                print(f"    [{idx}/{len(queries)}] {q['description']}")
+                print(f"           Query: {self._DIM}{q['query']}{self._RST}")
+                hits = self._shodan.search(q['query'], limit=params.limit, vendor=q.get('vendor', ''))
+                print(f"           Found: {self._GRN}{len(hits)}{self._RST}")
+                all_hits.extend(hits)
+                if idx < len(queries):
+                    time.sleep(delay)
+
+        if self._censys:
+            queries = builder.build_censys_queries()
+            print(f"\n  {self._GRN}[Censys]{self._RST} {len(queries)} queries")
+            for idx, q in enumerate(queries, 1):
+                print(f"    [{idx}/{len(queries)}] {q['description']}")
+                print(f"           Query: {self._DIM}{q['query']}{self._RST}")
+                hits = self._censys.search(q['query'], limit=params.limit, vendor=q.get('vendor', ''))
+                print(f"           Found: {self._GRN}{len(hits)}{self._RST}")
+                all_hits.extend(hits)
+                if idx < len(queries):
+                    time.sleep(delay)
+
+        if not self._shodan and not self._censys:
+            print(f"  {self._RED}[!]{self._RST} No API credentials configured.")
+            print(f"      Add shodan/censys keys to config.json — see: python printer-reaper.py --check-config")
+            return []
+
+        # Deduplicate by IP:port
+        seen: Set[Tuple[str, int]] = set()
+        unique: List[PrinterHit] = []
+        for h in all_hits:
+            key = (h.ip, h.port)
+            if key not in seen:
+                seen.add(key)
+                unique.append(h)
+
+        unique.sort(key=lambda h: (h.country_code, h.ip))
+        self._hits = unique
+        return unique
+
+    def print_results(self, hits: List[PrinterHit]) -> None:
+        """Print a formatted table of discovered printers."""
+        if not hits:
+            print(f"  {self._YEL}[!]{self._RST} No printers found matching the given filters.")
+            return
+
+        print(f"\n  {self._CYN}{'='*68}{self._RST}")
+        print(f"  {self._CYN}Results — {len(hits)} unique printer(s) found{self._RST}")
+        print(f"  {self._CYN}{'='*68}{self._RST}")
+        print(f"  {'IP':<16} {'Port':<6} {'CC':<4} {'City':<18} {'Org':<28} {'Src':<8}")
+        print(f"  {'-'*68}")
+
+        for h in hits:
+            port_label = _PORT_LABELS.get(h.port, str(h.port))
+            org_short  = (h.org[:26] + '..') if len(h.org) > 28 else h.org
+            city_short = (h.city[:16] + '..') if len(h.city) > 18 else h.city
+            print(f"  {self._GRN}{h.ip:<16}{self._RST} {port_label:<6} {h.country_code:<4} "
+                  f"{city_short:<18} {org_short:<28} {h.source}")
+
+        print()
+        # Country stats
+        by_cc: Dict[str, int] = defaultdict(int)
+        for h in hits:
+            by_cc[h.country_code or '??'] += 1
+        stat_line = '  '.join(f"{cc}:{n}" for cc, n in sorted(by_cc.items(), key=lambda x: -x[1])[:10])
+        print(f"  Distribution: {stat_line}")
+        print()
+
+    def export_results(self, hits: List[PrinterHit], output_path: Optional[str] = None) -> Optional[str]:
+        """Export results to JSON. Returns path to saved file."""
+        if not hits:
+            return None
+        ts   = datetime.now().strftime('%Y%m%d_%H%M%S')
+        path = output_path or f'.log/discovery_{ts}.json'
+        os.makedirs(os.path.dirname(path) or '.', exist_ok=True)
+        data = {
+            'generated': datetime.now().isoformat(),
+            'total':     len(hits),
+            'results':   [h.to_dict() for h in hits],
+        }
+        with open(path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2)
+        print(f"  {self._GRN}[+]{self._RST} Results saved to {path}")
+        return path
+
+    # ── Legacy compatibility shim (for old --discover-online without dorks) ───
+
+    def discover(self, max_results_per_query: int = 100,
+                 delay_between_queries: float = 1.2,
                  use_shodan: bool = True,
                  use_censys: bool = True) -> Dict:
         """
-        Discover printers online using Shodan and/or Censys
-        
-        Args:
-            max_results_per_query: Maximum results per query
-            delay_between_queries: Delay between API calls (seconds)
-            use_shodan: Use Shodan API
-            use_censys: Use Censys API (fallback if Shodan fails)
-        
-        Returns:
-            Dictionary with discovery statistics and results
+        Legacy broad discovery (no filters).
+        Deprecated — use targeted_search(DiscoveryParams(...)) instead.
         """
-        print("\n" + "="*70)
-        print("  PrinterReaper - Online Printer Discovery")
-        print("="*70 + "\n")
-        
-        start_time = time.time()
-        queries = self.printer_db.get_search_queries()
-        
-        print(f"[*] Generated {len(queries)} search queries")
-        print(f"[*] Max results per query: {max_results_per_query}")
-        print(f"[*] Delay between queries: {delay_between_queries}s\n")
-        
-        for idx, query_info in enumerate(queries, 1):
-            print(f"\n[{idx}/{len(queries)}] Query: {query_info['description']}")
-            print(f"    Search: {query_info['query']}")
-            
-            results = []
-            
-            # Try Shodan first
-            if use_shodan and self.shodan:
-                try:
-                    results = self.shodan.search(query_info['query'], max_results_per_query)
-                    if results:
-                        print(f"    [+] Shodan found {len(results)} devices")
-                except Exception as e:
-                    print(f"    [!] Shodan failed: {e}")
-            
-            # Fallback to Censys if Shodan found nothing or failed
-            if not results and use_censys and self.censys:
-                try:
-                    time.sleep(delay_between_queries)  # Rate limiting
-                    results = self.censys.search(query_info['query'], max_results_per_query)
-                    if results:
-                        print(f"    [+] Censys found {len(results)} devices")
-                except Exception as e:
-                    print(f"    [!] Censys failed: {e}")
-            
-            if results:
-                for result in results:
-                    result['query_type'] = query_info['type']
-                    result['query_description'] = query_info['description']
-                
-                self.all_results.extend(results)
-                self._update_stats(results)
-            
-            # Rate limiting
-            if idx < len(queries):
-                time.sleep(delay_between_queries)
-        
-        elapsed_time = time.time() - start_time
-        
-        # Remove duplicates
-        self.all_results = self._remove_duplicates(self.all_results)
-        
-        print("\n" + "="*70)
-        print(f"[+] Discovery completed in {elapsed_time:.2f}s")
-        print(f"[+] Total unique devices found: {len(self.all_results)}")
-        print("="*70 + "\n")
-        
-        return self._generate_summary()
-    
-    def _remove_duplicates(self, results: List[Dict]) -> List[Dict]:
-        """Remove duplicate IPs, keeping the most informative entry"""
-        unique = {}
-        for result in results:
-            ip = result['ip']
-            if ip not in unique or len(result['banner']) > len(unique[ip]['banner']):
-                unique[ip] = result
-        
-        return list(unique.values())
-    
-    def _update_stats(self, results: List[Dict]) -> None:
-        """Update discovery statistics"""
-        for result in results:
-            self.stats['total_devices'] += 1
-            self.stats[f"source_{result['source']}"] += 1
-            self.stats[f"country_{result['country']}"] += 1
-    
-    def _generate_summary(self) -> Dict:
-        """Generate summary statistics"""
-        # Country distribution
-        countries = defaultdict(int)
-        sources = defaultdict(int)
-        organizations = defaultdict(int)
-        
-        for result in self.all_results:
-            countries[result['country']] += 1
-            sources[result['source']] += 1
-            organizations[result['org']] += 1
-        
-        summary = {
-            'total_devices': len(self.all_results),
-            'total_queries': len(self.printer_db.get_search_queries()),
-            'countries': dict(sorted(countries.items(), key=lambda x: x[1], reverse=True)),
-            'sources': dict(sources),
-            'top_organizations': dict(sorted(organizations.items(), key=lambda x: x[1], reverse=True)[:20]),
-            'timestamp': datetime.now().isoformat()
-        }
-        
-        return summary
-    
-    def export_results(self, output_dir: str = "discovery_results") -> None:
-        """Export results to multiple formats"""
-        os.makedirs(output_dir, exist_ok=True)
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        
-        # JSON export
-        json_file = os.path.join(output_dir, f"discovery_{timestamp}.json")
-        with open(json_file, 'w', encoding='utf-8') as f:
-            json.dump({
-                'summary': self._generate_summary(),
-                'results': self.all_results
-            }, f, indent=2)
-        print(f"[+] JSON exported to: {json_file}")
-        
-        # CSV export
-        csv_file = os.path.join(output_dir, f"discovery_{timestamp}.csv")
-        if self.all_results:
-            keys = self.all_results[0].keys()
-            with open(csv_file, 'w', newline='', encoding='utf-8') as f:
-                writer = csv.DictWriter(f, fieldnames=keys)
-                writer.writeheader()
-                writer.writerows(self.all_results)
-            print(f"[+] CSV exported to: {csv_file}")
-        
-        # HTML report
-        html_file = os.path.join(output_dir, f"discovery_{timestamp}.html")
-        self._export_html(html_file)
-        print(f"[+] HTML report exported to: {html_file}")
-    
-    def _export_html(self, filepath: str) -> None:
-        """Generate HTML report"""
-        summary = self._generate_summary()
-        
-        html = f"""<!DOCTYPE html>
-<html>
-<head>
-    <title>PrinterReaper - Discovery Report</title>
-    <meta charset="utf-8">
-    <style>
-        body {{ font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }}
-        .container {{ max-width: 1200px; margin: 0 auto; background: white; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }}
-        h1 {{ color: #333; border-bottom: 3px solid #4CAF50; padding-bottom: 10px; }}
-        h2 {{ color: #555; margin-top: 30px; }}
-        .stats {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }}
-        .stat-card {{ background: #4CAF50; color: white; padding: 20px; border-radius: 5px; text-align: center; }}
-        .stat-card h3 {{ margin: 0; font-size: 2em; }}
-        .stat-card p {{ margin: 5px 0 0 0; }}
-        table {{ width: 100%; border-collapse: collapse; margin: 20px 0; }}
-        th, td {{ padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }}
-        th {{ background: #4CAF50; color: white; }}
-        tr:hover {{ background: #f5f5f5; }}
-        .banner {{ font-family: monospace; font-size: 0.85em; max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
-        .timestamp {{ color: #888; font-size: 0.9em; }}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>🖨️ PrinterReaper - Online Discovery Report</h1>
-        <p class="timestamp">Generated: {summary['timestamp']}</p>
-        
-        <div class="stats">
-            <div class="stat-card">
-                <h3>{summary['total_devices']}</h3>
-                <p>Devices Found</p>
-            </div>
-            <div class="stat-card">
-                <h3>{len(summary['countries'])}</h3>
-                <p>Countries</p>
-            </div>
-            <div class="stat-card">
-                <h3>{summary['total_queries']}</h3>
-                <p>Queries Executed</p>
-            </div>
-        </div>
-        
-        <h2>📊 Country Distribution</h2>
-        <table>
-            <tr><th>Country</th><th>Count</th><th>Percentage</th></tr>
-"""
-        
-        for country, count in list(summary['countries'].items())[:20]:
-            percentage = (count / summary['total_devices'] * 100) if summary['total_devices'] > 0 else 0
-            html += f"            <tr><td>{country}</td><td>{count}</td><td>{percentage:.1f}%</td></tr>\n"
-        
-        html += """        </table>
-        
-        <h2>🏢 Top Organizations</h2>
-        <table>
-            <tr><th>Organization</th><th>Count</th></tr>
-"""
-        
-        for org, count in list(summary['top_organizations'].items())[:20]:
-            html += f"            <tr><td>{org}</td><td>{count}</td></tr>\n"
-        
-        html += """        </table>
-        
-        <h2>🔍 Discovered Devices</h2>
-        <table>
-            <tr>
-                <th>IP Address</th>
-                <th>Country</th>
-                <th>Organization</th>
-                <th>Product</th>
-                <th>Source</th>
-            </tr>
-"""
-        
-        for result in self.all_results[:100]:  # Limit to first 100 for performance
-            html += f"""            <tr>
-                <td>{result['ip']}</td>
-                <td>{result['country']}</td>
-                <td>{result['org'][:50]}</td>
-                <td>{result['product']}</td>
-                <td>{result['source']}</td>
-            </tr>
-"""
-        
-        html += """        </table>
-    </div>
-</body>
-</html>
-"""
-        
-        with open(filepath, 'w', encoding='utf-8') as f:
-            f.write(html)
-
-
-def main():
-    """Main function for testing"""
-    print("PrinterReaper - Online Discovery Module")
-    print("="*70)
-    
-    manager = OnlineDiscoveryManager()
-    
-    # Run discovery
-    summary = manager.discover(
-        max_results_per_query=50,
-        delay_between_queries=1.5,
-        use_shodan=True,
-        use_censys=True
-    )
-    
-    # Print summary
-    print("\n📊 Discovery Summary:")
-    print(f"  Total devices: {summary['total_devices']}")
-    print(f"  Countries: {len(summary['countries'])}")
-    print(f"  Sources: {summary['sources']}")
-    
-    print("\n🌍 Top 10 Countries:")
-    for country, count in list(summary['countries'].items())[:10]:
-        print(f"  {country}: {count}")
-    
-    # Export results
-    manager.export_results()
-    
-    print("\n[+] Discovery complete!")
-
-
-if __name__ == "__main__":
-    main()
-
+        params = DiscoveryParams(
+            vendors=list(_VENDOR_SEARCH_TERMS.keys())[:6],
+            ports=[9100],
+            limit=max_results_per_query,
+        )
+        hits = self.targeted_search(params)
+        self.print_results(hits)
+        self.export_results(hits)
+        return {'total_devices': len(hits), 'timestamp': datetime.now().isoformat()}

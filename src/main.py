@@ -85,7 +85,100 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--discover-online",
         action="store_true",
-        help="Run online discovery via Shodan/Censys (requires API keys in config.yaml)",
+        help=(
+            "Run online discovery via Shodan/Censys using structured dorks. "
+            "Requires at least one --dork-* filter OR a direct target IP. "
+            "Printer context is always implicit — no need to specify 'printer'. "
+            "Requires API keys in config.json."
+        ),
+    )
+    # Dork filters for --discover-online
+    _dork_group = parser.add_argument_group("online discovery filters (--discover-online dorks)")
+    _dork_group.add_argument(
+        "--dork-vendor",
+        metavar="VENDOR",
+        action="append",
+        dest="dork_vendors",
+        default=[],
+        help=(
+            "Vendor to search for (repeatable). "
+            "Examples: hp, epson, ricoh, brother, canon, kyocera, xerox, lexmark, samsung, oki, zebra. "
+            "Example: --dork-vendor epson --dork-vendor ricoh"
+        ),
+    )
+    _dork_group.add_argument(
+        "--dork-model",
+        metavar="MODEL",
+        default=None,
+        help=(
+            "Model string to search for in banner. "
+            "Example: --dork-model 'deskjet pro 5500'"
+        ),
+    )
+    _dork_group.add_argument(
+        "--dork-country",
+        metavar="COUNTRY",
+        action="append",
+        dest="dork_countries",
+        default=[],
+        help=(
+            "Country filter (ISO code or name, repeatable). "
+            "Examples: BR, brazil, argentina, US, DE. "
+            "Example: --dork-country BR --dork-country AR"
+        ),
+    )
+    _dork_group.add_argument(
+        "--dork-city",
+        metavar="CITY",
+        default=None,
+        help="City filter. Example: --dork-city 'Sao Paulo'",
+    )
+    _dork_group.add_argument(
+        "--dork-region",
+        metavar="REGION",
+        action="append",
+        dest="dork_regions",
+        default=[],
+        help=(
+            "Geographic region filter (repeatable). "
+            "Valid regions: latin_america, south_america, central_america, north_america, "
+            "europe, eastern_europe, asia, southeast_asia, middle_east, africa, north_africa, oceania. "
+            "Example: --dork-region latin_america"
+        ),
+    )
+    _dork_group.add_argument(
+        "--dork-port",
+        metavar="PORT",
+        type=int,
+        action="append",
+        dest="dork_ports",
+        default=[],
+        help=(
+            "Port filter (repeatable). Common: 9100 (RAW/PJL), 515 (LPD), 631 (IPP). "
+            "Example: --dork-port 9100 --dork-port 515"
+        ),
+    )
+    _dork_group.add_argument(
+        "--dork-org",
+        metavar="ORG",
+        default=None,
+        help="Organization/ISP filter. Example: --dork-org 'Telefonica'",
+    )
+    _dork_group.add_argument(
+        "--dork-cpe",
+        metavar="CPE",
+        default=None,
+        help=(
+            "CPE filter (Censys only). "
+            "Example: --dork-cpe 'cpe:/h:hp:laserjet'"
+        ),
+    )
+    _dork_group.add_argument(
+        "--dork-limit",
+        metavar="N",
+        type=int,
+        default=100,
+        help="Maximum results per query (default: 100).",
     )
     # Reconnaissance / scanning
     parser.add_argument(
@@ -209,6 +302,42 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="URL",
         default="",
         help="Attacker callback URL for XSP --exfil payloads",
+    )
+    # ── Auto exploit ───────────────────────────────────────────────────────────
+    parser.add_argument(
+        "--auto-exploit",
+        action="store_true",
+        help=(
+            "Automatic exploit selection: fingerprints the target, matches all applicable "
+            "exploit modules, verifies vulnerability with check(), pre-fills all required "
+            "parameters (host, port, serial, mac, vendor), and runs the best confirmed exploit. "
+            "Dry-run by default — add --no-dry to execute live. "
+            "Use --xpl-source to restrict to a specific exploit source."
+        ),
+    )
+    parser.add_argument(
+        "--auto-exploit-limit",
+        metavar="N",
+        type=int,
+        default=8,
+        help="Maximum number of exploits to probe with check() during --auto-exploit (default: 8).",
+    )
+    parser.add_argument(
+        "--auto-exploit-run",
+        metavar="N",
+        type=int,
+        default=1,
+        help="Number of confirmed-vulnerable exploits to execute during --auto-exploit (default: 1).",
+    )
+    parser.add_argument(
+        "--auto-exploit-file",
+        metavar="FILE",
+        default=None,
+        help=(
+            "Path to a custom exploit .py file to force-run via --auto-exploit. "
+            "The program pre-fills host/port/serial/vendor automatically. "
+            "Example: --auto-exploit-file /path/to/my_exploit.py"
+        ),
     )
     # ── Exploit module ─────────────────────────────────────────────────────────
     parser.add_argument(
@@ -393,6 +522,62 @@ def _ui_section(step: str, title: str, target: str = '') -> None:
     tgt  = f' — {_DIM}{target}{_RST}' if target else ''
     print(f"\n  {_CYN}┌── [{step}] {_BLD}{title}{_RST}{tgt}")
     print(f"  {_CYN}│{_RST}")
+
+
+def _run_auto_exploit(args) -> None:
+    """
+    Automatic exploit pipeline:
+    1. Quick fingerprint (banner grab)
+    2. Match + verify exploits with check()
+    3. Pre-fill parameters and run() on top confirmed vulnerable exploit
+    """
+    from utils.banner_grabber import grab_all, print_fingerprint
+    from utils.exploit_manager import auto_exploit, print_auto_exploit_summary
+
+    target  = args.target
+    timeout = getattr(args, 'timeout', 8)
+    dry_run = not getattr(args, 'no_dry', False)
+
+    output().green(f"\n>> Auto Exploit — {target}")
+
+    # Step 1: fingerprint
+    fp = {}
+    try:
+        fp = grab_all(target, timeout=timeout, quiet=True)
+        if not args.quiet:
+            print_fingerprint(fp)
+    except Exception as exc:
+        output().warning(f"Fingerprint failed: {exc} — proceeding with empty fingerprint")
+
+    make      = fp.get('make', '') or ''
+    model     = fp.get('model', '') or ''
+    firmware  = fp.get('firmware', '') or ''
+    ports     = fp.get('open_ports', []) or []
+    langs     = fp.get('langs', []) or []
+    cves      = fp.get('cves', []) or []
+    serial    = getattr(args, 'bf_serial', '') or ''
+    mac       = getattr(args, 'bf_mac', '') or ''
+
+    results = auto_exploit(
+        target,
+        make           = make,
+        model          = model,
+        firmware       = firmware,
+        open_ports     = ports,
+        langs          = langs,
+        cves           = cves,
+        serial         = serial,
+        mac            = mac,
+        source_filter  = getattr(args, 'xpl_source', None),
+        custom_xpl_path= getattr(args, 'auto_exploit_file', None),
+        dry_run        = dry_run,
+        check_limit    = getattr(args, 'auto_exploit_limit', 8),
+        run_top_n      = getattr(args, 'auto_exploit_run', 1),
+        timeout        = float(timeout),
+        verbose        = not getattr(args, 'quiet', False),
+    )
+
+    print_auto_exploit_summary(results)
 
 
 def _run_scan(args) -> None:
@@ -1153,13 +1338,54 @@ def main() -> None:
 
     if args.discover_online:
         try:
-            from utils.config import shodan_key, require_feature
-            if not require_feature('shodan_search'):
+            from utils.discovery_online import OnlineDiscoveryManager, DiscoveryParams
+            from utils.config import shodan_key as _sk, censys_credentials as _cc
+
+            # Build DiscoveryParams from --dork-* CLI flags
+            dork_params = DiscoveryParams(
+                vendors   = getattr(args, 'dork_vendors',   []) or [],
+                model     = getattr(args, 'dork_model',     None),
+                countries = getattr(args, 'dork_countries', []) or [],
+                city      = getattr(args, 'dork_city',      None),
+                regions   = getattr(args, 'dork_regions',   []) or [],
+                ports     = getattr(args, 'dork_ports',     []) or [],
+                org       = getattr(args, 'dork_org',       None),
+                cpe       = getattr(args, 'dork_cpe',       None),
+                limit     = getattr(args, 'dork_limit',     100),
+            )
+
+            # Enforce: at least one dork filter required when no IP target given
+            if not dork_params.has_filters() and not getattr(args, 'target', None):
+                output().errmsg(
+                    "--discover-online requires at least one filter:\n"
+                    "  --dork-vendor VENDOR     (e.g. hp, epson, ricoh)\n"
+                    "  --dork-country COUNTRY   (e.g. BR, brazil, argentina)\n"
+                    "  --dork-region REGION     (e.g. latin_america, europe)\n"
+                    "  --dork-port PORT         (e.g. 9100, 515, 631)\n"
+                    "  --dork-city CITY         (e.g. 'Sao Paulo')\n"
+                    "  --dork-org ORG           (e.g. 'Telefonica')\n"
+                    "  --dork-cpe CPE           (Censys only)\n"
+                    "  --dork-model MODEL       (e.g. 'deskjet pro 5500')\n\n"
+                    "Or provide a direct IP target: python printer-reaper.py <IP> --scan"
+                )
                 sys.exit(1)
-            from utils.discovery_online import OnlineDiscoveryManager
-            mgr = OnlineDiscoveryManager(shodan_key=shodan_key())
-            mgr.discover(max_results_per_query=25)
-            mgr.export_results()
+
+            try:
+                _shodan_key = _sk()
+            except Exception:
+                _shodan_key = None
+            try:
+                _cid, _csec = _cc()
+            except Exception:
+                _cid, _csec = None, None
+
+            mgr  = OnlineDiscoveryManager(shodan_key=_shodan_key, censys_id=_cid, censys_secret=_csec)
+            hits = mgr.targeted_search(dork_params)
+            mgr.print_results(hits)
+            saved = mgr.export_results(hits)
+            if saved:
+                output().green(f"[+] Next: python printer-reaper.py <IP> --scan  (test an individual target)")
+
         except SystemExit:
             pass
         except Exception as e:
@@ -1215,6 +1441,14 @@ def main() -> None:
             output().errmsg(f"xpl-fetch error: {exc}")
         sys.exit(0)
 
+    # ── --auto-exploit: automatic exploit selection, verification & execution ──
+    if getattr(args, 'auto_exploit', False):
+        if not getattr(args, 'target', None):
+            output().errmsg("--auto-exploit requires a target IP: python printer-reaper.py <IP> --auto-exploit")
+            sys.exit(1)
+        _run_auto_exploit(args)
+        sys.exit(0)
+
     # ── --send-job: send file/text to printer ────────────────────────────────
     if getattr(args, 'send_job', None):
         if not args.target:
@@ -1236,7 +1470,7 @@ def main() -> None:
     _needs_target = ('ipp', 'ipp_submit', 'pivot', 'storage', 'firmware',
                      'firmware_reset', 'payload', 'implant',
                      'attack_matrix', 'network_map', 'xsp',
-                     'xpl_check', 'xpl_run', 'bruteforce')
+                     'xpl_check', 'xpl_run', 'bruteforce', 'auto_exploit')
     _any_attack = any(getattr(args, a.replace('-', '_'), None)
                       for a in _needs_target)
     if _any_attack:

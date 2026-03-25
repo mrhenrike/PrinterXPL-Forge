@@ -37,7 +37,7 @@
   ],
 
   "fofa": [
-    { "label": "primary", "email": "YOUR_FOFA_EMAIL", "api_key": "YOUR_FOFA_API_KEY" }
+    { "label": "primary", "api_key": "YOUR_FOFA_API_KEY" }
   ],
 
   "zoomeye": [

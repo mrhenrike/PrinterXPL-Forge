@@ -422,8 +422,20 @@ def censys_credentials() -> Tuple[str, str]:
             str(entry.get('api_secret', '')).strip())
 
 
+def fofa_key() -> str:
+    """Return the FOFA API key.
+
+    FOFA deprecated email-based auth in December 2023; only the API key is now required.
+    """
+    return _get_first_key('fofa', 'api_key')
+
+
 def fofa_credentials() -> Tuple[str, str]:
-    """Return (email, api_key) for FOFA."""
+    """Return (email, api_key) for FOFA — kept for backwards compatibility.
+
+    The email field is deprecated since December 2023.  Callers should prefer
+    ``fofa_key()`` directly.
+    """
     entry = _get_first_entry('fofa')
     return (str(entry.get('email', '')).strip(),
             str(entry.get('api_key', '')).strip())

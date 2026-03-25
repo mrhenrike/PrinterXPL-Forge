@@ -1,0 +1,75 @@
+# PrinterReaper — SNMP Community String Wordlist
+# For use with --snmp community brute-force
+# Author: Andre Henrique (@mrhenrike)
+
+# ── Standard / Generic ──────────────────────────────────────────────────────
+public
+private
+internal
+external
+community
+manager
+router
+switch
+printer
+network
+
+# ── Printer Vendor-Specific ─────────────────────────────────────────────────
+KYOCERA
+kyocera
+RICOH
+ricoh
+BROTHER
+brother
+EPSON
+epson
+HP
+hp
+Canon
+CANON
+XEROX
+xerox
+OKI
+SHARP
+sharp
+TOSHIBA
+LEXMARK
+DELL
+Samsung
+SAMSUNG
+KONICA
+MINOLTA
+
+# ── Common defaults ──────────────────────────────────────────────────────────
+admin
+default
+system
+all
+write
+read
+monitor
+guest
+security
+secret
+password
+1234
+123456
+abc123
+test
+
+# ── Cisco/Enterprise defaults ────────────────────────────────────────────────
+cable-docsis
+ilmi
+ILMI
+openview
+solaris
+sun
+
+# ── HP/JetDirect specific ────────────────────────────────────────────────────
+jetdirect
+laserjet
+
+# ── Common typos / variations ───────────────────────────────────────────────
+publc
+pubilc
+pulic

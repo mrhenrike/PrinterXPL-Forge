@@ -394,7 +394,18 @@ def _text_to_escp(text: str, copies: int = 1) -> bytes:
         buf += ESC + b'\x33\x18'  # 24/180-inch line spacing
         lines = text.replace('\r\n', '\n').replace('\r', '\n').split('\n')
         for line in lines:
-            buf += line.encode('latin-1', errors='replace') + b'\r\n'
+            # Normalize common unicode punctuation to ASCII equivalents
+            normalized = (
+                line.replace('\u2014', '-')   # em dash → hyphen
+                    .replace('\u2013', '-')   # en dash → hyphen
+                    .replace('\u2018', "'")   # left single quote
+                    .replace('\u2019', "'")   # right single quote
+                    .replace('\u201c', '"')   # left double quote
+                    .replace('\u201d', '"')   # right double quote
+                    .replace('\u2026', '...')  # ellipsis
+                    .replace('\u00b7', '.')   # middle dot
+            )
+            buf += normalized.encode('latin-1', errors='replace') + b'\r\n'
         buf += b'\x0c'             # form-feed — eject page
     return bytes(buf)
 

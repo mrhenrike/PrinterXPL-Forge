@@ -9,11 +9,13 @@
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-mrhenrike-black?logo=github)](https://github.com/mrhenrike/PrinterReaper)
-[![Wiki](https://img.shields.io/badge/Wiki-GitHub-orange)](https://github.com/mrhenrike/PrinterReaper/wiki)
+[![Wiki](https://img.shields.io/badge/Wiki-English-orange)](https://github.com/mrhenrike/PrinterReaper/wiki)
+[![Wiki PT-BR](https://img.shields.io/badge/Wiki-Portugu%C3%AAs-green)](https://github.com/mrhenrike/PrinterReaper/wiki/Home-pt-BR)
+[![Version](https://img.shields.io/badge/version-3.13.0-red)](https://github.com/mrhenrike/PrinterReaper/releases)
 
 > **"Is your printer safe from the void? Find out before someone else does."**
 
-**[Wiki](https://github.com/mrhenrike/PrinterReaper/wiki)** · **[Issues](https://github.com/mrhenrike/PrinterReaper/issues)** · **[Releases](https://github.com/mrhenrike/PrinterReaper/releases)**
+**[Wiki (en-us)](https://github.com/mrhenrike/PrinterReaper/wiki)** · **[Wiki (pt-br)](https://github.com/mrhenrike/PrinterReaper/wiki/Home-pt-BR)** · **[Issues](https://github.com/mrhenrike/PrinterReaper/issues)** · **[Releases](https://github.com/mrhenrike/PrinterReaper/releases)**
 
 </div>
 

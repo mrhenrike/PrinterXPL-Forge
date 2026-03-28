@@ -695,7 +695,11 @@ Guia central: `packages/README.md`
 
 ## Legal Disclaimer
 
-PrinterReaper is developed for **authorized security research, penetration testing, and educational purposes only**. Using this tool against systems you do not own or have explicit written authorization to test is **illegal**. The author assumes no liability for misuse.
+<!-- LEGAL-NOTICE-UG-MRH -->
+
+PrinterReaper is developed for **authorized security research, penetration testing, and educational purposes only**. Using this tool against systems you do not own or have explicit written authorization to test is **illegal**.
+
+The software is provided **“as is” (AS IS)** under the [MIT License](LICENSE), **without warranty** of any kind (express or implied). The author is **not liable** for damages, misuse, third-party claims, or commercial/fitness guarantees — **use at your own risk**. Preserve **copyright notices** when redistributing; **pull requests** and **issues** are welcome.
 
 ---
 

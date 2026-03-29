@@ -11,11 +11,11 @@
 [![GitHub](https://img.shields.io/badge/GitHub-mrhenrike-black?logo=github)](https://github.com/mrhenrike/PrinterReaper)
 [![Wiki](https://img.shields.io/badge/Wiki-English-orange)](https://github.com/mrhenrike/PrinterReaper/wiki)
 [![Wiki PT-BR](https://img.shields.io/badge/Wiki-Portugu%C3%AAs-green)](https://github.com/mrhenrike/PrinterReaper/wiki/Home-pt-BR)
-[![Version](https://img.shields.io/badge/version-3.13.0-red)](https://github.com/mrhenrike/PrinterReaper/releases)
+[![Version](https://img.shields.io/badge/version-3.14.0-red)](https://github.com/mrhenrike/PrinterReaper/releases)
 
 > **"Is your printer safe from the void? Find out before someone else does."**
 
-**[Wiki (en-us)](https://github.com/mrhenrike/PrinterReaper/wiki)** · **[Wiki (pt-br)](https://github.com/mrhenrike/PrinterReaper/wiki/Home-pt-BR)** · **[Issues](https://github.com/mrhenrike/PrinterReaper/issues)** · **[Releases](https://github.com/mrhenrike/PrinterReaper/releases)**
+**[Wiki (en-us)](https://github.com/mrhenrike/PrinterReaper/wiki)** · **[Wiki (pt-br)](https://github.com/mrhenrike/PrinterReaper/wiki/Home-pt-BR)** · **[Issues](https://github.com/mrhenrike/PrinterReaper/issues)** · **[Releases](https://github.com/mrhenrike/PrinterReaper/releases)** · **[CONTRIBUTING](CONTRIBUTING.md)** · **[CODE_OF_CONDUCT](CODE_OF_CONDUCT.md)** · **[README (pt-BR)](README.pt-BR.md)**
 
 </div>
 

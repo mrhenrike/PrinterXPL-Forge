@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "total": 101,
+    "total": 100,
     "version": "4.1.0",
     "generated_by": "Andre Henrique (@mrhenrike) | Uniao Geek"
   },
@@ -1698,33 +1698,6 @@
         "fingerprint",
         "recon",
         "compatibility"
-      ],
-      "destructive": false,
-      "irreversible": false,
-      "physical_damage": false
-    },
-    {
-      "module": "research-pret-compat",
-      "path": "research/research-pret-compat/exploit.py",
-      "id": "research-pret-compat",
-      "title": "PRET (Printer Exploitation Toolkit) Compatibility Wrapper",
-      "source": "research",
-      "cve": "",
-      "cvss": 0.0,
-      "severity": "info",
-      "category": "information_disclosure",
-      "protocol": "PJL",
-      "port": 9100,
-      "vendor": [
-        "Multi-vendor"
-      ],
-      "tags": [
-        "pret",
-        "compatibility",
-        "pjl",
-        "postscript",
-        "wrapper",
-        "rub-nds"
       ],
       "destructive": false,
       "irreversible": false,

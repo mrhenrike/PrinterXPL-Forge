@@ -21,7 +21,7 @@
 
 ---
 
-PrinterXPL-Forge is a complete, modular framework for security assessment of network printers. It covers all major printer languages (PJL, PostScript, PCL, ESC/P), all common protocols (RAW, IPP, LPD, SMB, HTTP, SNMP, FTP, Telnet), 101 exploit modules, an external wordlist-driven credential engine with zero hardcoded passwords, ML-assisted fingerprinting, NVD/CVE integration, automated lateral movement, firmware analysis, and Cross-Site Printing payloads.
+PrinterXPL-Forge is a complete, modular framework for security assessment of network printers. It covers all major printer languages (PJL, PostScript, PCL, ESC/P), all common protocols (RAW, IPP, LPD, SMB, HTTP, SNMP, FTP, Telnet), 100 exploit modules, an external wordlist-driven credential engine with zero hardcoded passwords, ML-assisted fingerprinting, NVD/CVE integration, automated lateral movement, firmware analysis, and Cross-Site Printing payloads.
 
 ---
 
@@ -761,3 +761,4 @@ Made with care for the security community.
 [Documentation](https://github.com/mrhenrike/PrinterXPL-Forge/wiki) | [Issues](https://github.com/mrhenrike/PrinterXPL-Forge/issues) | [Releases](https://github.com/mrhenrike/PrinterXPL-Forge/releases)
 
 </div>
+

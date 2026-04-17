@@ -28,11 +28,10 @@ Author: André Henrique (@mrhenrike) | União Geek — https://github.com/Uniao-
   and mandatory confirmation for live execution
 - **`docs/Destructive-Attacks-Wiki.md`** — comprehensive wiki covering damage timelines,
   PJL/PS/PML command references, CLI usage, damage classification table, safety precautions
-- **5 previously-empty exploit modules** now fully implemented:
+- **4 previously-empty exploit modules** now fully implemented:
   - `research-fax-dll-inject` — HP MFP Faxploit (CVE-2018-5924/5925)
   - `research-hp-fw-extract` — HP firmware version extraction + CVE mapping
   - `research-nse-compat` — Nmap NSE printer-script compatibility wrapper + PJL fallback
-  - `research-pret-compat` — PRET compatibility shim with native PJL fallback
   - `research-xerox-passback` — Xerox LDAP/SMB credential passback (CVE-2022-23968/23969)
 - New section in `docs/Exploiting-Network-Printers-via-PrinterXPL-Forge.md`:
   "9b. Irreversible / Physical Damage Attacks"
@@ -50,7 +49,7 @@ Author: André Henrique (@mrhenrike) | União Geek — https://github.com/Uniao-
     `TRACKING`, `SUPPLIES`, `BRFIRMWARE` (covers old HP LaserJet + Brother)
 
 ### Changed
-- Module count: **96 → 101** exploit modules
+- Module count: **96 → 100** exploit modules
 - `xpl/index.json` version bumped to `4.1.0`; total updated to 101
 - `README.md` and `README.pt-BR.md` updated with destructive-attacks section,
   CLI usage, v4.1.0 badges, and corrected module count

@@ -662,17 +662,29 @@ class pjl(printer):
     # --------------------------------------------------------------------
 
     def do_set(self, arg, fb=True):
-        "Set environment variable VAR=VALUE"
+        "Set environment variable VAR=VALUE (uses HP service mode for persistent write)"
         if not arg:
             output().errmsg("Usage: set <variable>=<value>")
             return
-        
+
         if "=" not in arg:
             output().errmsg("Usage: set <variable>=<value>")
             return
-        
+
         var, value = arg.split("=", 1)
-        self.cmd("@PJL SET " + var.upper() + "=" + value)
+        # Use HP service mode unlock before DEFAULT + SET for persistent NVRAM write.
+        # This mirrors PRET's approach: SERVICEMODE=HPBOISEID opens write access on
+        # HP LaserJet 4000-9000 and many compatible models. Falls back gracefully on
+        # non-HP printers that ignore the SERVICEMODE commands.
+        self.cmd(
+            "@PJL SET SERVICEMODE=HPBOISEID" + c.EOL
+            + "@PJL DEFAULT " + var.upper() + "=" + value + c.EOL
+            + "@PJL SET " + var.upper() + "=" + value + c.EOL
+            + "@PJL SET SERVICEMODE=EXIT",
+            False,
+        )
+        if fb:
+            self.onecmd("printenv " + var.upper())
 
     def help_set(self):
         """Show help for set command"""
@@ -1062,52 +1074,101 @@ class pjl(printer):
             output().info("Job media already disabled")
 
     def do_nvram(self, arg):
-        "Access/manipulate NVRAM"
-        if not arg:
-            output().errmsg("Usage: nvram <dump|set|get> [options]")
-            return
-        
-        if arg.startswith("dump"):
-            # Dump NVRAM
-            nvram_data = self.cmd("@PJL INFO NVRAM")
-            if nvram_data:
-                print("NVRAM Contents:")
-                print("=" * 50)
-                print(nvram_data)
+        "Brother NVRAM operations: nvram <dump [all]|read <addr>|write <addr> <val>>"
+        parts = arg.split() if arg else []
+
+        # --- dump ---
+        if parts and parts[0] == "dump":
+            import os as _os
+            bs    = 2 ** 9    # sample block size
+            _max  = 2 ** 18   # upper address limit for sampling
+            steps = 2 ** 9    # commands per batch
+
+            # Determine address space
+            if len(parts) > 1 and parts[1] == "all":
+                # Full sampling scan: probe every bs-th address first
+                self.chitchat("Sampling NVRAM address space (bs=%d, max=%d) ..." % (bs, _max))
+                memspace = []
+                cmds = ["@PJL RNVRAM ADDRESS=" + str(n) for n in range(0, _max, bs)]
+                for chunk in [cmds[i:i+steps] for i in range(0, len(cmds), steps)]:
+                    recv = self.cmd(c.EOL.join(chunk))
+                    if not recv:
+                        self.chitchat("Device does not support RNVRAM (not a Brother?).")
+                        return
+                    blocks = re.findall(r"ADDRESS\s*=\s*(\d+)", recv)
+                    for addr in blocks:
+                        memspace += list(range(int(addr), int(addr) + bs))
+                self.chitchat("%d valid addresses found." % len(memspace))
             else:
-                output().errmsg("Failed to dump NVRAM")
-        elif arg.startswith("set"):
-            output().warning("NVRAM modification not implemented")
-        elif arg.startswith("get"):
-            output().warning("NVRAM reading not implemented")
+                # Quick default memspace (covers most interesting Brother regions)
+                memspace = (
+                    list(range(0, 8192))
+                    + list(range(32768, 33792))
+                    + list(range(53248, 59648))
+                )
+
+            lpath = _os.path.join("nvram", self.target if hasattr(self, "target") else "dump")
+            _os.makedirs("nvram", exist_ok=True)
+            self.chitchat("Writing dump to " + lpath)
+            open(lpath, "wb").close()  # truncate
+
+            cmds = ["@PJL RNVRAM ADDRESS=" + str(n) for n in memspace]
+            for chunk in [cmds[i:i+steps] for i in range(0, len(cmds), steps)]:
+                recv = self.cmd(c.EOL.join(chunk))
+                if not recv:
+                    break
+                data = "".join(
+                    chr(int(n)) for n in re.findall(r"DATA\s*=\s*(\d+)", recv)
+                )
+                with open(lpath, "a", encoding="latin-1") as fh:
+                    fh.write(data)
+                # ASCII preview
+                print(
+                    "".join(ch if 0x20 <= ord(ch) < 0x7F else "." for ch in data),
+                    end="", flush=True,
+                )
+            print()
+
+        # --- read single byte ---
+        elif parts and parts[0] == "read":
+            if len(parts) < 2:
+                self.help_nvram(); return
+            addr = parts[1]
+            result = self.cmd("@PJL RNVRAM ADDRESS=" + addr)
+            output().info(result if result else "No response (device may not support RNVRAM)")
+
+        # --- write single byte (uses SUPERUSER bypass) ---
+        elif parts and parts[0] == "write":
+            if len(parts) < 3:
+                self.help_nvram(); return
+            addr, data = parts[1], parts[2]
+            # SUPERUSER PASSWORD=0 bypasses Brother's write protection on many models
+            self.cmd(
+                "@PJL SUPERUSER PASSWORD=0" + c.EOL
+                + "@PJL WNVRAM ADDRESS=" + addr + " DATA=" + data + c.EOL
+                + "@PJL SUPERUSEROFF",
+                False,
+            )
+            output().chitchat("Written DATA=%s to ADDRESS=%s" % (data, addr))
+
         else:
-            output().errmsg("Unknown NVRAM operation")
+            self.help_nvram()
 
     def help_nvram(self):
         """Show help for nvram command"""
         print()
-        print("nvram - Access and manipulate NVRAM")
+        print("nvram - Brother NVRAM read/write via PJL RNVRAM/WNVRAM")
         print("=" * 60)
-        print("DESCRIPTION:")
-        print("  Accesses the printer's non-volatile RAM (NVRAM) which stores")
-        print("  settings, passwords, and configuration data.")
-        print()
         print("USAGE:")
-        print("  nvram <dump|set|get> [options]")
-        print()
-        print("OPERATIONS:")
-        print("  dump  - Dump entire NVRAM contents")
-        print("  set   - Set NVRAM value (not implemented)")
-        print("  get   - Get NVRAM value (not implemented)")
-        print()
-        print("EXAMPLES:")
-        print("  nvram dump                       # Dump all NVRAM")
+        print("  nvram dump        - Quick dump (default address regions)")
+        print("  nvram dump all    - Full sampling scan (slow, comprehensive)")
+        print("  nvram read <addr> - Read single byte at address")
+        print("  nvram write <addr> <val> - Write single byte (SUPERUSER bypass)")
         print()
         print("NOTES:")
-        print("  - May contain sensitive information")
-        print("  - Passwords may be stored in NVRAM")
-        print("  - Useful for information disclosure")
-        print("  - Some data may be encrypted")
+        print("  - Brother-specific; @PJL RNVRAM/WNVRAM not available on HP/Xerox")
+        print("  - SUPERUSER PASSWORD=0 bypasses write protection on many Brother models")
+        print("  - Dump saved to nvram/<target>")
         print()
 
     # --------------------------------------------------------------------
@@ -3048,6 +3109,12 @@ end
                 ("VARIABLES", "Environment variables"),
                 ("USTATUS", "Unsolicited status"),
                 ("PRODUCT", "Product information"),
+                # Hidden / undocumented categories (old HP LaserJet)
+                ("LOG", "Event log (undocumented)"),
+                ("PRODINFO", "Product info extended (HP)"),
+                ("TRACKING", "Tracking data (undocumented)"),
+                ("SUPPLIES", "Supplies/toner status (undocumented)"),
+                ("BRFIRMWARE", "Firmware version (Brother)"),
             ]
             
             for cat, desc in categories:

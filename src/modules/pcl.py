@@ -308,29 +308,63 @@ class pcl(printer):
     # 📊 PCL INFORMATION COMMANDS
     # --------------------------------------------------------------------
 
+    # PCL location types for info queries (fix: issue #89 — hard disk fonts missed)
+    _PCL_LOCATIONS = {
+        '1': '(Selected)',
+        '2': '(All Locations)',
+        '3': '(Internal)',
+        '4': '(Downloaded)',
+        '5': '(Cartridge)',
+        '6': '(Hard Disk)',
+        '7': '(ROM/SIMMs)',
+    }
+
+    # PCL entity codes: (location_type_code, inquiry_entity_code, description)
+    _PCL_ENTITIES = {
+        'fonts':    ('0', 'Fonts'),
+        'macros':   ('1', 'Macros'),
+        'patterns': ('2', 'User-defined Patterns'),
+        'symbols':  ('3', 'Symbol Sets'),
+        'extended': ('4', 'Fonts Extended'),
+    }
+
     def do_info(self, arg):
-        "Get PCL information"
+        "Get PCL information: info <fonts|macros|patterns|symbols|extended>"
         if not arg:
             print("Available info categories:")
-            print("  fonts      - Show installed fonts")
+            print("  fonts      - Show installed fonts (all locations incl. hard disk)")
             print("  macros     - Show installed macros")
             print("  patterns   - Show user-defined patterns")
             print("  symbols    - Show symbol sets")
             print("  extended   - Show extended fonts")
             return
-        
-        if arg == "fonts":
-            result = self.cmd(c.ESC + "*s1T")  # Font list
-            print("Installed Fonts:")
-            print(result if result else "No information available")
-        elif arg == "macros":
+
+        if arg == "macros":
             self.do_ls("")
-        elif arg == "patterns":
-            output().info("Pattern information not directly queryable in PCL")
-        elif arg == "symbols":
-            output().info("Symbol set information not directly queryable in PCL")
-        elif arg == "extended":
-            output().info("Extended font information not directly queryable in PCL")
+            return
+
+        entity_info = self._PCL_ENTITIES.get(arg)
+        if not entity_info:
+            output().errmsg(f"Unknown category: {arg}. Use: fonts, macros, patterns, symbols, extended")
+            return
+
+        entity_code, entity_desc = entity_info
+
+        # Iterate all location types to catch fonts on hard disk (issue #89)
+        found_any = False
+        for loc_code, loc_label in sorted(self._PCL_LOCATIONS.items()):
+            str_send = "*s" + loc_code + "T"        # set location type
+            str_send += c.ESC + "*s0U"              # set location unit (all units)
+            str_send += c.ESC + "*s" + entity_code + "I"  # set inquire entity
+            result = self.cmd(str_send)
+            if result and result.strip():
+                print(f"{entity_desc} {loc_label}:")
+                print(result.strip())
+                print()
+                found_any = True
+
+        if not found_any:
+            output().info(f"No {entity_desc.lower()} found across all locations.")
 
     def help_info(self):
         """Show help for info command"""

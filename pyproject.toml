@@ -6,8 +6,8 @@ build-backend = "setuptools.build_meta"
 # Project metadata
 # ──────────────────────────────────────────────────────────────────────────────
 [project]
-name = "printer-reaper"
-version = "3.14.0"
+name = "printerxpl-forge"
+version = "4.0.0"
 description = "Advanced Printer Penetration Testing Toolkit — PJL, PostScript, PCL, CVE scanner, brute-force, pivot"
 readme = { file = "README.md", content-type = "text/markdown" }
 license = { file = "LICENSE" }
@@ -71,7 +71,7 @@ dev = [
     "build>=1.0.0",
     "twine>=5.0.0",
 ]
-# Install everything at once:  pip install printer-reaper[full]
+# Install everything at once:  pip install printerxpl-forge[full]
 full = [
     "pysmb>=1.2.9",
     "impacket>=0.12.0",
@@ -83,16 +83,16 @@ full = [
 
 # ── Entry points ──────────────────────────────────────────────────────────────
 [project.scripts]
-printer-reaper = "main:main"
-printerreaper  = "main:main"
+printerxpl-forge = "main:main"
+PrinterXPL-Forge  = "main:main"
 
 # ── Project links ─────────────────────────────────────────────────────────────
 [project.urls]
-Homepage       = "https://www.uniaogeek.com.br/printer-reaper"
-Repository     = "https://github.com/mrhenrike/PrinterReaper"
-Issues         = "https://github.com/mrhenrike/PrinterReaper/issues"
-Wiki           = "https://github.com/mrhenrike/PrinterReaper/wiki"
-Changelog      = "https://github.com/mrhenrike/PrinterReaper/releases"
+Homepage       = "https://www.uniaogeek.com.br/printerxpl-forge"
+Repository     = "https://github.com/mrhenrike/PrinterXPL-Forge"
+Issues         = "https://github.com/mrhenrike/PrinterXPL-Forge/issues"
+Wiki           = "https://github.com/mrhenrike/PrinterXPL-Forge/wiki"
+Changelog      = "https://github.com/mrhenrike/PrinterXPL-Forge/releases"
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Setuptools configuration

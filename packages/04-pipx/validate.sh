@@ -13,8 +13,8 @@ echo "[pipx] Installing local editable package..."
 pipx install --force --editable .
 
 echo "[pipx] Command check..."
-printer-reaper --version
-printer-reaper --help >/dev/null
+printerxpl-forge --version
+printerxpl-forge --help >/dev/null
 
 echo "[pipx] OK"
 

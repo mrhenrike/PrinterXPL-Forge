@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PrinterReaper — IPP Attack Module
+PrinterXPL-Forge — IPP Attack Module
 ===================================
 Internet Printing Protocol (RFC 2910/2911/8011) attack operations.
 
@@ -253,7 +253,7 @@ def _make_raster_page(width: int = 595, height: int = 842) -> bytes:
     return sync + phdr + pixels
 
 
-def _make_escpr_job(text: str = 'PrinterReaper') -> bytes:
+def _make_escpr_job(text: str = 'PrinterXPL-Forge') -> bytes:
     """
     Build a minimal ESC/P-R initialization sequence for EPSON inkjet printers.
 

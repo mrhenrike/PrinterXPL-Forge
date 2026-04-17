@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PrinterReaper — SSRF Pivot / Lateral Movement Module
+PrinterXPL-Forge — SSRF Pivot / Lateral Movement Module
 ======================================================
 Uses the printer as a network pivot point to:
   1. Probe internal hosts/ports the attacker cannot reach directly

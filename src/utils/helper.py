@@ -136,7 +136,7 @@ class output():
     # show banner
     def intro(self, quiet):
         if not quiet:
-            print(Style.BRIGHT + Fore.CYAN + "PrinterReaper - Advanced Printer Penetration Testing" + Style.RESET_ALL)
+            print(Style.BRIGHT + Fore.CYAN + "PrinterXPL-Forge - Advanced Printer Penetration Testing" + Style.RESET_ALL)
             print(Style.DIM + "Printer Reaper - a tool to discover, fuzz and exploit printers" + Style.RESET_ALL)
     
     def header(self, msg, eol=None):

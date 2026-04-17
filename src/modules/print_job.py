@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PrinterReaper — Smart Print Job Sender
+PrinterXPL-Forge — Smart Print Job Sender
 =======================================
 Sends files or raw data to a printer via:
   - IPP / IPPS (TCP 631)  — AirPrint-compatible, auto-TLS upgrade
@@ -47,7 +47,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional, Tuple
 
-_log = logging.getLogger('PrinterReaper.print_job')
+_log = logging.getLogger('PrinterXPL-Forge.print_job')
 
 UEL = b'\x1b%-12345X'
 
@@ -723,7 +723,7 @@ def _make_tls_ctx() -> ssl.SSLContext:
 
 
 def send_ipp(host: str, port: int, data: bytes,
-             job_name: str    = 'PrinterReaper-Job',
+             job_name: str    = 'PrinterXPL-Forge-Job',
              doc_format: str  = '',
              use_tls: bool    = False,
              timeout: float   = 30.0) -> PrintJobResult:
@@ -756,7 +756,7 @@ def send_ipp(host: str, port: int, data: bytes,
     ipp_attrs  += _s('attributes-charset',          'utf-8', 0x47)
     ipp_attrs  += _s('attributes-natural-language', 'en',    0x48)
     ipp_attrs  += _s('printer-uri',                 printer_uri, 0x45)
-    ipp_attrs  += _s('requesting-user-name',        'printerreaper', 0x42)
+    ipp_attrs  += _s('requesting-user-name',        'PrinterXPL-Forge', 0x42)
     ipp_attrs  += _s('job-name',                    job_name, 0x42)
     ipp_attrs  += _s('document-format',             mime, 0x49)
     ipp_attrs  += b'\x02'
@@ -925,7 +925,7 @@ def _classify_ipp_error(status: int, mime: str) -> str:
 
 def send_lpd(host: str, port: int, data: bytes,
              queue:    str   = 'lp',
-             job_name: str   = 'printerreaper',
+             job_name: str   = 'PrinterXPL-Forge',
              timeout:  float = 20.0) -> PrintJobResult:
     """
     Send data via LPD (RFC 1179) on TCP 515.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PrinterReaper — Login Brute Force Module
+PrinterXPL-Forge — Login Brute Force Module
 =========================================
 Tests default and derived credentials against printer management interfaces:
   - HTTP/HTTPS web admin (form login + HTTP Basic Auth + Digest)

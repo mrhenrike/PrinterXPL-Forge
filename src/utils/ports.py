@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PrinterReaper — Port Configuration Utility
+PrinterXPL-Forge — Port Configuration Utility
 ==========================================
 Centralised protocol-to-port mapping with user-override support.
 

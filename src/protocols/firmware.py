@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PrinterReaper — Firmware & Payload Module
+PrinterXPL-Forge — Firmware & Payload Module
 ==========================================
 Operations targeting printer firmware, NVRAM, and embedded payloads:
 
@@ -397,7 +397,7 @@ def _pcl_payload(kind: str, custom: str = '') -> bytes:
     """Build a PCL 5 payload."""
     RESET = b'\x1bE'   # printer reset
     if kind == 'info':
-        return RESET + b'\x1b&l0E' + b'\x1b(s0B' + b'PrinterReaper info\r\n' + b'\x0c' + RESET
+        return RESET + b'\x1b&l0E' + b'\x1b(s0B' + b'PrinterXPL-Forge info\r\n' + b'\x0c' + RESET
     elif kind == 'reset':
         return RESET  # ESC E — factory defaults
     elif kind == 'custom':

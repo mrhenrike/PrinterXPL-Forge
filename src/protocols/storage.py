@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PrinterReaper — Printer Storage / Filesystem Module
+PrinterXPL-Forge — Printer Storage / Filesystem Module
 =====================================================
 Read, list, download and upload files from printer internal storage via:
 

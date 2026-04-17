@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PrinterReaper — OS Printer Installer
+PrinterXPL-Forge — OS Printer Installer
 ======================================
 Installs a network printer on the current host using the OS printer subsystem:
   - Windows : Add-Printer / Add-PrinterPort (PowerShell)
@@ -34,7 +34,7 @@ import sys
 from dataclasses import dataclass
 from typing import List, Optional
 
-_log = logging.getLogger('PrinterReaper.install_printer')
+_log = logging.getLogger('PrinterXPL-Forge.install_printer')
 
 
 @dataclass
@@ -84,7 +84,7 @@ def _probe_ipp_available(host: str, port: int = 631, timeout: float = 4.0) -> bo
 
 def _safe_name(host: str) -> str:
     """Generate a safe printer name from the host IP."""
-    return f"PrinterReaper-{host.replace('.', '-')}"
+    return f"PrinterXPL-Forge-{host.replace('.', '-')}"
 
 
 # ── Windows ────────────────────────────────────────────────────────────────────
@@ -141,7 +141,7 @@ _PS_PRINT_TEST_TEMPLATE = r"""
 $PrinterName = '{name}'
 $TempFile = [System.IO.Path]::GetTempFileName() + '.txt'
 Set-Content -Path $TempFile -Value @"
-PrinterReaper - Test Page
+PrinterXPL-Forge - Test Page
 =========================
 Target   : {host}
 Protocol : {protocol}
@@ -204,7 +204,7 @@ def _install_windows(host: str, printer_name: str,
                     f"Print via Start menu → print a document and select '{printer_name}', "
                     "or run: Get-PrintJob -PrinterName '{printer_name}'"
                 ),
-                commands=['Get-Printer | Where-Object Name -like "*PrinterReaper*"'],
+                commands=['Get-Printer | Where-Object Name -like "*PrinterXPL-Forge*"'],
             )
         return InstallResult(
             success=False, os_type='Windows',
@@ -253,7 +253,7 @@ def _install_unix(host: str, printer_name: str,
         lpadmin, '-p', printer_name,
         '-E',                          # enable + accept jobs
         '-v', device_uri,
-        '-D', f'PrinterReaper {host}',
+        '-D', f'PrinterXPL-Forge {host}',
         '-L', host,
     ] + ppd_opt
 

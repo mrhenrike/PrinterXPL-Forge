@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PrinterReaper — Configuration Loader
+PrinterXPL-Forge — Configuration Loader
 ======================================
 Loads config.json (JSON) from the project root, a path set via the
---config CLI flag, or the PRINTERREAPER_CONFIG environment variable.
+--config CLI flag, or the PrinterXPL-Forge_CONFIG environment variable.
 Also accepts the legacy config.yaml format (requires pyyaml).
 
 Supports multiple API keys per provider (first non-empty key is used).
@@ -13,7 +13,7 @@ and warns the user when a feature is called without required keys.
 
 Resolution order (highest priority first):
   1. CLI flag: --config /path/to/config.json
-  2. Environment variable: PRINTERREAPER_CONFIG
+  2. Environment variable: PrinterXPL-Forge_CONFIG
   3. config.json in project root (next to src/)
   4. config.yaml in project root (legacy fallback)
   5. Built-in defaults (no credentials — limited features)
@@ -141,7 +141,7 @@ def _find_config_file(explicit_path: str | None = None) -> Optional[Path]:
 
     if explicit_path:
         candidates.append(Path(explicit_path))
-    env_path = os.environ.get('PRINTERREAPER_CONFIG')
+    env_path = os.environ.get('PrinterXPL-Forge_CONFIG')
     if env_path:
         candidates.append(Path(env_path))
 

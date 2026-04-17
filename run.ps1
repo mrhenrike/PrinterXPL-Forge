@@ -1,4 +1,4 @@
-# PrinterReaper — launcher with local venv (bypasses EDR temp restrictions)
+# PrinterXPL-Forge — launcher with local venv (bypasses EDR temp restrictions)
 # Usage: .\run.ps1 <ip> --scan
 # Usage: .\run.ps1 192.168.0.152 --scan-ml --no-nvd
 # Usage: .\run.ps1 --check-config
@@ -8,7 +8,7 @@ $venv_python = Join-Path $PSScriptRoot ".venv\Scripts\python.exe"
 
 if (-not (Test-Path $venv_python)) {
     Write-Host "[!] Venv not found. Creating..." -ForegroundColor Yellow
-    python -m venv "$PSScriptRoot\.venv" --prompt PrinterReaper
+    python -m venv "$PSScriptRoot\.venv" --prompt PrinterXPL-Forge
     & "$PSScriptRoot\.venv\Scripts\pip.exe" install -r "$PSScriptRoot\requirements.txt"
 }
 

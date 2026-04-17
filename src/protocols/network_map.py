@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PrinterReaper — Network Mapper (Printer-Perspective)
+PrinterXPL-Forge — Network Mapper (Printer-Perspective)
 =====================================================
 Maps everything reachable FROM the printer's network position.
 
@@ -755,7 +755,7 @@ def generate_xsp_payload(
 
     # JavaScript XSP payload
     js_payload = f"""
-// PrinterReaper XSP + CORS Spoofing Payload
+// PrinterXPL-Forge XSP + CORS Spoofing Payload
 // Target: {printer_ip}:{printer_port}
 // Attack: {attack_type}
 // WARNING: For authorized penetration testing only.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PrinterReaper — Banner Grabber
+PrinterXPL-Forge — Banner Grabber
 ================================
 Collects identification banners from all relevant printer protocols:
   HTTP / HTTPS  — headers + title + WSD
@@ -109,6 +109,83 @@ _PRINTER_PORT_LABELS = {
     23:   'Telnet',
     21:   'FTP',
 }
+
+# ── psploit / PRET-2.0 capability fingerprints ───────────────────────────────
+# Derived from colorblindpentester/psploit (capabilities.py)
+# and d1pakda5/PRET-2.0 (db/pjl.dat, db/ps.dat, db/pcl.dat)
+# Maps known model strings (from PJL INFO ID / SNMP / HTTP title) to
+# their supported printer languages and attack surface notes.
+
+_PSPLOIT_CAPABILITIES: dict = {
+    # HP LaserJet series
+    "hp laserjet 4250":         {"langs": ["PJL", "PS", "PCL"], "nvram": False, "notes": "classic PJL target"},
+    "hp laserjet 4350":         {"langs": ["PJL", "PS", "PCL"], "nvram": False},
+    "hp laserjet 5200":         {"langs": ["PJL", "PS", "PCL"], "nvram": False},
+    "hp laserjet m3027":        {"langs": ["PJL", "PS", "PCL"], "nvram": False},
+    "hp laserjet m3035":        {"langs": ["PJL", "PS", "PCL"], "nvram": False},
+    "hp laserjet m5025":        {"langs": ["PJL", "PS", "PCL"], "nvram": False},
+    "hp laserjet m5035":        {"langs": ["PJL", "PS", "PCL"], "nvram": False},
+    "hp laserjet m605":         {"langs": ["PJL", "PS", "PCL"], "nvram": False},
+    "hp laserjet m606":         {"langs": ["PJL", "PS", "PCL"], "nvram": False},
+    "hp laserjet m712":         {"langs": ["PJL", "PS", "PCL"], "nvram": False},
+    "hp laserjet enterprise":   {"langs": ["PJL", "PS", "PCL"], "nvram": False, "notes": "enterprise fw update"},
+    "hp officejet":             {"langs": ["PJL", "PCL"], "nvram": False},
+    "hp color laserjet":        {"langs": ["PJL", "PS", "PCL"], "nvram": False},
+    # Brother series (PJL NVRAM access)
+    "brother hl-l2315dw":       {"langs": ["PJL", "PCL"], "nvram": True, "notes": "NVRAM destroy target"},
+    "brother hl-l2350dw":       {"langs": ["PJL", "PCL"], "nvram": True},
+    "brother mfc-7860dw":       {"langs": ["PJL", "PS", "PCL"], "nvram": True},
+    "brother mfc-l2750dw":      {"langs": ["PJL", "PCL"], "nvram": True},
+    "brother mfc-l8900cdw":     {"langs": ["PJL", "PS", "PCL"], "nvram": True},
+    "brother dcp-l2550dw":      {"langs": ["PJL", "PCL"], "nvram": True},
+    # Lexmark series
+    "lexmark x792":             {"langs": ["PJL", "PS", "PCL"], "nvram": False},
+    "lexmark ms610":            {"langs": ["PJL", "PS", "PCL"], "nvram": False},
+    "lexmark mx710":            {"langs": ["PJL", "PS", "PCL"], "nvram": False},
+    "lexmark mx810":            {"langs": ["PJL", "PS", "PCL"], "nvram": False},
+    # Ricoh series
+    "ricoh mp c3003":           {"langs": ["PJL", "PS", "PCL"], "nvram": False, "notes": "LDAP passback"},
+    "ricoh mp c4503":           {"langs": ["PJL", "PS", "PCL"], "nvram": False, "notes": "LDAP passback"},
+    "ricoh mp c6003":           {"langs": ["PJL", "PS", "PCL"], "nvram": False, "notes": "LDAP passback"},
+    "ricoh aficio mp":          {"langs": ["PJL", "PS", "PCL"], "nvram": False},
+    # Konica Minolta / Bizhub
+    "konica minolta bizhub":    {"langs": ["PJL", "PS", "PCL"], "nvram": False, "notes": "SOAP cred extract"},
+    "bizhub c554":              {"langs": ["PJL", "PS", "PCL"], "nvram": False},
+    "bizhub c454":              {"langs": ["PJL", "PS", "PCL"], "nvram": False},
+    "bizhub c364":              {"langs": ["PJL", "PS", "PCL"], "nvram": False},
+    # Xerox series
+    "xerox workcentre":         {"langs": ["PJL", "PS", "PCL"], "nvram": False, "notes": "DLM firmware inject"},
+    "xerox altalink":           {"langs": ["PJL", "PS", "PCL"], "nvram": False},
+    "xerox versalink":          {"langs": ["PJL", "PS", "PCL"], "nvram": False, "notes": "CVE-2024-6333"},
+    "xerox phaser":             {"langs": ["PJL", "PS", "PCL"], "nvram": False},
+    # Canon series
+    "canon imagerunner":        {"langs": ["PJL", "PS", "PCL"], "nvram": False, "notes": "LDIF addr book"},
+    "canon ir-adv":             {"langs": ["PJL", "PS", "PCL"], "nvram": False},
+    # Sharp series
+    "sharp mx-2640n":           {"langs": ["PJL", "PCL"], "nvram": False, "notes": "SMTP passback"},
+    "sharp mx-2640":            {"langs": ["PJL", "PCL"], "nvram": False},
+    "sharp mfp":                {"langs": ["PJL", "PCL"], "nvram": False},
+    # Kyocera series
+    "kyocera taskalfa":         {"langs": ["PJL", "PS", "PCL"], "nvram": False},
+    "kyocera fs-":              {"langs": ["PJL", "PS", "PCL"], "nvram": False},
+    # OKI series
+    "oki c":                    {"langs": ["PJL", "PCL"], "nvram": False},
+    "oki mc":                   {"langs": ["PJL", "PS", "PCL"], "nvram": False},
+    # Epson series
+    "epson workforce":          {"langs": ["PCL"], "nvram": False},
+    "epson al-":                {"langs": ["PJL", "PS", "PCL"], "nvram": False},
+}
+
+# PRET-2.0 db/ model lists (partial — first 50 entries per language)
+# Full lists are in .tmp/vendor-repos/PRET-2.0/db/{pjl,ps,pcl}.dat
+_PRET2_PJL_MODELS: list = [
+    "10512", "10515", "2132", "2138", "2145", "2205", "2212", "2404WD",
+    "2522", "2527", "2532", "2535", "2545", "2560", "2575", "2705", "2712",
+    "3000cn", "3010cn", "3100cn", "3145", "3155", "3165", "3205", "3212",
+    "3502", "3515", "3522", "3527", "3532", "3535", "3545", "3560",
+    "4510", "4515", "4525", "4540", "4545", "4550", "4560", "4575",
+    "5500", "5510", "5520", "5530", "5540", "5550", "5560", "5700",
+]
 
 # Keep backwards-compat alias
 PRINTER_PORTS = _PRINTER_PORT_LABELS

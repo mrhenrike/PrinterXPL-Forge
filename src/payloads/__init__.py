@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Payloads Package for PrinterReaper
+Payloads Package for PrinterXPL-Forge
 =========================================
 Pre-built attack payloads for PostScript and PJL
 

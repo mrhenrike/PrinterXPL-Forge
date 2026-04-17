@@ -66,7 +66,7 @@ def _detect_editor() -> str:
 
 class printer(cmd.Cmd, object):
     # cmd module config and customization
-    intro = "Welcome to the PrinterReaper shell. Type help or ? to list commands.\nType 'exit' to quit. Type 'discover' to scan for printers on your local network.\nNote: Not all commands will work on every printer — support depends on the device's manufacturer, model, and firmware language implementation."
+    intro = "Welcome to the PrinterXPL-Forge shell. Type help or ? to list commands.\nType 'exit' to quit. Type 'discover' to scan for printers on your local network.\nNote: Not all commands will work on every printer — support depends on the device's manufacturer, model, and firmware language implementation."
     doc_header = "Available commands (type help <topic>):"
     offline_str = "Not connected."
     undoc_header = None
@@ -130,7 +130,7 @@ class printer(cmd.Cmd, object):
     def setup_signal_handlers(self):
         """Setup signal handlers for graceful interruption"""
         def signal_handler(signum, frame):
-            output().info("\nExiting PrinterReaper...")
+            output().info("\nExiting PrinterXPL-Forge...")
             sys.exit(0)
         
         # Handle SIGINT (Ctrl+C) and SIGTERM
@@ -290,12 +290,12 @@ class printer(cmd.Cmd, object):
         return True
 
     def help_exit(self):
-        """Exit the PrinterReaper shell"""
+        """Exit the PrinterXPL-Forge shell"""
         print()
-        print("exit - Exit the PrinterReaper shell")
+        print("exit - Exit the PrinterXPL-Forge shell")
         print("=" * 50)
         print("DESCRIPTION:")
-        print("  Exits the PrinterReaper shell and closes the connection to the printer.")
+        print("  Exits the PrinterXPL-Forge shell and closes the connection to the printer.")
         print("  This command will also close any open log files.")
         print()
         print("USAGE:")

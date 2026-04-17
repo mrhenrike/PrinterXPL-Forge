@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PrinterReaper — Attack Orchestrator
+PrinterXPL-Forge — Attack Orchestrator
 =====================================
 Executes a full structured attack campaign against a printer target,
 covering every category from the Müller et al. (2017) attack matrix
@@ -734,7 +734,7 @@ def info_cors_spoofing_probe(host: str, port: int = 9100,
     cors_ps = (
         b'%!\n'
         b'(HTTP/1.0 200 OK\\n) print\n'
-        b'(Server: PrinterReaper-Test\\n) print\n'
+        b'(Server: PrinterXPL-Forge-Test\\n) print\n'
         b'(Access-Control-Allow-Origin: *\\n) print\n'
         b'(Content-Type: text/plain\\n\\n) print\n'
         b'product print\n'

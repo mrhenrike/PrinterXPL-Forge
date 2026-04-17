@@ -9,12 +9,12 @@ python -m pip install --user pipx
 python -m pipx ensurepath
 ```
 
-### Instalar PrinterReaper
+### Instalar PrinterXPL-Forge
 
 Publicado no PyPI:
 
 ```bash
-pipx install printer-reaper
+pipx install printerxpl-forge
 ```
 
 A partir do checkout local:
@@ -26,13 +26,13 @@ pipx install --editable .
 ### Extras opcionais
 
 ```bash
-pipx inject printer-reaper shodan censys scikit-learn
+pipx inject printerxpl-forge shodan censys scikit-learn
 ```
 
 ### Validar
 
 ```bash
-printer-reaper --version
-printer-reaper --help
+printerxpl-forge --version
+printerxpl-forge --help
 ```
 

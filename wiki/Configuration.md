@@ -1,13 +1,13 @@
 # Configuration
 
-PrinterReaper reads a `config.json` file for API keys and runtime settings.
+PrinterXPL-Forge reads a `config.json` file for API keys and runtime settings.
 
 ---
 
 ## Check Current Configuration
 
 ```bash
-python printer-reaper.py --check-config
+python printerxpl-forge.py --check-config
 ```
 
 **Output:**
@@ -24,11 +24,11 @@ python printer-reaper.py --check-config
 
 ## Config File Location
 
-By default, PrinterReaper looks for `config.json` in the project root (same directory as `printer-reaper.py`).
+By default, PrinterXPL-Forge looks for `config.json` in the project root (same directory as `printerxpl-forge.py`).
 
 Use a custom path with:
 ```bash
-python printer-reaper.py --config /path/to/my_config.json [...]
+python printerxpl-forge.py --config /path/to/my_config.json [...]
 ```
 
 ---
@@ -156,7 +156,7 @@ cp config.json.example config.json
 
 # Edit config.json and add your keys
 # Then verify:
-python printer-reaper.py --check-config
+python printerxpl-forge.py --check-config
 ```
 
 ---

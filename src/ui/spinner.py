@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PrinterReaper — Terminal Spinner
+PrinterXPL-Forge — Terminal Spinner
 ==================================
 Thread-based spinner for long-running operations.
 Works on Windows, Linux and macOS without external deps.

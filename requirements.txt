@@ -1,4 +1,4 @@
-# PrinterReaper v3.1.0 - Dependencies
+# PrinterXPL-Forge v3.1.0 - Dependencies
 # Python >= 3.8 required
 # Updated: 2026-03-24
 #

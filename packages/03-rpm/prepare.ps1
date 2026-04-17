@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 
 $root = Resolve-Path "$PSScriptRoot\..\.."
-$spec = Join-Path $root "packages\03-rpm\printer-reaper.spec"
+$spec = Join-Path $root "packages\03-rpm\printerxpl-forge.spec"
 $ver = python -c "import sys; sys.path.insert(0, r'$root\src'); import version; print(version.__version__)"
 
 Write-Host "[rpm] version: $ver" -ForegroundColor Cyan

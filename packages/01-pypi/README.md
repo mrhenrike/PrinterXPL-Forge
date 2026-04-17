@@ -1,6 +1,6 @@
 ## Caminho 1 - PyPI / Wheel
 
-Publica o PrinterReaper para instalação via `pip`.
+Publica o PrinterXPL-Forge para instalação via `pip`.
 
 ### Objetivo
 
@@ -32,7 +32,7 @@ python -m twine upload dist/*
 ### Instalação do usuário final
 
 ```bash
-pip install printer-reaper
-pip install "printer-reaper[full]"
+pip install printerxpl-forge
+pip install "printerxpl-forge[full]"
 ```
 

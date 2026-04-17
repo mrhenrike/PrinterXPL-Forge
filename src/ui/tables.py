@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PrinterReaper — Terminal Table Renderer
+PrinterXPL-Forge — Terminal Table Renderer
 ========================================
 Simple, dependency-free table rendering for CLI output.
 """

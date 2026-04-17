@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-SMB Protocol Support for PrinterReaper
+SMB Protocol Support for PrinterXPL-Forge
 ========================================
 Server Message Block printing on ports 445 / 139.
 
@@ -100,7 +100,7 @@ class SMBProtocol:
 
     def _connect_pysmb(self) -> bool:
         """Connect using pysmb library (SMB1/SMB2)."""
-        client_name = 'PrinterReaper-' + uuid.uuid4().hex[:6]
+        client_name = 'PrinterXPL-Forge-' + uuid.uuid4().hex[:6]
         try:
             # Resolve server NetBIOS name (use hostname or IP as fallback)
             server_name = self._resolve_netbios_name() or self.host

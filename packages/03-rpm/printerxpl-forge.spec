@@ -1,10 +1,10 @@
-Name:           printer-reaper
+Name:           printerxpl-forge
 Version:        %{?version_override}%{!?version_override:3.14.0}
 Release:        1%{?dist}
 Summary:        Advanced Printer Penetration Testing Toolkit
 License:        MIT
-URL:            https://github.com/mrhenrike/PrinterReaper
-Source0:        printer-reaper-%{version}.tar.gz
+URL:            https://github.com/mrhenrike/PrinterXPL-Forge
+Source0:        printerxpl-forge-%{version}.tar.gz
 
 BuildArch:      noarch
 BuildRequires:  python3-devel
@@ -24,12 +24,12 @@ Recommends:     nmap
 Recommends:     net-snmp-utils
 
 %description
-PrinterReaper is a modular framework for security assessment of network printers.
+PrinterXPL-Forge is a modular framework for security assessment of network printers.
 It covers PJL, PostScript, PCL and ESC/P across common protocols:
 RAW/9100, IPP/631, LPD/515, HTTP/HTTPS, SNMP, FTP, SMB and Telnet.
 
 %prep
-%autosetup -n PrinterReaper-%{version}
+%autosetup -n PrinterXPL-Forge-%{version}
 
 %build
 %py3_build
@@ -47,16 +47,16 @@ install -d %{buildroot}%{_datadir}/%{name}
 install -m 644 config.json.example %{buildroot}%{_datadir}/%{name}/config.json.example
 
 install -d %{buildroot}%{_mandir}/man1
-install -m 644 packages/man/printer-reaper.1 %{buildroot}%{_mandir}/man1/printer-reaper.1
+install -m 644 packages/man/printerxpl-forge.1 %{buildroot}%{_mandir}/man1/printerxpl-forge.1
 
 %files
 %license LICENSE
 %doc README.md
-%{_bindir}/printer-reaper
-%{_bindir}/printerreaper
+%{_bindir}/printerxpl-forge
+%{_bindir}/PrinterXPL-Forge
 %{python3_sitelib}/*
 %{_datadir}/%{name}/
-%{_mandir}/man1/printer-reaper.1*
+%{_mandir}/man1/printerxpl-forge.1*
 
 %changelog
 * Tue Mar 24 2026 Andre Henrique <mrhenrike@users.noreply.github.com> - 3.14.0-1

@@ -1,4 +1,4 @@
-# PrinterReaper Payloads
+# PrinterXPL-Forge Payloads
 
 Pre-built attack payloads for PostScript-enabled printers.
 
@@ -55,7 +55,7 @@ payload = load_payload('exfil.ps', {'file': '/etc/passwd'})
 
 ---
 
-## 🎯 Usage in PrinterReaper
+## 🎯 Usage in PrinterXPL-Forge
 
 ### Method 1: Via Shell
 
@@ -123,7 +123,7 @@ Save as `custom.ps` in `src/payloads/` directory.
 
 - [PostScript Language Reference](https://www.adobe.com/products/postscript/pdfs/PLRM.pdf)
 - [Hacking Printers Wiki](http://hacking-printers.net)
-- PrinterReaper Wiki
+- PrinterXPL-Forge Wiki
 
 ---
 

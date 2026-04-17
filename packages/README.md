@@ -1,12 +1,12 @@
-## PrinterReaper Packaging Hub
+## PrinterXPL-Forge Packaging Hub
 
-Este diretório centraliza os **4 caminhos de distribuição** do PrinterReaper.
+Este diretório centraliza os **4 caminhos de distribuição** do PrinterXPL-Forge.
 
-- `01-pypi/` -> build e publicação PyPI (`pip install printer-reaper`)
+- `01-pypi/` -> build e publicação PyPI (`pip install printerxpl-forge`)
 - `02-deb/` -> pacote `.deb` (Debian/Ubuntu/Kali)
 - `03-rpm/` -> pacote `.rpm` (RHEL/Fedora/Rocky/Alma)
 - `04-pipx/` -> instalação isolada com `pipx` (implementado por último)
-- `man/` -> fonte do man page (`printer-reaper.1`)
+- `man/` -> fonte do man page (`printerxpl-forge.1`)
 
 ### Ordem de execução recomendada
 

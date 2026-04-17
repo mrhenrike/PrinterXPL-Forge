@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PrinterReaper — Online Discovery Module
+PrinterXPL-Forge — Online Discovery Module
 ========================================
 Structured dork-based discovery of exposed printers via 5 search engines:
   Shodan, Censys, FOFA, ZoomEye, Netlas.
@@ -1178,7 +1178,7 @@ class OnlineDiscoveryManager:
 
         if not active:
             print(f"  {self._RED}[!]{self._RST} No API credentials configured.")
-            print(f"      Add keys to config.json — see: python printer-reaper.py --check-config")
+            print(f"      Add keys to config.json — see: python printerxpl-forge.py --check-config")
             return []
 
         # Deduplicate by IP:port

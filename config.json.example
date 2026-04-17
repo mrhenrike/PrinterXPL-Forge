@@ -1,6 +1,6 @@
 {
   "_comment": [
-    "PrinterReaper — Configuration Template",
+    "PrinterXPL-Forge — Configuration Template",
     "Copy this file to config.json and fill in your credentials.",
     "config.json is gitignored — NEVER commit real credentials.",
     "",

@@ -1,4 +1,4 @@
-%% PrinterReaper v2.4.2 - For-Dummies Overview (style PRET)
+%% PrinterXPL-Forge v2.4.2 - For-Dummies Overview (style PRET)
 %% Generates: diagrams/png/overview_for_dummies.png
 flowchart LR
   classDef user fill:#e3f2fd,stroke:#2196f3,color:#0d47a1,stroke-width:2,font-weight:bold
@@ -16,7 +16,7 @@ flowchart LR
 
   U["👤 User<br/><b>command</b><br/><code>ls</code>"]:::user -->|👆 CLI| ATT["🛠️ Attacker<br/><b>Shell</b><br/>pjl / ps / pcl"]:::app
 
-  subgraph PR["<b>PRINTERREAPER</b>"]
+  subgraph PR["<b>PrinterXPL-Forge</b>"]
     direction TB
     ATT -->|➡️| CONN["🔌 Connector<br/><small>RAW • LPD • IPP • SMB</small>"]:::block
     ATT -->|🔄| TR["🔡 Translator<br/><small>PJL • PostScript • PCL</small>"]:::block

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PCL Module for PrinterReaper
+PCL Module for PrinterXPL-Forge
 ===================================
 Complete PCL (Printer Command Language) penetration testing module
 
-Based on PRET pcl.py but enhanced for PrinterReaper
+Based on PRET pcl.py but enhanced for PrinterXPL-Forge
 """
 
 # Author    : Andre Henrique (@mrhenrike)
@@ -24,7 +24,7 @@ from utils.helper import log, output, conv, file, item, const as c
 
 class pcl(printer):
     """
-    PCL shell for PrinterReaper - Complete Implementation
+    PCL shell for PrinterXPL-Forge - Complete Implementation
     """
 
     def __init__(self, args):
@@ -62,7 +62,7 @@ class pcl(printer):
             return f"do_{cmd}" in implemented
 
         print()
-        print("PrinterReaper - PCL Commands")
+        print("PrinterXPL-Forge - PCL Commands")
         print("=" * 70)
         print("Available command categories:")
         total = 0

@@ -12,8 +12,8 @@
 ## Standard Installation
 
 ```bash
-git clone https://github.com/mrhenrike/PrinterReaper.git
-cd PrinterReaper
+git clone https://github.com/mrhenrike/PrinterXPL-Forge.git
+cd PrinterXPL-Forge
 
 # Create virtual environment (strongly recommended)
 python -m venv .venv
@@ -26,8 +26,8 @@ source .venv/bin/activate     # Linux / macOS / Termux
 pip install -r requirements.txt
 
 # Verify
-python printer-reaper.py --version
-# → printerreaper Version 3.7.0 (2026-03-25)
+python printerxpl-forge.py --version
+# → PrinterXPL-Forge Version 3.7.0 (2026-03-25)
 ```
 
 ---
@@ -38,8 +38,8 @@ If your machine has EDR that blocks `%TEMP%` writes:
 
 ```powershell
 # Create venv inside the project (not in temp dirs)
-python -m venv C:\Projetos-SafeLabs\dev\IoT\PrinterReaper\.venv
-C:\Projetos-SafeLabs\dev\IoT\PrinterReaper\.venv\Scripts\activate
+python -m venv C:\Projetos-SafeLabs\dev\IoT\PrinterXPL-Forge\.venv
+C:\Projetos-SafeLabs\dev\IoT\PrinterXPL-Forge\.venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
@@ -59,8 +59,8 @@ Use the provided launchers:
 sudo apt update
 sudo apt install python3 python3-pip python3-venv snmp
 
-git clone https://github.com/mrhenrike/PrinterReaper.git
-cd PrinterReaper
+git clone https://github.com/mrhenrike/PrinterXPL-Forge.git
+cd PrinterXPL-Forge
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -72,8 +72,8 @@ pip install -r requirements.txt
 
 ```bash
 brew install python3 net-snmp
-git clone https://github.com/mrhenrike/PrinterReaper.git
-cd PrinterReaper
+git clone https://github.com/mrhenrike/PrinterXPL-Forge.git
+cd PrinterXPL-Forge
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -85,8 +85,8 @@ pip install -r requirements.txt
 
 ```bash
 pkg update && pkg install python git
-git clone https://github.com/mrhenrike/PrinterReaper.git
-cd PrinterReaper
+git clone https://github.com/mrhenrike/PrinterXPL-Forge.git
+cd PrinterXPL-Forge
 pip install -r requirements.txt
 # Note: SNMP discovery may not work; ML disabled on ARM without numpy wheels
 ```

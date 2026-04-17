@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "total": 96,
+    "total": 101,
     "version": "4.1.0",
     "generated_by": "Andre Henrique (@mrhenrike) | Uniao Geek"
   },
@@ -1623,6 +1623,140 @@
       "destructive": true,
       "irreversible": true,
       "physical_damage": true
+    },
+    {
+      "module": "research-fax-dll-inject",
+      "path": "research/research-fax-dll-inject/exploit.py",
+      "id": "research-fax-dll-inject",
+      "title": "HP MFP Fax Stack Memory Corruption (Faxploit - CVE-2018-5924/5925)",
+      "source": "research",
+      "cve": "CVE-2018-5924",
+      "cvss": 9.8,
+      "severity": "critical",
+      "category": "rce",
+      "protocol": "HTTP",
+      "port": 80,
+      "vendor": [
+        "HP"
+      ],
+      "tags": [
+        "fax",
+        "mfp",
+        "rce",
+        "heap_overflow",
+        "cve-2018-5924"
+      ],
+      "destructive": false,
+      "irreversible": false,
+      "physical_damage": false
+    },
+    {
+      "module": "research-hp-fw-extract",
+      "path": "research/research-hp-fw-extract/exploit.py",
+      "id": "research-hp-fw-extract",
+      "title": "HP Printer Firmware Version Extraction and CVE Mapping",
+      "source": "research",
+      "cve": "CVE-2017-2741",
+      "cvss": 7.5,
+      "severity": "high",
+      "category": "information_disclosure",
+      "protocol": "HTTP",
+      "port": 80,
+      "vendor": [
+        "HP"
+      ],
+      "tags": [
+        "hp",
+        "firmware",
+        "extraction",
+        "version",
+        "cve_mapping",
+        "information_disclosure"
+      ],
+      "destructive": false,
+      "irreversible": false,
+      "physical_damage": false
+    },
+    {
+      "module": "research-nse-compat",
+      "path": "research/research-nse-compat/exploit.py",
+      "id": "research-nse-compat",
+      "title": "Nmap NSE Printer Script Compatibility Wrapper",
+      "source": "research",
+      "cve": "",
+      "cvss": 0.0,
+      "severity": "info",
+      "category": "information_disclosure",
+      "protocol": "PJL",
+      "port": 9100,
+      "vendor": [
+        "Multi-vendor"
+      ],
+      "tags": [
+        "nmap",
+        "nse",
+        "fingerprint",
+        "recon",
+        "compatibility"
+      ],
+      "destructive": false,
+      "irreversible": false,
+      "physical_damage": false
+    },
+    {
+      "module": "research-pret-compat",
+      "path": "research/research-pret-compat/exploit.py",
+      "id": "research-pret-compat",
+      "title": "PRET (Printer Exploitation Toolkit) Compatibility Wrapper",
+      "source": "research",
+      "cve": "",
+      "cvss": 0.0,
+      "severity": "info",
+      "category": "information_disclosure",
+      "protocol": "PJL",
+      "port": 9100,
+      "vendor": [
+        "Multi-vendor"
+      ],
+      "tags": [
+        "pret",
+        "compatibility",
+        "pjl",
+        "postscript",
+        "wrapper",
+        "rub-nds"
+      ],
+      "destructive": false,
+      "irreversible": false,
+      "physical_damage": false
+    },
+    {
+      "module": "research-xerox-passback",
+      "path": "research/research-xerox-passback/exploit.py",
+      "id": "research-xerox-passback",
+      "title": "Xerox VersaLink/AltaLink LDAP/SMB Credential Passback (CVE-2022-23968/23969)",
+      "source": "research",
+      "cve": "CVE-2022-23968",
+      "cvss": 8.1,
+      "severity": "high",
+      "category": "credential_harvesting",
+      "protocol": "HTTP",
+      "port": 80,
+      "vendor": [
+        "Xerox"
+      ],
+      "tags": [
+        "xerox",
+        "ldap",
+        "smb",
+        "passback",
+        "credentials",
+        "ntlm",
+        "cve-2022-23968"
+      ],
+      "destructive": false,
+      "irreversible": false,
+      "physical_damage": false
     }
   ]
 }

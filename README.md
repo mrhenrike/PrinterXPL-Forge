@@ -21,7 +21,7 @@
 
 ---
 
-PrinterXPL-Forge is a complete, modular framework for security assessment of network printers. It covers all major printer languages (PJL, PostScript, PCL, ESC/P), all common protocols (RAW, IPP, LPD, SMB, HTTP, SNMP, FTP, Telnet), 39+ exploit modules, an external wordlist-driven credential engine with zero hardcoded passwords, ML-assisted fingerprinting, NVD/CVE integration, automated lateral movement, firmware analysis, and Cross-Site Printing payloads.
+PrinterXPL-Forge is a complete, modular framework for security assessment of network printers. It covers all major printer languages (PJL, PostScript, PCL, ESC/P), all common protocols (RAW, IPP, LPD, SMB, HTTP, SNMP, FTP, Telnet), 93 exploit modules, an external wordlist-driven credential engine with zero hardcoded passwords, ML-assisted fingerprinting, NVD/CVE integration, automated lateral movement, firmware analysis, and Cross-Site Printing payloads.
 
 ---
 
@@ -60,7 +60,7 @@ PrinterXPL-Forge is a complete, modular framework for security assessment of net
 | **Languages** | PJL, PS, PCL | PJL, PS, PCL, ESC/P, auto |
 | **Protocols** | RAW, LPD, IPP, USB | RAW, LPD, IPP, SMB, HTTP, SNMP, FTP, Telnet |
 | **CVE Database** | None | 50+ CVEs built-in + NVD API live lookup |
-| **Exploit Library** | None | 39+ modules (ExploitDB, Metasploit, Research) |
+| **Exploit Library** | None | 93 modules (ExploitDB, Metasploit, Research) |
 | **Brute-Force** | None | HTTP, FTP, SNMP, Telnet — wordlist-driven, 0 hardcoded creds |
 | **Credential Engine** | None | External wordlists, vendor sections, token expansion, variations |
 | **Network Discovery** | None | SNMP sweep, Shodan, Censys, WSD, installed printers |
@@ -396,7 +396,7 @@ admin:hpinvent!
 ## 5. Exploit Library
 
 ```bash
-# List all 39+ modules sorted by CVSS
+# List all 93 modules sorted by CVSS
 python printerxpl-forge.py 192.168.1.100 --xpl-list
 python printerxpl-forge.py 192.168.1.100 --xpl-list --xpl-source exploit-db
 

@@ -96,6 +96,11 @@ reports/
 *.cache
 *.bak
 
+# Generated presentation files (not versioned)
+docs/*.pptx
+docs/*.pdf
+.tmp/gemini_slides_cache.json
+
 # GitHub metadata (internal use only)
 GITHUB_DESCRIPTION.md
 config.yaml

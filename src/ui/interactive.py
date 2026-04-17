@@ -554,15 +554,90 @@ def _workflow_full_audit() -> None:
 # ── Main interactive loop ─────────────────────────────────────────────────────
 
 _MAIN_MENU = [
-    ('discover',  '[~]  Discover printers       Find printers on LAN or via Shodan/Censys'),
-    ('scan',      '[?]  Scan target             Fingerprint + CVE lookup + exploit matching'),
-    ('bruteforce','[*]  Brute-force login       Test default credentials (all protocols)'),
-    ('attack',    '[!]  Attack / Exploit        IPP, pivot, firmware, payload, XSP, matrix'),
-    ('exploits',  '[X]  Exploit library         List, check, run or download exploits'),
-    ('send',      '[>]  Send print job          Send text/doc/pdf/image to target printer'),
-    ('workflow',  '[>>] Full audit workflow     Scan → BF → Attack matrix → Netmap in one go'),
-    ('config',    '[=]  Config & help           API keys, settings, documentation'),
+    ('discover',     '[~]  Discover printers       Find printers on LAN or via Shodan/Censys'),
+    ('scan',         '[?]  Scan target             Fingerprint + CVE lookup + exploit matching'),
+    ('bruteforce',   '[*]  Brute-force login       Test default credentials (all protocols)'),
+    ('attack',       '[!]  Attack / Exploit        IPP, pivot, firmware, payload, XSP, matrix'),
+    ('exploits',     '[X]  Exploit library         List, check, run or download exploits'),
+    ('destructive',  '[D]  DESTRUCTIVE AUDIT       Irreversible / physical-damage attack check'),
+    ('send',         '[>]  Send print job          Send text/doc/pdf/image to target printer'),
+    ('workflow',     '[>>] Full audit workflow     Scan -> BF -> Attack matrix -> Netmap in one go'),
+    ('config',       '[=]  Config & help           API keys, settings, documentation'),
 ]
+
+
+def _menu_destructive() -> None:
+    """Destructive / irreversible physical-damage attack audit."""
+    print()
+    print(f"  {_RED}{_BLD}!!! DESTRUCTIVE ATTACK AUDIT !!!{_RST}")
+    print(f"  {_RED}The following checks probe for IRREVERSIBLE physical damage vectors.{_RST}")
+    print(f"  {_DIM}Default: DRY-RUN (assess only). You must explicitly enable LIVE mode.{_RST}")
+    _hr()
+    print()
+
+    target = _target_prompt()
+
+    print()
+    print(f"  {_YEL}Attack modules available:{_RST}")
+    print(f"  {_DIM}  [1] Fuser Thermal Runaway   — overheat fuser unit (fire/melt risk){_RST}")
+    print(f"  {_DIM}  [2] Motor Jamming           — strip gears/rollers (mechanical failure){_RST}")
+    print(f"  {_DIM}  [3] Laser Scanner Damage    — degrade diode/drum (optical failure){_RST}")
+    print(f"  {_DIM}  [4] NVRAM Exhaustion        — burn NVRAM write cycles (brick){_RST}")
+    print(f"  {_DIM}  [5] SNMP Factory Reset      — unauthenticated wipe (config loss){_RST}")
+    print(f"  {_DIM}  [6] Firmware Brick          — Xerox DLM/HTTP firmware injection{_RST}")
+    print(f"  {_DIM}  [0] ALL (recommended — run all 10 modules){_RST}")
+    print()
+
+    raw_sel = _ask("Modules to test (0=all, or IDs comma-separated e.g. 1,4)", '0')
+
+    _module_map = {
+        '1': 'research-fuser-thermal-attack',
+        '2': 'research-motor-jam-attack',
+        '3': 'research-laser-scanner-attack',
+        '4': 'research-pjl-nvram-damage,research-brother-nvram,research-generic-pjl-nvram',
+        '5': 'research-snmp-factory-reset',
+        '6': 'research-xerox-pjl-dlm,research-xerox-firmware-root,edb-45273',
+    }
+
+    selected_modules = ''
+    if raw_sel and raw_sel != '0':
+        parts = []
+        for token in raw_sel.split(','):
+            token = token.strip()
+            if token in _module_map:
+                parts.append(_module_map[token])
+            elif token:
+                parts.append(token)
+        selected_modules = ','.join(parts)
+
+    print()
+    print(f"  {_YEL}Execution mode:{_RST}")
+    print(f"  {_GRN}  [1] DRY-RUN (assess only — SAFE, default){_RST}")
+    print(f"  {_RED}  [2] LIVE EXECUTION (destructive payloads sent — IRREVERSIBLE){_RST}")
+    print()
+
+    mode_choice = _ask("Select mode", '1')
+    live_mode   = mode_choice == '2'
+
+    if live_mode:
+        print()
+        print(f"  {_RED}{_BLD}!!! WARNING: LIVE MODE SELECTED !!!{_RST}")
+        print(f"  {_RED}This will send DESTRUCTIVE payloads to {target}.{_RST}")
+        print(f"  {_RED}Hardware damage is PERMANENT and IRREVERSIBLE.{_RST}")
+        print(f"  {_RED}Use ONLY in authorized lab environments with fire safety controls.{_RST}")
+        print()
+        confirm = _ask_yn("Type YES to confirm you have written authorization", False)
+        if not confirm:
+            print(f"\n  {_YEL}Aborted — reverting to DRY-RUN mode.{_RST}")
+            live_mode = False
+
+    cmd = [target, '--destructive-audit']
+    if live_mode:
+        cmd.append('--no-dry')
+    if selected_modules:
+        cmd += ['--destructive-modules', selected_modules]
+
+    _run_cmd(cmd)
 
 
 def _menu_header() -> None:
@@ -657,6 +732,8 @@ def run_interactive() -> None:
             _menu_attack()
         elif key == 'exploits':
             _menu_exploits()
+        elif key == 'destructive':
+            _menu_destructive()
         elif key == 'send':
             _menu_send_job()
         elif key == 'workflow':

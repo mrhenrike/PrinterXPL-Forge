@@ -23,7 +23,7 @@
 
 ## O que é
 
-PrinterXPL-Forge é um framework modular completo para **avaliação de segurança** de impressoras em rede. Cobre todas as principais linguagens de impressora (PJL, PostScript, PCL, ESC/P), todos os protocolos comuns (RAW, IPP, LPD, SMB, HTTP, SNMP, FTP, Telnet), 93 módulos de exploit, motor de credenciais via **wordlists externas** (zero senhas hardcoded), fingerprinting com ML, integração **NVD/CVE**, movimento lateral automatizado, análise de firmware e payloads de Cross-Site Printing.
+PrinterXPL-Forge é um framework modular completo para **avaliação de segurança** de impressoras em rede. Cobre todas as principais linguagens de impressora (PJL, PostScript, PCL, ESC/P), todos os protocolos comuns (RAW, IPP, LPD, SMB, HTTP, SNMP, FTP, Telnet), 96 módulos de exploit, motor de credenciais via **wordlists externas** (zero senhas hardcoded), fingerprinting com ML, integração **NVD/CVE**, movimento lateral automatizado, análise de firmware e payloads de Cross-Site Printing.
 
 ---
 
@@ -44,6 +44,51 @@ PrinterXPL-Forge é um framework modular completo para **avaliação de seguran�
 ## Matriz de Cobertura de Ataques
 
 ![Matriz de Cobertura de Ataques](img/attack_coverage_matrix.png)
+
+---
+
+## Ataques Destrutivos / Irreversíveis
+
+> **AVISO — SOMENTE PARA USO EM LABORATÓRIO AUTORIZADO.**  
+> Os ataques abaixo causam **danos físicos permanentes e irreversíveis** ao hardware. São implementados exclusivamente para pesquisa de segurança e pentest autorizado. O operador assume plena responsabilidade legal e de segurança física.
+
+O PrinterXPL-Forge inclui um modo **Auditoria de Ataques Destrutivos** que varre qualquer alvo em busca de todos os vetores de ataque irreversíveis conhecidos:
+
+```bash
+# Somente avaliação (dry-run — SEGURO, nenhum payload enviado)
+python src/main.py 192.168.1.100 --destructive-audit
+
+# Execução live — envia payloads destrutivos (SOMENTE LAB AUTORIZADO)
+python src/main.py 192.168.1.100 --destructive-audit --no-dry
+
+# Módulos específicos
+python src/main.py 192.168.1.100 --destructive-audit \
+  --destructive-modules research-fuser-thermal-attack,research-brother-nvram
+
+# Menu interativo: escolha a opção [D] DESTRUCTIVE AUDIT
+python src/main.py
+```
+
+### Módulos de Destruição Física Implementados
+
+| Módulo | Ataque | Classe de Dano | Fabricantes |
+|--------|--------|---------------|-------------|
+| `research-fuser-thermal-attack` | PJL SET FUSETEMP / PS setpagedevice /FuserTemperature → runaway térmico | **FÍSICO — Risco de incêndio** | HP, Kyocera, Ricoh, Xerox |
+| `research-motor-jam-attack` | HP PML DMCMD motor commands / duplex-stress → travamento de engrenagens | **FÍSICO — Mecânico** | HP, Ricoh, Generic |
+| `research-laser-scanner-attack` | PS setscreen 9999 lpi + páginas 100% preto → queima de diodo/tambor | **FÍSICO — Óptico** | HP, Xerox, Ricoh, Canon |
+| `research-pjl-nvram-damage` | PJL DEFAULT COPIES loop → esgotamento de ciclos de escrita NVRAM | **Brick NVRAM** | HP, Brother, Konica, Lexmark |
+| `research-brother-nvram` | PJL COLLATE ON/OFF × 200.000 iterações → burnout permanente do chip | **Brick NVRAM** | Brother |
+| `research-snmp-factory-reset` | SNMP prtGeneralReset OID = 6 (sem autenticação) → restauração de fábrica | **Wipe de Config** | Multi-vendor |
+| `research-xerox-pjl-dlm` | @PJL DLM START → ativação do firmware download manager | **Brick Firmware** | Xerox |
+| `edb-45273` (CVE-2017-2741) | PJL FSDOWNLOAD para /etc/profile.d/ + restart SNMP → root persistente | **Root Firmware** | HP PageWide/OfficeJet |
+
+### Detalhes dos Danos Físicos
+
+**Ataque de Runaway Térmico do Fusor** — O fusor opera em 170–210°C. Comandos PJL como `@PJL SET FUSETEMP=270` ou PostScript `<< /FuserTemperature 270 >> setpagedevice` empurram a temperatura além da tolerância do material do rolo. Acima de 270°C, a manga PTFE do fusor derrete; acima de 285°C, resíduos de papel dentro do fusor podem se incendiar.
+
+**Motor Jamming** — A interface PML DMCMD da HP (manual de serviço) permite ativação direta de motores. Enviar comandos simultâneos para motores mecanicamente exclusivos (alimentação principal + captação + saída) sem papel causa travamento de engrenagens, destruindo o trem de acionamento plástico.
+
+**Ataque ao Scanner a Laser** — PostScript `setscreen` com frequência 9999 lpi força o diodo laser a disparar em 100% de ciclo de trabalho continuamente. Isso acelera a degradação do diodo, superaquece o rolamento do motor do espelho polígono e abla o revestimento do tambor fotossensível — danificando permanentemente a qualidade de impressão ou tornando o LSU inoperante.
 
 ---
 

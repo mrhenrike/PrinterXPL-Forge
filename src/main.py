@@ -566,6 +566,30 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="List all available exploits in xpl/ directory",
     )
+    # ── Destructive audit mode ────────────────────────────────────────────────
+    parser.add_argument(
+        "--destructive-audit",
+        action="store_true",
+        dest="destructive_audit",
+        help=(
+            "Scan target for ALL irreversible/physical-damage vulnerabilities. "
+            "Checks: fuser thermal, motor jam, laser damage, NVRAM exhaustion, "
+            "firmware brick, SNMP factory reset, HP persistent root. "
+            "Default: assess-only (dry-run). Add --no-dry to send live payloads. "
+            "WARNING: --no-dry causes PERMANENT HARDWARE DAMAGE."
+        ),
+    )
+    parser.add_argument(
+        "--destructive-modules",
+        metavar="IDS",
+        default=None,
+        dest="destructive_modules",
+        help=(
+            "Comma-separated list of destructive module IDs to include in "
+            "--destructive-audit (default: all 10 modules). "
+            "Example: --destructive-modules research-fuser-thermal-attack,research-brother-nvram"
+        ),
+    )
     parser.add_argument(
         "--xpl-check",
         metavar="EXPLOIT_ID",
@@ -1320,6 +1344,17 @@ def _run_attack_modules(args) -> None:
 
     # ── Exploit module handlers ────────────────────────────────────────────────
 
+    # ── Destructive attack audit ───────────────────────────────────────────────
+    if getattr(args, 'destructive_audit', False):
+        try:
+            from core.destructive_audit import main_destructive_audit
+            main_destructive_audit(args)
+        except SystemExit:
+            raise
+        except Exception as exc:
+            output().errmsg(f"destructive-audit error: {exc}")
+        return  # destructive audit exits on its own
+
     # --xpl-list: list all exploits
     if getattr(args, 'xpl_list', False):
         try:
@@ -2026,6 +2061,7 @@ def main() -> None:
         or getattr(args, 'scan', False)
         or getattr(args, 'scan_ml', False)
         or getattr(args, 'send_job', None)
+        or getattr(args, 'destructive_audit', False)
         or getattr(args, 'install_printer', False)
         or getattr(args, 'bruteforce', False)
         or getattr(args, 'ipp', False)

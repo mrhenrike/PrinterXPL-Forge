@@ -21,7 +21,7 @@
 
 ---
 
-PrinterXPL-Forge is a complete, modular framework for security assessment of network printers. It covers all major printer languages (PJL, PostScript, PCL, ESC/P), all common protocols (RAW, IPP, LPD, SMB, HTTP, SNMP, FTP, Telnet), 93 exploit modules, an external wordlist-driven credential engine with zero hardcoded passwords, ML-assisted fingerprinting, NVD/CVE integration, automated lateral movement, firmware analysis, and Cross-Site Printing payloads.
+PrinterXPL-Forge is a complete, modular framework for security assessment of network printers. It covers all major printer languages (PJL, PostScript, PCL, ESC/P), all common protocols (RAW, IPP, LPD, SMB, HTTP, SNMP, FTP, Telnet), 96 exploit modules, an external wordlist-driven credential engine with zero hardcoded passwords, ML-assisted fingerprinting, NVD/CVE integration, automated lateral movement, firmware analysis, and Cross-Site Printing payloads.
 
 ---
 
@@ -42,6 +42,53 @@ PrinterXPL-Forge is a complete, modular framework for security assessment of net
 ## Attack Coverage Matrix
 
 ![Attack Coverage Matrix](img/attack_coverage_matrix.png)
+
+---
+
+## Destructive / Irreversible Attacks
+
+> **WARNING — FOR AUTHORIZED LAB USE ONLY.**  
+> The attacks below cause **permanent, irreversible hardware damage**. They are implemented for security research and authorized penetration testing exclusively. Operators bear full legal and physical safety responsibility.
+
+PrinterXPL-Forge includes a dedicated **Destructive Attack Audit** mode that scans any target printer for all known irreversible attack vectors:
+
+```bash
+# Assess-only (dry-run — SAFE, no payloads sent)
+python src/main.py 192.168.1.100 --destructive-audit
+
+# Live execution — sends destructive payloads (AUTHORIZED LAB ONLY)
+python src/main.py 192.168.1.100 --destructive-audit --no-dry
+
+# Specific modules only
+python src/main.py 192.168.1.100 --destructive-audit \
+  --destructive-modules research-fuser-thermal-attack,research-brother-nvram
+
+# Interactive menu: choose option [D] DESTRUCTIVE AUDIT
+python src/main.py
+```
+
+### Implemented Physical Destruction Modules
+
+| Module | Attack | Damage Class | Vendors |
+|--------|--------|-------------|---------|
+| `research-fuser-thermal-attack` | PJL SET FUSETEMP / PS setpagedevice /FuserTemperature override → thermal runaway | **PHYSICAL — Fire risk** | HP, Kyocera, Ricoh, Xerox |
+| `research-motor-jam-attack` | HP PML DMCMD motor commands / duplex-stress cycling → gear strip / roller burnout | **PHYSICAL — Mechanical** | HP, Ricoh, Generic |
+| `research-laser-scanner-attack` | PS setscreen 9999 lpi + all-black flood / HP PML laser power 0xFF → diode/drum burn | **PHYSICAL — Optical** | HP, Xerox, Ricoh, Canon |
+| `research-pjl-nvram-damage` | PJL DEFAULT COPIES loop → NVRAM write-cycle exhaustion (~100k cycles) | **NVRAM Brick** | HP, Brother, Konica, Lexmark |
+| `research-brother-nvram` | PJL COLLATE ON/OFF × 200,000 iterations → permanent chip burnout | **NVRAM Brick** | Brother |
+| `research-generic-pjl-nvram` | PJL DINQUIRE/SET VARIABLE access → NVRAM read + optional write | **NVRAM Risk** | HP, Lexmark, Dell |
+| `research-snmp-factory-reset` | SNMP prtGeneralReset OID = 6 (no auth) → complete factory wipe | **Config Wipe** | Multi-vendor |
+| `research-xerox-pjl-dlm` | @PJL DLM START → firmware download manager activation | **Firmware Brick** | Xerox |
+| `research-xerox-firmware-root` | HTTP POST /FirmwareUpdate with crafted DLM → rootkit / brick | **Firmware Brick** | Xerox |
+| `edb-45273` (CVE-2017-2741) | PJL FSDOWNLOAD to /etc/profile.d/ + SNMP restart → persistent root | **Firmware Root** | HP PageWide/OfficeJet |
+
+### Physical Damage Details
+
+**Fuser Thermal Attack** — The fuser unit operates at 170–210°C. PJL commands like `@PJL SET FUSETEMP=270` (or PostScript `<< /FuserTemperature 270 >> setpagedevice`) push the temperature above the roller material's thermal tolerance. At >270°C, the PTFE fuser sleeve melts; at >285°C, paper residue inside the fuser can ignite.
+
+**Motor Jamming** — HP's PML DMCMD interface (service manual) allows direct motor activation. Sending simultaneous commands to mechanically exclusive motors (main feed + pickup + exit) without paper in the path causes gear binding, stripping the plastic drive train.
+
+**Laser Scanner Attack** — PostScript `setscreen` with frequency 9999 lpi forces the laser diode to fire at 100% duty cycle continuously. This accelerates diode degradation, overheats the polygon mirror motor bearings, and ablates the photosensitive drum coating — permanently degrading print quality or bricking the LSU.
 
 ---
 

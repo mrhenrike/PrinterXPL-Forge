@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "total": 93,
-    "version": "4.0.0",
+    "total": 96,
+    "version": "4.1.0",
     "generated_by": "Andre Henrique (@mrhenrike) | Uniao Geek"
   },
   "modules": [
@@ -695,7 +695,7 @@
       "module": "msf/msf-snmp-printer-enum",
       "path": "msf/msf-snmp-printer-enum/exploit.py",
       "id": "MSF-SNMP-PRINTER-ENUM",
-      "title": "SNMP Printer Enumeration \u2014 MIB Dump (MSF)",
+      "title": "SNMP Printer Enumeration — MIB Dump (MSF)",
       "source": "metasploit",
       "cve": "CWE-284",
       "cvss": 6.5,
@@ -796,7 +796,7 @@
       "module": "edb-cve-2024-51978",
       "path": "edb-cve-2024-51978/exploit.py",
       "id": "edb-cve-2024-51978",
-      "title": "Brother Printers \u2014 Default Admin Password Exposure (CVE-2024-51978)",
+      "title": "Brother Printers — Default Admin Password Exposure (CVE-2024-51978)",
       "source": "research",
       "cve": "CVE-2024-51978",
       "cvss": 7.5,
@@ -855,7 +855,7 @@
       "module": "research/research-brother-serial-pwd",
       "path": "research/research-brother-serial-pwd/exploit.py",
       "id": "research-brother-serial-pwd",
-      "title": "Brother Serial Number \u2192 Admin Password Derivation (CVE-2024-51977/51978)",
+      "title": "Brother Serial Number → Admin Password Derivation (CVE-2024-51977/51978)",
       "source": "research",
       "cve": [
         "CVE-2024-51977",
@@ -981,7 +981,7 @@
       "module": "research/research-cve-2024-51982",
       "path": "research/research-cve-2024-51982/exploit.py",
       "id": "CVE-2024-51982",
-      "title": "PJL FORMLINES Non-Numeric DoS \u2014 Brother/Ricoh/Fujifilm (2024)",
+      "title": "PJL FORMLINES Non-Numeric DoS — Brother/Ricoh/Fujifilm (2024)",
       "source": "research",
       "cve": "CVE-2024-51982",
       "cvss": 7.5,
@@ -1321,7 +1321,7 @@
       "module": "research/research-printnightmare",
       "path": "research/research-printnightmare/exploit.py",
       "id": "research-printnightmare",
-      "title": "PrintNightmare RCE/LPE \u2014 Print Spooler Exploit",
+      "title": "PrintNightmare RCE/LPE — Print Spooler Exploit",
       "source": "research",
       "cve": [
         "CVE-2021-1675",
@@ -1530,6 +1530,99 @@
       "protocol": "PJL",
       "port": 9100,
       "tags": []
+    },
+    {
+      "module": "research-fuser-thermal-attack",
+      "path": "research/research-fuser-thermal-attack/exploit.py",
+      "id": "research-fuser-thermal-attack",
+      "title": "Fuser Thermal Runaway Attack (Multi-vendor — Physical Destruction)",
+      "source": "research",
+      "cve": "",
+      "cvss": 9.5,
+      "severity": "critical",
+      "category": "physical_damage",
+      "protocol": "PJL",
+      "port": 9100,
+      "vendor": [
+        "HP",
+        "Kyocera",
+        "Ricoh",
+        "Xerox",
+        "Generic"
+      ],
+      "tags": [
+        "fuser",
+        "thermal",
+        "physical_damage",
+        "irreversible",
+        "fire_risk",
+        "destructive"
+      ],
+      "destructive": true,
+      "irreversible": true,
+      "physical_damage": true
+    },
+    {
+      "module": "research-motor-jam-attack",
+      "path": "research/research-motor-jam-attack/exploit.py",
+      "id": "research-motor-jam-attack",
+      "title": "Motor Jamming / Mechanical Destruction Attack (Multi-vendor)",
+      "source": "research",
+      "cve": "",
+      "cvss": 9.0,
+      "severity": "critical",
+      "category": "physical_damage",
+      "protocol": "PJL",
+      "port": 9100,
+      "vendor": [
+        "HP",
+        "Ricoh",
+        "Kyocera",
+        "Generic"
+      ],
+      "tags": [
+        "motor",
+        "mechanical",
+        "physical_damage",
+        "irreversible",
+        "gear_strip",
+        "destructive"
+      ],
+      "destructive": true,
+      "irreversible": true,
+      "physical_damage": true
+    },
+    {
+      "module": "research-laser-scanner-attack",
+      "path": "research/research-laser-scanner-attack/exploit.py",
+      "id": "research-laser-scanner-attack",
+      "title": "Laser Scanner / Photosensitive Drum Damage Attack (Multi-vendor)",
+      "source": "research",
+      "cve": "",
+      "cvss": 9.2,
+      "severity": "critical",
+      "category": "physical_damage",
+      "protocol": "PJL",
+      "port": 9100,
+      "vendor": [
+        "HP",
+        "Xerox",
+        "Ricoh",
+        "Kyocera",
+        "Canon",
+        "Generic"
+      ],
+      "tags": [
+        "laser",
+        "photodrum",
+        "physical_damage",
+        "irreversible",
+        "polygon_mirror",
+        "destructive"
+      ],
+      "destructive": true,
+      "irreversible": true,
+      "physical_damage": true
     }
   ]
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-IPP Protocol Support for PrinterReaper
+IPP Protocol Support for PrinterXPL-Forge
 ======================================
 Internet Printing Protocol (RFC 2910/2911) on port 631
 
@@ -166,7 +166,7 @@ class IPPProtocol:
         except Exception as e:
             return {}
 
-    def print_job(self, data, job_name="printerreaper_job"):
+    def print_job(self, data, job_name="PrinterXPL-Forge_job"):
         """Print job via IPP"""
         if not self.sock:
             if not self.connect():

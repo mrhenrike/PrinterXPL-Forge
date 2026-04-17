@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-RAW Protocol Support for PrinterReaper
+RAW Protocol Support for PrinterXPL-Forge
 ======================================
 Direct TCP/IP printing on port 9100 (AppSocket / JetDirect).
 

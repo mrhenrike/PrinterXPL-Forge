@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Network Protocols Package for PrinterReaper
+Network Protocols Package for PrinterXPL-Forge
 ==================================================
 Support for multiple network printing protocols:
 - LPD (Line Printer Daemon) - Port 515

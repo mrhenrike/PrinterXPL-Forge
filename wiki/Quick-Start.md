@@ -7,8 +7,8 @@ Get your first results in under 60 seconds.
 ## Step 1 — Install
 
 ```bash
-git clone https://github.com/mrhenrike/PrinterReaper.git
-cd PrinterReaper
+git clone https://github.com/mrhenrike/PrinterXPL-Forge.git
+cd PrinterXPL-Forge
 python -m venv .venv && source .venv/bin/activate    # Linux/macOS
 python -m venv .venv && .venv\Scripts\activate       # Windows
 pip install -r requirements.txt
@@ -19,7 +19,7 @@ pip install -r requirements.txt
 ## Step 2 — Find a printer
 
 ```bash
-python printer-reaper.py --discover-local
+python printerxpl-forge.py --discover-local
 ```
 
 Output:
@@ -33,7 +33,7 @@ Output:
 ## Step 3 — Fingerprint the target
 
 ```bash
-python printer-reaper.py 192.168.0.152 --scan --no-nvd
+python printerxpl-forge.py 192.168.0.152 --scan --no-nvd
 ```
 
 Output (key fields):
@@ -51,7 +51,7 @@ Output (key fields):
 ## Step 4 — Brute-force login
 
 ```bash
-python printer-reaper.py 192.168.0.152 --bruteforce \
+python printerxpl-forge.py 192.168.0.152 --bruteforce \
   --bf-vendor epson --bf-serial XAABT77481 --bf-no-variations
 ```
 
@@ -65,7 +65,7 @@ Output:
 ## Step 5 — Open interactive shell
 
 ```bash
-python printer-reaper.py 192.168.0.152 auto
+python printerxpl-forge.py 192.168.0.152 auto
 ```
 
 ```
@@ -87,20 +87,20 @@ webServer/
 
 ```bash
 # Guided menu (no arguments)
-python printer-reaper.py
+python printerxpl-forge.py
 
 # Full scan + exploit matching
-python printer-reaper.py 192.168.1.100 --scan --xpl
+python printerxpl-forge.py 192.168.1.100 --scan --xpl
 
 # Full attack campaign (dry-run)
-python printer-reaper.py 192.168.1.100 --attack-matrix
+python printerxpl-forge.py 192.168.1.100 --attack-matrix
 
 # Send a print job
-python printer-reaper.py 192.168.1.100 --send-job document.txt
+python printerxpl-forge.py 192.168.1.100 --send-job document.txt
 
 # List all exploit modules
-python printer-reaper.py --xpl-list
+python printerxpl-forge.py --xpl-list
 
 # Check API key status
-python printer-reaper.py --check-config
+python printerxpl-forge.py --check-config
 ```

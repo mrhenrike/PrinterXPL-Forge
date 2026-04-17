@@ -8,19 +8,19 @@ Test credentials against HTTP/HTTPS web admin, FTP, SNMP community strings, and 
 
 ```bash
 # Auto-detect vendor from --scan, use default wordlist
-python printer-reaper.py 192.168.1.100 --bruteforce
+python printerxpl-forge.py 192.168.1.100 --bruteforce
 
 # Explicit vendor
-python printer-reaper.py 192.168.1.100 --bruteforce --bf-vendor epson
+python printerxpl-forge.py 192.168.1.100 --bruteforce --bf-vendor epson
 
 # Vendor + serial (most effective for Epson, HP, Canon)
-python printer-reaper.py 192.168.1.100 --bruteforce --bf-vendor epson --bf-serial XAABT77481
+python printerxpl-forge.py 192.168.1.100 --bruteforce --bf-vendor epson --bf-serial XAABT77481
 
 # Vendor + MAC (OKI, Brother, Kyocera KR2 use last 6 hex chars of MAC)
-python printer-reaper.py 192.168.1.100 --bruteforce --bf-vendor oki --bf-mac AA:BB:CC:DD:EE:FF
+python printerxpl-forge.py 192.168.1.100 --bruteforce --bf-vendor oki --bf-mac AA:BB:CC:DD:EE:FF
 
 # Combined with scan (auto-populates vendor + serial from fingerprint)
-python printer-reaper.py 192.168.1.100 --scan --bruteforce
+python printerxpl-forge.py 192.168.1.100 --scan --bruteforce
 ```
 
 ---
@@ -47,13 +47,13 @@ python printer-reaper.py 192.168.1.100 --scan --bruteforce
 The default wordlist is `wordlists/printer_default_creds.txt`. It contains 195+ credentials grouped by vendor section.
 
 ```bash
-python printer-reaper.py 192.168.1.100 --bruteforce --bf-vendor hp
+python printerxpl-forge.py 192.168.1.100 --bruteforce --bf-vendor hp
 ```
 
 ### Custom wordlist (replaces default)
 
 ```bash
-python printer-reaper.py 192.168.1.100 --bruteforce --bf-wordlist /path/to/my_creds.txt
+python printerxpl-forge.py 192.168.1.100 --bruteforce --bf-wordlist /path/to/my_creds.txt
 ```
 
 The custom wordlist REPLACES the default. Use `--bf-cred` to add individual credentials on top.
@@ -62,7 +62,7 @@ The custom wordlist REPLACES the default. Use `--bf-cred` to add individual cred
 
 ```bash
 # Tested first, before any wordlist entry
-python printer-reaper.py 192.168.1.100 --bruteforce \
+python printerxpl-forge.py 192.168.1.100 --bruteforce \
   --bf-cred admin:MyPass \
   --bf-cred root: \
   --bf-cred administrator:XAABT77481
@@ -71,13 +71,13 @@ python printer-reaper.py 192.168.1.100 --bruteforce \
 ### Disable variation engine (faster, less thorough)
 
 ```bash
-python printer-reaper.py 192.168.1.100 --bruteforce --bf-no-variations
+python printerxpl-forge.py 192.168.1.100 --bruteforce --bf-no-variations
 ```
 
 ### Slow down (avoid lockouts)
 
 ```bash
-python printer-reaper.py 192.168.1.100 --bruteforce --bf-delay 2.0
+python printerxpl-forge.py 192.168.1.100 --bruteforce --bf-delay 2.0
 ```
 
 ---
@@ -104,7 +104,7 @@ Disable with `--bf-no-variations` for a faster pass.
 
 ## Protocols Tested
 
-PrinterReaper brute-forces all available authentication endpoints in parallel:
+PrinterXPL-Forge brute-forces all available authentication endpoints in parallel:
 
 ### HTTP / HTTPS
 

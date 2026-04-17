@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PostScript Module for PrinterReaper
+PostScript Module for PrinterXPL-Forge
 ==========================================
 Complete PostScript penetration testing module with 40+ commands
 
-Based on PRET ps.py but massively enhanced for PrinterReaper
+Based on PRET ps.py but massively enhanced for PrinterXPL-Forge
 """
 
 # Author    : Andre Henrique (@mrhenrike)
@@ -26,7 +26,7 @@ from utils.helper import log, output, conv, file, item, chunks, const as c
 
 class ps(printer):
     """
-    PostScript shell for PrinterReaper - Complete Implementation
+    PostScript shell for PrinterXPL-Forge - Complete Implementation
     """
 
     def __init__(self, args):
@@ -73,7 +73,7 @@ class ps(printer):
 
         # Print header
         print()
-        print("PrinterReaper - PostScript Commands")
+        print("PrinterXPL-Forge - PostScript Commands")
         print("=" * 70)
         print("Available command categories:")
         total = 0
@@ -601,7 +601,7 @@ class ps(printer):
         print("overlay_list - List available overlay files with preview")
         print("=" * 60)
         print("DESCRIPTION:")
-        print("  Lists all available EPS overlay files bundled with PrinterReaper.")
+        print("  Lists all available EPS overlay files bundled with PrinterXPL-Forge.")
         print("  Shows filename, size, and title/description extracted from EPS header.")
         print()
         print("USAGE:")
@@ -945,7 +945,7 @@ class ps(printer):
         payload_arg = parts[1] if len(parts) > 1 else ""
         
         if payload_name == "banner":
-            text = payload_arg or "PRINTERREAPER"
+            text = payload_arg or "PrinterXPL-Forge"
             self.cmd(f"""
             /Helvetica findfont 16 scalefont setfont
             100 700 moveto
@@ -962,7 +962,7 @@ class ps(printer):
             /Helvetica findfont 20 scalefont setfont
             0 1 {count} {{
                 dup 20 mul 100 moveto
-                (PRINTERREAPER STORM) show
+                (PrinterXPL-Forge STORM) show
                 showpage
             }} for
             """)

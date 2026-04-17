@@ -8,16 +8,16 @@ The `--attack-matrix` flag runs a full automated campaign based on the Müller e
 
 ```bash
 # Dry-run (default) - probes all attack vectors without destructive actions
-python printer-reaper.py 192.168.1.100 --attack-matrix
+python printerxpl-forge.py 192.168.1.100 --attack-matrix
 
 # Live exploitation - AUTHORIZED LABS ONLY - some actions are irreversible
-python printer-reaper.py 192.168.1.100 --attack-matrix --no-dry
+python printerxpl-forge.py 192.168.1.100 --attack-matrix --no-dry
 
 # Combined with network mapping (single pass)
-python printer-reaper.py 192.168.1.100 --attack-matrix --network-map
+python printerxpl-forge.py 192.168.1.100 --attack-matrix --network-map
 
 # With debug output (show raw bytes)
-python printer-reaper.py 192.168.1.100 --attack-matrix --debug
+python printerxpl-forge.py 192.168.1.100 --attack-matrix --debug
 ```
 
 ---
@@ -83,6 +83,33 @@ python printer-reaper.py 192.168.1.100 --attack-matrix --debug
 | DNS rebinding | Via EWS LDAP config redirect | HTTP |
 | Subnet scan | Printer scans via SSRF | IPP / WSD |
 | Routing table exfiltration | SNMP route OID walk | SNMP |
+| CUPS browsed SSRF | CVE-2024-47176 — cups-browsed registers malicious printer | IPP |
+| CUPS 4-CVE RCE chain | CVE-2024-47076/47175/47177 — attacker printer → RCE | IPP |
+| Fax-to-LAN (NoFaxGiven) | TIFF parser overflow via fax channel to reach LAN | Fax |
+
+---
+
+### Windows Print Spooler Attacks
+
+| Attack | CVE | Technique | Impact |
+|--------|-----|-----------|--------|
+| PrintNightmare RCE | CVE-2021-34527 | AddPrinterDriverEx DLL load via SMB | SYSTEM RCE |
+| PrintNightmare LPE | CVE-2021-1675 | Local AddPrinterDriverEx DLL injection | SYSTEM LPE |
+| SpoolFool LPE | CVE-2022-21999 | Spooler DLL path write via CreatePrinterIC | SYSTEM LPE |
+| PrintDemon | CVE-2020-1048 | Named pipe printer port write to arbitrary path | Persistence |
+| Print Spooler relay | MS-RPRN auth coerce | Trigger NTLM auth to attacker for relay | Lateral Move |
+
+---
+
+### Firmware Attacks
+
+| Attack | Target | Technique | Module |
+|--------|--------|-----------|--------|
+| Lexmark .FLS decrypt | Lexmark | XOR key extraction + structure parse | `research-lexmark-fw-decrypt` |
+| Canon PIXMA .ful extract | Canon | Header parse + decompression | `research-canon-pixma-fw` |
+| HP firmware analysis | HP | Entropy check + string extraction | `research-pyrrha-fw-analysis` |
+| Firmware downgrade | Lexmark/HP/Ricoh | Upload older signed FW via HTTP/FTP | Manual |
+| Hardcoded credential extraction | All | Entropy + regex scan of FW blobs | `research-pyrrha-fw-analysis` |
 
 ---
 
@@ -141,6 +168,6 @@ The attack matrix is directly derived from:
 > *Exploiting Network Printers*
 > BlackHat USA 2017
 
-The paper identifies 4 main attack categories (DoS, Protection Bypass, Job Manipulation, Information Disclosure) across PJL, PostScript, PCL, and network protocols. PrinterReaper implements all documented techniques plus additional CVEs from 2022-2025.
+The paper identifies 4 main attack categories (DoS, Protection Bypass, Job Manipulation, Information Disclosure) across PJL, PostScript, PCL, and network protocols. PrinterXPL-Forge implements all documented techniques plus additional CVEs from 2022-2025.
 
 Reference: [PDF](https://blackhat.com/docs/us-17/thursday/us-17-Mueller-Exploiting-Network-Printers.pdf) | [Hacking Printers Wiki](http://hacking-printers.net)

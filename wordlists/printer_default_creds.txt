@@ -1,4 +1,4 @@
-# PrinterReaper — Master Default Credentials Wordlist
+# PrinterXPL-Forge — Master Default Credentials Wordlist
 # Format: username:password
 # Sources: vendor manuals, FCC filings, SecLists, known CVEs, community research
 #          Tungsten Automation / Printix partner docs, bizuns.com, ij.manual.canon,

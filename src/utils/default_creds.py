@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PrinterReaper — Credential Type Definitions & Vendor Aliases
+PrinterXPL-Forge — Credential Type Definitions & Vendor Aliases
 =============================================================
 Defines the Cred dataclass, dynamic token constants, and vendor alias map.
 

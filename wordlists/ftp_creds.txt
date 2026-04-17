@@ -1,4 +1,4 @@
-# PrinterReaper — FTP Credential Wordlist
+# PrinterXPL-Forge — FTP Credential Wordlist
 # For printer FTP servers (HP JetDirect, Ricoh, Xerox, OKI, Kyocera)
 # Format: username:password
 # Author: Andre Henrique (@mrhenrike)

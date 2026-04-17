@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PrinterReaper — Interactive Guided CLI
+PrinterXPL-Forge — Interactive Guided CLI
 =======================================
 Provides a guided menu-driven interface for operators who prefer
 not to memorize CLI flags. Every option maps directly to a CLI
@@ -151,7 +151,7 @@ def _banner_mini() -> None:
     """Compact banner for interactive mode."""
     from version import __version__, __release_date__
     print()
-    print(f"  {_RED}██████{_RST}{_WHT}╗ {_RED}███████╗{_RST}{_WHT}╗{_RST}  PrinterReaper  "
+    print(f"  {_RED}██████{_RST}{_WHT}╗ {_RED}███████╗{_RST}{_WHT}╗{_RST}  PrinterXPL-Forge  "
           f"{_DIM}v{__version__} ({__release_date__}){_RST}")
     print(f"  {_RED}██╔══██{_RST}{_WHT}╗{_RED}██╔════╝{_RST}  "
           f"{_DIM}Advanced Printer Penetration Testing{_RST}")
@@ -478,7 +478,7 @@ def _menu_config() -> None:
     choice = _choose([
         ('check',  'Check API configuration  (shows which features are active)'),
         ('help',   'Full help / all CLI flags'),
-        ('about',  'About PrinterReaper'),
+        ('about',  'About PrinterXPL-Forge'),
     ], title='Configuration & Help', allow_back=True)
     if choice is None:
         return
@@ -494,7 +494,7 @@ def _menu_config() -> None:
 def _show_about() -> None:
     print()
     print(f"  {_CYN}{'═'*60}{_RST}")
-    print(f"  {_BLD}PrinterReaper — Advanced Printer Penetration Testing{_RST}")
+    print(f"  {_BLD}PrinterXPL-Forge — Advanced Printer Penetration Testing{_RST}")
     print(f"  {_CYN}{'═'*60}{_RST}")
     lines = [
         ('Author',    'Andre Henrique (@mrhenrike)'),
@@ -569,7 +569,7 @@ def _menu_header() -> None:
     from version import __version__
     print()
     _w   = 58  # inner box width (number of ═ chars)
-    _ver = f"PrinterReaper v{__version__}"
+    _ver = f"PrinterXPL-Forge v{__version__}"
     _sub = "Advanced Printer Penetration Testing Toolkit"
     _act = "Choose an action:"
     # Each content line: 2 leading spaces + text + padding + 2 trailing spaces = _w
@@ -616,7 +616,7 @@ def run_interactive() -> None:
         if _session.get('target'):
             print(f"  {_DIM}Session target:{_RST}  {_GRN}{_session['target']}{_RST}"
                   f"  {_DIM}· type {_RST}[T]{_DIM} to change{_RST}")
-        print(f"  {_DIM}[T]  Set/change session target    [Q]  Exit PrinterReaper{_RST}")
+        print(f"  {_DIM}[T]  Set/change session target    [Q]  Exit PrinterXPL-Forge{_RST}")
         print()
 
         try:

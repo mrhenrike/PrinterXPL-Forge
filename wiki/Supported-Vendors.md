@@ -1,6 +1,6 @@
 # Supported Vendors
 
-PrinterReaper has been tested and validated against the following vendors. Default credentials, exploit modules, and language support are listed per vendor.
+PrinterXPL-Forge has been tested and validated against the following vendors. Default credentials, exploit modules, and language support are listed per vendor.
 
 ---
 
@@ -37,14 +37,18 @@ PrinterReaper has been tested and validated against the following vendors. Defau
 
 | Property | Details |
 |----------|---------|
-| Protocols | HTTP/EWS, SNMP, IPP, Telnet |
-| Languages | PJL, PostScript |
-| Default creds | `admin:initpass`, `admin:access` |
+| Protocols | HTTP/EWS, SNMP, IPP, PJL/9100, Telnet |
+| Languages | PJL, PostScript, PCL |
+| Default creds | `admin:initpass`, `admin:access`, `admin:<serial[-8:]>` |
 | Login URL | `/general/status.html` |
-| CVEs | CVE-2024-51978 |
-| Exploits | `edb-cve-2024-51978` (SNMP OID password leak), `research-brother-telnet` |
+| CVEs | CVE-2024-51977, CVE-2024-51978 |
+| Exploits | `research-brother-serial-pwd`, `research-brother-nvram`, `research-brother-vuln-enum` |
 
-**CVE-2024-51978 detail:** The WBM (Web Based Management) password for some Brother models is readable via SNMP OID `1.3.6.1.4.1.2435.2.3.9.4.2.1.5.5.3.0`.
+**CVE-2024-51977:** Unauthenticated serial number disclosure via PJL INFO CONFIG or HTTP web interface.
+
+**CVE-2024-51978:** Default admin password is derived from the last 8 characters of the serial number. Use `research-brother-serial-pwd` to retrieve serial and compute password automatically.
+
+**NVRAM attack:** `research-brother-nvram` sends rapid PJL SET COLLATE commands to exhaust NVRAM write cycles — causes permanent device failure (irreversible DoS).
 
 ---
 
@@ -57,7 +61,9 @@ PrinterReaper has been tested and validated against the following vendors. Defau
 | Default creds | `admin:`, `supervisor:`, `sysadmin:password` |
 | Login URL | `/web/guest/en/websys/webArch/loginView.cgi` |
 | CVEs | CVE-2019-14308 |
-| Exploits | `edb-45273` |
+| Exploits | `edb-45273`, `research-ricoh-ldap-passback` |
+
+**LDAP Pass-Back:** `research-ricoh-ldap-passback` logs into the Ricoh web interface and redirects the LDAP server address to an attacker listener to capture bind credentials.
 
 ---
 
@@ -65,12 +71,12 @@ PrinterReaper has been tested and validated against the following vendors. Defau
 
 | Property | Details |
 |----------|---------|
-| Protocols | HTTP/EWS, SNMP, FTP, IPP |
+| Protocols | HTTP/EWS, SNMP, FTP, IPP, PJL/9100 |
 | Languages | PJL, PostScript, PCL |
 | Default creds | `admin:1111`, `admin:admin`, `admin:22222` |
 | Login URL | `/ui/?_action=StartSession` |
-| CVEs | CVE-2010-4231 |
-| Exploits | `edb-17636` (FTP default credentials) |
+| CVEs | CVE-2010-4231, CVE-2024-6333 |
+| Exploits | `edb-17636`, `research-xerox-pjl-dlm`, `research-xerox-firmware-root`, `edb-cve-2024-6333` |
 
 ---
 
@@ -137,8 +143,8 @@ PrinterReaper has been tested and validated against the following vendors. Defau
 | Languages | PJL, PostScript, PCL |
 | Default creds | `admin:1234`, `admin:password`, `admin:lexmark` |
 | Login URL | `/cgi-bin/dynamic/user/List.html` |
-| CVEs | CVE-2013-6234 |
-| Exploits | `edb-20565` |
+| CVEs | CVE-2013-6234, CVE-2023-23560, CVE-2023-26067 |
+| Exploits | `edb-20565`, `edb-cve-2024-47176` (CUPS chain), `research-lexmark-fw-decrypt`, `research-lexmark-cve-2023-26067`, `msf-lexmark-cred-dump` |
 
 ---
 
@@ -146,12 +152,14 @@ PrinterReaper has been tested and validated against the following vendors. Defau
 
 | Property | Details |
 |----------|---------|
-| Protocols | HTTP/EWS, SNMP, IPP |
-| Languages | PostScript, PCL |
-| Default creds | `admin:`, `12345678:12345678`, `ADMIN:12345678` |
+| Protocols | HTTP/EWS, SOAP, SNMP, IPP |
+| Languages | PostScript, PCL, PJL |
+| Default creds | `Admin:12345678`, `Admin:1234`, `admin:` |
 | Login URL | `/wcd/logon.pl` |
-| CVEs | - |
-| Exploits | IPP anonymous job, SNMP walk |
+| CVEs | CVE-2022-1026 |
+| Exploits | `edb-cve-2022-1026`, `research-konica-soap-extract`, `research-bizhub-user-extract` |
+
+**SOAP credential extraction:** `research-konica-soap-extract` authenticates to the bizhub SOAP API and dumps LDAP/SMB/SMTP stored credentials. `research-bizhub-user-extract` reads the unauthenticated address book XML endpoint (`/wcd/abbr.xml`) for usernames.
 
 ---
 
@@ -159,12 +167,14 @@ PrinterReaper has been tested and validated against the following vendors. Defau
 
 | Property | Details |
 |----------|---------|
-| Protocols | HTTP/EWS, SNMP |
+| Protocols | HTTP/EWS, SNMP, SMTP |
 | Languages | PJL, PostScript |
-| Default creds | `admin:admin`, `admin:Sharp`, `admin:` |
+| Default creds | `admin:admin`, `admin:Sharp2012`, `admin:` |
 | Login URL | `/main.htm` |
-| CVEs | - |
-| Exploits | SNMP MIB walk |
+| CVEs | CVE-2022-45796 |
+| Exploits | `edb-cve-2022-45796`, `research-sharp-smtp-passback` |
+
+**SMTP Pass-Back:** `research-sharp-smtp-passback` logs into Sharp MX-2640N/MX-B468 and redirects the SMTP server to a listener to capture mail authentication credentials.
 
 ---
 
@@ -222,18 +232,23 @@ PrinterReaper has been tested and validated against the following vendors. Defau
 
 | Vendor | PJL | PS | PCL | SNMP | HTTP BF | Exploit Modules |
 |--------|-----|----|-----|------|---------|-----------------|
-| Epson | partial | no | no | yes | yes | 3 |
-| HP | yes | yes | yes | yes | yes | 5 |
-| Brother | partial | yes | no | yes | yes | 2 |
-| Ricoh | yes | yes | yes | yes | yes | 2 |
-| Xerox | yes | yes | yes | yes | yes | 2 |
-| Canon | no | yes | yes | yes | yes | 2 |
-| Kyocera | yes | yes | yes | yes | yes | 3 |
-| Samsung | yes | yes | no | yes | yes | 1 |
+| Epson | partial | no | no | yes | yes | 4 |
+| HP | yes | yes | yes | yes | yes | 11 |
+| Brother | yes | yes | yes | yes | yes | 7 |
+| Ricoh | yes | yes | yes | yes | yes | 5 |
+| Xerox | yes | yes | yes | yes | yes | 7 |
+| Canon | no | yes | yes | yes | yes | 5 |
+| Kyocera | yes | yes | yes | yes | yes | 4 |
+| Samsung | yes | yes | no | yes | yes | 2 |
 | OKI | yes | yes | yes | yes | yes | 1 |
-| Lexmark | yes | yes | yes | yes | yes | 1 |
-| Konica | no | yes | yes | yes | yes | 1 |
-| Sharp | partial | yes | no | yes | yes | 1 |
+| Lexmark | yes | yes | yes | yes | yes | 6 |
+| Konica | no | yes | yes | yes | yes | 4 |
+| Sharp | partial | yes | no | yes | yes | 3 |
 | Toshiba | no | yes | yes | yes | yes | 1 |
 | Zebra | no | no | no | yes | yes | 1 |
 | Fujifilm | no | yes | yes | yes | yes | 1 |
+| Dell | no | no | no | yes | yes | 2 |
+| Windows/CUPS | — | — | — | — | — | 9 (spooler/cups) |
+| Generic IoT | — | — | — | — | yes | 3 (mirai/wifi/grpc) |
+
+**Total modules: 93** (23 ExploitDB + 19 Metasploit + 51 Research)

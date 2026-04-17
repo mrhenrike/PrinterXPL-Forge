@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-TEMPLATE — PrinterReaper Custom Exploit
+TEMPLATE — PrinterXPL-Forge Custom Exploit
 ========================================
 Copy this file to xpl/custom/my_exploit.py and fill in:
   1. METADATA dict below

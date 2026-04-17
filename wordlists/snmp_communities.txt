@@ -1,4 +1,4 @@
-# PrinterReaper — SNMP Community String Wordlist
+# PrinterXPL-Forge — SNMP Community String Wordlist
 # For use with --snmp community brute-force
 # Author: Andre Henrique (@mrhenrike)
 

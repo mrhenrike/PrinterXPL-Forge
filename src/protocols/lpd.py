@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-LPD Protocol Support for PrinterReaper
+LPD Protocol Support for PrinterXPL-Forge
 ======================================
 Line Printer Daemon protocol (RFC 1179) on port 515
 
@@ -53,7 +53,7 @@ class LPDProtocol:
         )
         return control.encode()
 
-    def print_job(self, data, hostname="printerreaper", username="root", filename="job.txt"):
+    def print_job(self, data, hostname="PrinterXPL-Forge", username="root", filename="job.txt"):
         """
         Send print job via LPD protocol
         

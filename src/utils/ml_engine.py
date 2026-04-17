@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PrinterReaper — Lightweight ML Engine
+PrinterXPL-Forge — Lightweight ML Engine
 ========================================
 Provides ML-assisted printer fingerprinting and attack prioritization
 using scikit-learn (no GPU required, < 20 MB RAM, < 5 MB model files).
@@ -11,7 +11,7 @@ Design philosophy — WHY NOT deep learning:
   - For structured banner data, TF-IDF + Random Forest is equally accurate
     (often 90–95% on this kind of classification task)
   - scikit-learn models load in < 200 ms and classify in < 1 ms per sample
-  - This keeps PrinterReaper fast and portable (Raspberry Pi / old VMs)
+  - This keeps PrinterXPL-Forge fast and portable (Raspberry Pi / old VMs)
 
 What the ML engine does:
   1. Banner fingerprinting → predict make/model from raw banner text

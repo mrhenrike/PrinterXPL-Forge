@@ -9,7 +9,7 @@ Find printers before you have a target IP.
 Sweeps all local network interfaces using SNMP v1/v2c broadcast and unicast probes.
 
 ```bash
-python printer-reaper.py --discover-local
+python printerxpl-forge.py --discover-local
 ```
 
 **Output:**
@@ -37,7 +37,7 @@ python printer-reaper.py --discover-local
 Requires API keys in `config.json`.
 
 ```bash
-python printer-reaper.py --discover-online
+python printerxpl-forge.py --discover-online
 ```
 
 Searches for internet-exposed printers matching known printer banners (PJL, IPP, SNMP) on the configured Shodan/Censys accounts.
@@ -69,7 +69,7 @@ Searches for internet-exposed printers matching known printer banners (PJL, IPP,
 Check if a specific target IP is indexed in Shodan/Censys without connecting to it.
 
 ```bash
-python printer-reaper.py 192.168.0.152 --osint
+python printerxpl-forge.py 192.168.0.152 --osint
 ```
 
 Useful to check if the device is known-exposed before connecting.
@@ -81,7 +81,7 @@ Useful to check if the device is known-exposed before connecting.
 Detect which printer languages are supported without entering interactive mode.
 
 ```bash
-python printer-reaper.py 192.168.0.152 --auto-detect
+python printerxpl-forge.py 192.168.0.152 --auto-detect
 ```
 
 **Output:**
@@ -100,6 +100,6 @@ python printer-reaper.py 192.168.0.152 --auto-detect
 WSD discovery happens automatically during `--discover-local` and `--network-map`. It finds WSD-enabled printers via multicast on UDP 3702.
 
 ```bash
-python printer-reaper.py 192.168.0.152 --network-map
+python printerxpl-forge.py 192.168.0.152 --network-map
 # → [WSD] Neighbor devices: 2 found
 ```

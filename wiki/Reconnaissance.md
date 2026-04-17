@@ -9,7 +9,7 @@ Passive assessment: fingerprint, CVE lookup, attack surface mapping — **no pay
 Full fingerprint + CVE/NVD lookup + attack surface assessment.
 
 ```bash
-python printer-reaper.py 192.168.0.152 --scan
+python printerxpl-forge.py 192.168.0.152 --scan
 ```
 
 ### What `--scan` does
@@ -60,7 +60,7 @@ python printer-reaper.py 192.168.0.152 --scan
 Same as `--scan` plus ML-assisted fingerprinting and attack scoring.
 
 ```bash
-python printer-reaper.py 192.168.0.152 --scan-ml
+python printerxpl-forge.py 192.168.0.152 --scan-ml
 ```
 
 The ML engine:
@@ -84,7 +84,7 @@ The ML engine:
 Skip the NVD API call. Uses only the built-in CVE database. Useful for offline mode or faster scans.
 
 ```bash
-python printer-reaper.py 192.168.0.152 --scan --no-nvd
+python printerxpl-forge.py 192.168.0.152 --scan --no-nvd
 ```
 
 ---
@@ -92,7 +92,7 @@ python printer-reaper.py 192.168.0.152 --scan --no-nvd
 ## Scan + auto-exploit matching
 
 ```bash
-python printer-reaper.py 192.168.0.152 --scan --xpl
+python printerxpl-forge.py 192.168.0.152 --scan --xpl
 ```
 
 After the scan, automatically runs `--xpl-check` for every matching exploit and shows which ones are verified vulnerable.
@@ -113,7 +113,7 @@ After the scan, automatically runs `--xpl-check` for every matching exploit and 
 ## Combining scan + brute-force (auto-populate serial)
 
 ```bash
-python printer-reaper.py 192.168.0.152 --scan --bruteforce
+python printerxpl-forge.py 192.168.0.152 --scan --bruteforce
 ```
 
 When both are combined:

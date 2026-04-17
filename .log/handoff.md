@@ -1,4 +1,4 @@
-# PrinterReaper — Handoff
+# PrinterXPL-Forge — Handoff
 
 ---
 
@@ -24,8 +24,8 @@
 
 ### Comportamento novo
 
-- `python printer-reaper.py --scan` → solicita target ao user em vez de sair com erro
-- `python printer-reaper.py --send-job file.pdf` → solicita target
+- `python printerxpl-forge.py --scan` → solicita target ao user em vez de sair com erro
+- `python printerxpl-forge.py --send-job file.pdf` → solicita target
 - Menu interativo: target informado em scan fica salvo para brute-force/attack sem re-digitar
 - Impressão via OS: limpa fila antes de enviar (resolve "impressora offline/fila travada")
 - Fila de impressão: limpa jobs com erro/paused/stuck antes de cada `send_os_print()`
@@ -48,7 +48,7 @@
 | `src/modules/ps.py` | Removido "v2.4.0" do docstring |
 | `src/payloads/__init__.py` | Removido "v2.4.0" do docstring |
 | `src/protocols/__init__.py` | Removido "v2.4.0" do docstring |
-| `src/utils/exploit_manager.py` | User-Agent atualizado de `PrinterReaper/3.4` para `PrinterReaper/3.15` |
+| `src/utils/exploit_manager.py` | User-Agent atualizado de `PrinterXPL-Forge/3.4` para `PrinterXPL-Forge/3.15` |
 | `src/utils/fuzzer.py` | Removido "v2.3.3" do comentário interno |
 | `src/utils/operators.py` | Removidas referências a "v2.4.0" e blocos de comentário de versão legados |
 | `.gitattributes` | Criado para forçar `eol=lf` em todos os arquivos Python/config |
@@ -69,7 +69,7 @@ git config core.eol lf
 - `helper.py` — Classe `conn` para socket TCP; classe `output` para logging colorido
 - `pjl.py` — Comandos PJL: `do_status`, `do_id`, `do_env`, `do_nvram`, `do_lock`/`do_unlock`, `put` (upload via FSDOWNLOAD)
 
-**Conclusão:** PRET é uma ferramenta de pen-testing de impressoras, **não possui envio direto de print jobs**. O `put()` faz upload via PJL FSDOWNLOAD (filesystem da impressora), não submissão de trabalho de impressão. O PrinterReaper já supera o PRET em todas as funcionalidades relevantes, incluindo `print_job.py` com suporte a IPP/LPD/RAW/OS.
+**Conclusão:** PRET é uma ferramenta de pen-testing de impressoras, **não possui envio direto de print jobs**. O `put()` faz upload via PJL FSDOWNLOAD (filesystem da impressora), não submissão de trabalho de impressão. O PrinterXPL-Forge já supera o PRET em todas as funcionalidades relevantes, incluindo `print_job.py` com suporte a IPP/LPD/RAW/OS.
 
 ### Status final
 - `KeyError: None` → **CORRIGIDO** (auto-detecta modo quando não especificado)
@@ -124,7 +124,7 @@ git config core.eol lf
 | Print-Job via IPP (printer busy) | 0x0507 Busy — exibido aviso correto |
 | PDF via OS (`EPSON L3250 Series` WSD driver) | Job na fila: "Printing, Retained" (imprimindo) |
 | Imagem via OS (`mspaint /pt`) | Job na fila: "Normal" (aguardando PDF) |
-| `printer-reaper.py --send-job test.pdf --send-proto auto` | IPP falha (busy) → LPD fallback OK (236KB aceito) |
+| `printerxpl-forge.py --send-job test.pdf --send-proto auto` | IPP falha (busy) → LPD fallback OK (236KB aceito) |
 
 ### Próximos passos sugeridos
 
@@ -217,20 +217,20 @@ Regra adicional: `--dork-city` é bloqueado quando 0 ou 2+ países são especifi
 
 ```bash
 # Um vendor, um país
-python printer-reaper.py --discover-online --dork-vendor hp --dork-country BR
+python printerxpl-forge.py --discover-online --dork-vendor hp --dork-country BR
 
 # Múltiplos vendors e países via CSV
-python printer-reaper.py --discover-online --dork-vendor hp,canon,epson --dork-country BR,AR,US
+python printerxpl-forge.py --discover-online --dork-vendor hp,canon,epson --dork-country BR,AR,US
 
 # Múltiplos flags repetidos
-python printer-reaper.py --discover-online \
+python printerxpl-forge.py --discover-online \
   --dork-vendor hp --dork-vendor canon \
   --dork-country BR --dork-country AR \
   --dork-port 9100 --dork-port 631 \
   --dork-engine shodan,zoomeye
 
 # Cidades (single country obrigatório)
-python printer-reaper.py --discover-online \
+python printerxpl-forge.py --discover-online \
   --dork-country BR \
   --dork-city "São Paulo",Belém,"Rio de Janeiro"
 ```
@@ -280,19 +280,19 @@ FOFA não exige mais email desde dezembro de 2023 — campo `email` removido do 
 
 ```bash
 # Um engine → flag individual
-python printer-reaper.py --discover-online --shodan --dork-vendor hp --dork-country BR
+python printerxpl-forge.py --discover-online --shodan --dork-vendor hp --dork-country BR
 
 # Múltiplos engines → --dork-engine
-python printer-reaper.py --discover-online --dork-engine shodan,censys --dork-vendor epson
+python printerxpl-forge.py --discover-online --dork-engine shodan,censys --dork-vendor epson
 
 # Erro: mistura proibida
-python printer-reaper.py --discover-online --shodan --dork-engine fofa  # ← ERRO
+python printerxpl-forge.py --discover-online --shodan --dork-engine fofa  # ← ERRO
 
 # Erro: dois flags individuais
-python printer-reaper.py --discover-online --shodan --fofa               # ← ERRO
+python printerxpl-forge.py --discover-online --shodan --fofa               # ← ERRO
 
 # Sem flag → todos os engines configurados
-python printer-reaper.py --discover-online --dork-vendor hp
+python printerxpl-forge.py --discover-online --dork-vendor hp
 ```
 
 ### Próximos passos
@@ -336,16 +336,16 @@ python printer-reaper.py --discover-online --dork-vendor hp
 
 ```bash
 # Impressora com RAW na 3910, SNMP na 1161
-python printer-reaper.py 192.168.1.100 --scan --port-raw 3910 --port-snmp 1161
+python printerxpl-forge.py 192.168.1.100 --scan --port-raw 3910 --port-snmp 1161
 
 # Portas extras no scan de fingerprint
-python printer-reaper.py 192.168.1.100 --scan --extra-ports 9200 --extra-ports 7100
+python printerxpl-forge.py 192.168.1.100 --scan --extra-ports 9200 --extra-ports 7100
 
 # Brute-force com HTTP na 8080
-python printer-reaper.py 192.168.1.100 --bruteforce --port-http 8080
+python printerxpl-forge.py 192.168.1.100 --bruteforce --port-http 8080
 
 # Campanha completa respeitando porta customizada
-python printer-reaper.py 192.168.1.100 --attack-matrix --port-raw 3910
+python printerxpl-forge.py 192.168.1.100 --attack-matrix --port-raw 3910
 ```
 
 ### Regra de design
@@ -404,15 +404,15 @@ Módulos que precisam de porta default em assinatura usam `port: int = 0` e reso
 
 ```bash
 # Epson no Brasil via FOFA e Netlas
-python printer-reaper.py --discover-online \
+python printerxpl-forge.py --discover-online \
   --dork-vendor epson --dork-country BR --dork-engine fofa,netlas
 
 # Todas as engines, HP em SP
-python printer-reaper.py --discover-online \
+python printerxpl-forge.py --discover-online \
   --dork-vendor hp --dork-city "Sao Paulo" --dork-port 9100
 
 # ZoomEye somente, impressoras com porta 515 na América Latina
-python printer-reaper.py --discover-online \
+python printerxpl-forge.py --discover-online \
   --dork-port 515 --dork-region latin_america --dork-engine zoomeye
 ```
 
@@ -507,15 +507,15 @@ python printer-reaper.py --discover-online \
 
 ### Entry point atualizado
 
-- `printer-reaper.py` reescrito como entry point limpo e definitivo para v3.7.0
+- `printerxpl-forge.py` reescrito como entry point limpo e definitivo para v3.7.0
 - Usa `os.path.abspath(__file__)` para localizar `src/` independente do CWD
 - Trata `KeyboardInterrupt` e `ImportError` com mensagens claras
 - Docstring com exemplos de uso direto no arquivo
-- Verificado: `python printer-reaper.py --version` → `printerreaper Version 3.7.0 (2026-03-25)`
+- Verificado: `python printerxpl-forge.py --version` → `PrinterXPL-Forge Version 3.7.0 (2026-03-25)`
 
 ### GitHub Wiki criada e publicada
 
-Repositório: `https://github.com/mrhenrike/PrinterReaper/wiki`
+Repositório: `https://github.com/mrhenrike/PrinterXPL-Forge/wiki`
 
 | Página | Conteúdo |
 |--------|----------|
@@ -550,7 +550,7 @@ Repositório: `https://github.com/mrhenrike/PrinterReaper/wiki`
 | Arquivo | Conteúdo |
 |---------|----------|
 | `img/printer_architecture.svg` | Superfície de ataque de uma impressora: canais de protocolo (RAW/IPP/LPD/SMB/HTTP/SNMP/FTP/Telnet), interpretadores internos (PJL/PS/PCL/ESC-P/EWS), categorias de impacto (DoS/ProtBypass/JobManip/InfoDisc/Lateral/CredAttack) |
-| `img/printerreaper_workflow.svg` | Fluxo operacional em 6 fases: Discover → Fingerprint → Assess → Exploit → Pivot → Report, com flags CLI e output esperado por fase |
+| `img/PrinterXPL-Forge_workflow.svg` | Fluxo operacional em 6 fases: Discover → Fingerprint → Assess → Exploit → Pivot → Report, com flags CLI e output esperado por fase |
 | `img/attack_coverage_matrix.svg` | Matriz de cobertura baseada em Müller et al. BlackHat 2017 + CVEs 2024-2025; eixos: categoria de ataque vs protocolo; indicadores: suportado/parcial/N/A; lista dos 20+ vendors testados |
 | `img/credential_wordlist_flow.svg` | Arquitetura da nova engine de credenciais (v3.7.0): fluxo das 4 wordlists → wordlist_loader.py → token expansion → 4 protocolos de BF (HTTP/SNMP/FTP/Telnet) |
 
@@ -748,7 +748,7 @@ Estudar e integrar as informações dos links fornecidos (Tungsten Automation/Pr
 ## Sessão Atual — Expansão Arsenal Exploit (xpl/)
 
 ### Objetivo
-Integrar todos os módulos Metasploit e ExploitDB verificados para impressoras diretamente no PrinterReaper, evitando que o operador precise sair da ferramenta.
+Integrar todos os módulos Metasploit e ExploitDB verificados para impressoras diretamente no PrinterXPL-Forge, evitando que o operador precise sair da ferramenta.
 
 ### Resultado
 **30 exploits** carregados (era 8). Breakdow por fonte:
@@ -958,7 +958,7 @@ Ver handoff anterior para histórico das versões 3.0.0–3.4.1.
 - Remoção de emojis da UI/CLI
 - Wordlists expandidas em `wordlists/`
 - `--bf-wordlist` para credenciais personalizadas
-- Lab PrinterReaper expandido com 6 novas impressoras (BlackHat 2017)
+- Lab PrinterXPL-Forge expandido com 6 novas impressoras (BlackHat 2017)
 - QEMU integration scripts para Kali VM
 
 ---
@@ -978,17 +978,17 @@ Ver handoff anterior para histórico das versões 3.0.0–3.4.1.
 ## v3.7.0 — Limpeza, PNGs, draw.io, logo, wiki — 2026-03-25
 
 ### Alterações
-- **SVGs deletados**: img/printer_architecture.svg, img/printerreaper_workflow.svg, img/attack_coverage_matrix.svg, img/credential_wordlist_flow.svg
-- **PNGs gerados** via Pillow (dark-theme, 960px+): printer_architecture.png, printerreaper_workflow.png, attack_coverage_matrix.png, credential_wordlist_flow.png
-- **draw.io criados**: diagrams/printerreaper_workflow.drawio, diagrams/credential_flow.drawio, diagrams/attack_matrix.drawio (editáveis em app.diagrams.net)
+- **SVGs deletados**: img/printer_architecture.svg, img/PrinterXPL-Forge_workflow.svg, img/attack_coverage_matrix.svg, img/credential_wordlist_flow.svg
+- **PNGs gerados** via Pillow (dark-theme, 960px+): printer_architecture.png, PrinterXPL-Forge_workflow.png, attack_coverage_matrix.png, credential_wordlist_flow.png
+- **draw.io criados**: diagrams/PrinterXPL-Forge_workflow.drawio, diagrams/credential_flow.drawio, diagrams/attack_matrix.drawio (editáveis em app.diagrams.net)
 - **Limpeza**: diagrams/CHANGELOG.md, scripts/help_selftest.py, scripts/selftest_help_run.py removidos
-- **README.md**: logo União Geek restaurado no topo e footer, diagrams referenciados como PNG, tabela benchmark PrinterReaper vs PRET adicionada
-- **printer-reaper.py**: entry point limpo com versão 3.7.0, KeyboardInterrupt e ImportError tratados
-- **Wiki GitHub**: inicializada e publicada em https://github.com/mrhenrike/PrinterReaper/wiki — 7 páginas: Home, Installation, Quick-Start, Discovery, Reconnaissance, Interactive-Shell, Brute-Force
+- **README.md**: logo União Geek restaurado no topo e footer, diagrams referenciados como PNG, tabela benchmark PrinterXPL-Forge vs PRET adicionada
+- **printerxpl-forge.py**: entry point limpo com versão 3.7.0, KeyboardInterrupt e ImportError tratados
+- **Wiki GitHub**: inicializada e publicada em https://github.com/mrhenrike/PrinterXPL-Forge/wiki — 7 páginas: Home, Installation, Quick-Start, Discovery, Reconnaissance, Interactive-Shell, Brute-Force
 
 ### Status
-- Repository: https://github.com/mrhenrike/PrinterReaper — push confirmado (4c03781..9696c24)
-- Wiki: https://github.com/mrhenrike/PrinterReaper/wiki — push confirmado (afc36d7)
+- Repository: https://github.com/mrhenrike/PrinterXPL-Forge — push confirmado (4c03781..9696c24)
+- Wiki: https://github.com/mrhenrike/PrinterXPL-Forge/wiki — push confirmado (afc36d7)
 
 ---
 
@@ -1037,7 +1037,7 @@ Sessão de troubleshooting de impressão real na Epson L3250 (192.168.0.152), co
 
 ### Testes executados
 - `probe_printer(192.168.0.152)`: IPP=True (TLS required), LPD=True, RAW=False
-- `python printer-reaper.py 192.168.0.152 --scan-ml --no-nvd`: executado (ver resultados abaixo)
+- `python printerxpl-forge.py 192.168.0.152 --scan-ml --no-nvd`: executado (ver resultados abaixo)
 - Import validation: `from modules.print_job import probe_printer, send_print_job` ✓
 - `--help`: --install-printer, --install-driver, --install-name exibidos ✓
 

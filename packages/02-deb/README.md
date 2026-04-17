@@ -17,13 +17,13 @@ Empacotamento para Debian/Ubuntu/Kali com `dpkg-buildpackage`.
 
 Saída esperada:
 
-- `../printer-reaper_<versao>-1_all.deb`
+- `../printerxpl-forge_<versao>-1_all.deb`
 
 ### Instalação
 
 ```bash
-sudo dpkg -i ../printer-reaper_*_all.deb
+sudo dpkg -i ../printerxpl-forge_*_all.deb
 sudo apt-get install -f
-printer-reaper --version
+printerxpl-forge --version
 ```
 

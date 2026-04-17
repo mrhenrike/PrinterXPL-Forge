@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PrinterReaper — Vulnerability Scanner
+PrinterXPL-Forge — Vulnerability Scanner
 =======================================
 Matches printer fingerprints against known CVEs with strict specificity levels:
 
@@ -39,6 +39,16 @@ import requests
 import urllib3
 
 urllib3.disable_warnings()
+
+# Local CVE catalog — consulted before NVD API for offline / faster lookups
+try:
+    from utils.cve_loader import lookup as _local_cve_lookup, filter_by as _local_filter
+except ImportError:
+    try:
+        from cve_loader import lookup as _local_cve_lookup, filter_by as _local_filter
+    except ImportError:
+        _local_cve_lookup = None  # type: ignore
+        _local_filter = None  # type: ignore
 
 _log = logging.getLogger(__name__)
 
@@ -251,6 +261,18 @@ _BUILTIN: List[Tuple] = [
      'Allows printing arbitrary content without credentials.',
      True, 'Send IPP Print-Job to port 631; no credentials — RFC 8011 §4.2.1'),
 ]
+
+
+def _cvss_to_severity(score: float) -> str:
+    if score >= 9.0:
+        return "CRITICAL"
+    if score >= 7.0:
+        return "HIGH"
+    if score >= 4.0:
+        return "MEDIUM"
+    if score > 0:
+        return "LOW"
+    return "NONE"
 
 
 # ── CPE / keyword normalization ───────────────────────────────────────────────
@@ -625,6 +647,35 @@ def scan(
         spec_cves.extend(s)
         vend_cves.extend(v)
         gen_cves.extend(g)
+
+    # ── Local CVE catalog (cve_catalog.json) ──────────────────────────────────
+    if _local_filter is not None and (make or model):
+        catalog_hits = _local_filter(vendor=make or None, poc_only=False)
+        seen_local: set = {e.cve_id for e in spec_cves + vend_cves + gen_cves}
+        for entry in catalog_hits:
+            cid = entry.get("id", "")
+            if cid in seen_local:
+                continue
+            seen_local.add(cid)
+            cvss_v = float(entry.get("cvss", 0.0))
+            catalog_entry = CVEEntry(
+                cve_id=cid,
+                description=entry.get("description", ""),
+                cvss_score=cvss_v,
+                cvss_version="3.1",
+                severity=_cvss_to_severity(cvss_v),
+                published=f"{entry.get('year', 0)}-01-01T00:00:00.000",
+                modified=f"{entry.get('year', 0)}-01-01T00:00:00.000",
+                specificity=Specificity.VENDOR,
+                references=entry.get("references", []),
+                source="local_catalog",
+                exploitable=bool(entry.get("poc_available")),
+                exploit_info=f"xpl: {entry.get('xpl_module', '')}  msf: {entry.get('msf_module', '')}",
+                affected_product=entry.get("product", ""),
+            )
+            vend_cves.append(catalog_entry)
+        if verbose:
+            print(f"  [+] Local Catalog: {len(catalog_hits)} entries for vendor '{make}'")
 
     # ── NVD API ───────────────────────────────────────────────────────────────
     if use_nvd and (make or model):

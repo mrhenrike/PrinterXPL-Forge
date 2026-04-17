@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PrinterReaper v3.7.0 — Advanced Printer Penetration Testing Toolkit
+PrinterXPL-Forge v3.7.0 — Advanced Printer Penetration Testing Toolkit
 ====================================================================
 Root entry point — forwards all arguments to src/main.py.
 
 Usage:
-    python printer-reaper.py [target] [mode] [options]
-    python3 printer-reaper.py --help
+    python printerxpl-forge.py [target] [mode] [options]
+    python3 printerxpl-forge.py --help
 
 Examples:
-    python printer-reaper.py                          # interactive guided menu
-    python printer-reaper.py 192.168.1.100 --scan     # passive recon
-    python printer-reaper.py 192.168.1.100 pjl        # PJL interactive shell
-    python printer-reaper.py 192.168.1.100 --bruteforce --bf-vendor epson
+    python printerxpl-forge.py                          # interactive guided menu
+    python printerxpl-forge.py 192.168.1.100 --scan     # passive recon
+    python printerxpl-forge.py 192.168.1.100 pjl        # PJL interactive shell
+    python printerxpl-forge.py 192.168.1.100 --bruteforce --bf-vendor epson
 """
 
 # Author    : Andre Henrique (@mrhenrike)

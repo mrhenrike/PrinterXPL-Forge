@@ -1,8 +1,8 @@
-# PrinterReaper Wiki
+# PrinterXPL-Forge Wiki
 
 > **Advanced Printer Penetration Testing Toolkit — v3.7.0**
 
-Welcome to the PrinterReaper documentation wiki. Select a page below for detailed documentation on each feature.
+Welcome to the PrinterXPL-Forge documentation wiki. Select a page below for detailed documentation on each feature.
 
 ---
 
@@ -35,22 +35,22 @@ Welcome to the PrinterReaper documentation wiki. Select a page below for detaile
 
 ```bash
 # Discover printers on local network
-python printer-reaper.py --discover-local
+python printerxpl-forge.py --discover-local
 
 # Passive fingerprint + CVE scan (no payloads)
-python printer-reaper.py 192.168.1.100 --scan
+python printerxpl-forge.py 192.168.1.100 --scan
 
 # PJL interactive shell
-python printer-reaper.py 192.168.1.100 pjl
+python printerxpl-forge.py 192.168.1.100 pjl
 
 # Credential brute-force with serial number
-python printer-reaper.py 192.168.1.100 --bruteforce --bf-vendor epson --bf-serial XAABT77481
+python printerxpl-forge.py 192.168.1.100 --bruteforce --bf-vendor epson --bf-serial XAABT77481
 
 # Full attack matrix campaign (dry-run)
-python printer-reaper.py 192.168.1.100 --attack-matrix
+python printerxpl-forge.py 192.168.1.100 --attack-matrix
 
 # List all exploit modules
-python printer-reaper.py 192.168.1.100 --xpl-list
+python printerxpl-forge.py 192.168.1.100 --xpl-list
 ```
 
 ---

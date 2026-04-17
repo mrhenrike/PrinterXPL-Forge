@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PrinterReaper — Wordlist Loader
+PrinterXPL-Forge — Wordlist Loader
 ================================
 Loads printer credential wordlists from external files.
 No credentials are hardcoded in the Python source.
@@ -61,12 +61,12 @@ def _find_default_wordlist() -> Optional[Path]:
     Searches (in order):
       1. wordlists/ relative to this file's location (src/utils/../..)
       2. wordlists/ relative to cwd
-      3. ~/.printerreaper/wordlists/
+      3. ~/.PrinterXPL-Forge/wordlists/
     """
     candidates = [
         Path(__file__).parent.parent.parent / "wordlists" / "printer_default_creds.txt",
         Path.cwd() / "wordlists" / "printer_default_creds.txt",
-        Path.home() / ".printerreaper" / "wordlists" / "printer_default_creds.txt",
+        Path.home() / ".PrinterXPL-Forge" / "wordlists" / "printer_default_creds.txt",
     ]
     for p in candidates:
         if p.exists():

@@ -378,3 +378,111 @@ class discovery:
         else:
             output().info("No printers found via SNMP scan")
             print()
+
+
+# ── Mirai-style concurrent TCP port scanner (batch-32 enhancement) ────────────
+# Inspired by jgamblin/Mirai-Source-Code (scanner.c) concurrent scan approach
+# and groinc (thau0x01) passive packet inspection patterns.
+
+import concurrent.futures as _futures
+import threading as _threading
+
+_PRINTER_PROBE_PORTS = [9100, 80, 443, 631, 515, 8080, 23, 161]
+
+def _tcp_open(host: str, port: int, timeout: float = 1.5) -> bool:
+    """Non-blocking TCP probe."""
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except Exception:
+        return False
+
+
+def mirai_tcp_scan(cidr: str, ports: list = None, threads: int = 256,
+                   timeout: float = 1.5) -> list:
+    """
+    Concurrent Mirai-style TCP scanner.
+    Probes all hosts in `cidr` for printer-relevant ports in parallel.
+    Returns list of dicts: {host, open_ports}.
+    """
+    if ports is None:
+        ports = _PRINTER_PROBE_PORTS
+
+    try:
+        net = ipaddress.ip_network(cidr, strict=False)
+        targets = [str(ip) for ip in net.hosts()]
+    except ValueError as exc:
+        print(f"[!] Invalid CIDR {cidr}: {exc}")
+        return []
+
+    print(f"[*] Mirai-TCP scan: {len(targets)} hosts × {len(ports)} ports ({threads} threads)")
+    results = []
+    lock = _threading.Lock()
+
+    def _probe(host):
+        open_ports = [p for p in ports if _tcp_open(host, p, timeout)]
+        if open_ports:
+            with lock:
+                results.append({"host": host, "open_ports": open_ports})
+
+    with _futures.ThreadPoolExecutor(max_workers=threads) as pool:
+        list(pool.map(_probe, targets))
+
+    print(f"[*] {len(results)} host(s) with open printer ports.")
+    return results
+
+
+def groinc_passive_sniff(interface: str = None, timeout: int = 30,
+                         printer_ports: list = None) -> list:
+    """
+    Groinc-inspired passive packet capture to detect printer traffic.
+    Requires scapy (pip install scapy). Falls back gracefully if unavailable.
+    Detects: PJL (port 9100), IPP (port 631), LPD (port 515), SNMP (port 161).
+    """
+    if printer_ports is None:
+        printer_ports = [9100, 631, 515, 161]
+
+    try:
+        from scapy.all import sniff, TCP, UDP, IP
+    except ImportError:
+        print("[!] scapy not installed — passive sniffer unavailable.")
+        print("    Install with: pip install scapy")
+        return []
+
+    print(f"[*] Passive sniffer on {interface or 'default'} for {timeout}s "
+          f"(ports: {printer_ports}) ...")
+
+    seen = {}
+    port_filter = " or ".join(f"port {p}" for p in printer_ports)
+    bpf = f"tcp or udp and ({port_filter})"
+
+    def _pkt_handler(pkt):
+        if IP not in pkt:
+            return
+        src = pkt[IP].src
+        dst = pkt[IP].dst
+        if TCP in pkt:
+            dport = pkt[TCP].dport
+            sport = pkt[TCP].sport
+        elif UDP in pkt:
+            dport = pkt[UDP].dport
+            sport = pkt[UDP].sport
+        else:
+            return
+        for p in printer_ports:
+            if dport == p or sport == p:
+                key = (src, dst, p)
+                if key not in seen:
+                    seen[key] = True
+                    print(f"  [sniff] {src}:{sport} → {dst}:{dport}")
+
+    try:
+        sniff(iface=interface, filter=bpf, prn=_pkt_handler,
+              store=False, timeout=timeout)
+    except Exception as exc:
+        print(f"[!] Sniffer error: {exc}")
+
+    flows = [{"src": k[0], "dst": k[1], "port": k[2]} for k in seen]
+    print(f"[*] Captured {len(flows)} unique printer flows.")
+    return flows
+

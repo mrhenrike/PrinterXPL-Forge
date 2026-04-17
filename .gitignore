@@ -50,9 +50,14 @@ Thumbs.db
 *.log
 logs/
 
-# Temporary files
+# Temporary files and build scratch directory
 *.tmp
 *.temp
+.tmp/
+
+# Vendor/research repos cloned for reference (never commit)
+vendor-repos/
+.tmp/vendor-repos/
 
 # Sample files (not for public repository)
 sample*
@@ -100,6 +105,19 @@ reports/
 docs/*.pptx
 docs/*.pdf
 .tmp/gemini_slides_cache.json
+
+# ─── Secrets & credentials — NEVER commit ─────────────────────────────────
+.env
+.env.*
+config.yaml
+config.json
+*.secret
+*_secret*
+*_credentials*
+secrets/
+credentials/
+# Build/generator scripts with hardcoded keys belong only in .tmp/
+# (covered by .tmp/ rule above)
 
 # GitHub metadata (internal use only)
 GITHUB_DESCRIPTION.md

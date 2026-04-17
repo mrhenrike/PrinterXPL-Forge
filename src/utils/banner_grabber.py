@@ -187,6 +187,112 @@ _PRET2_PJL_MODELS: list = [
     "5500", "5510", "5520", "5530", "5540", "5550", "5560", "5700",
 ]
 
+# ── Praeda MFP fingerprint signatures (percx/Praeda data/data_list) ──────────
+# Format: { "page_title_fragment": {"server": "Server-Header-fragment",
+#            "vendor": "Vendor", "praeda_id": "P000XXX"} }
+_PRAEDA_SIGNATURES: dict = {
+    "HP Color LaserJet CP4005":    {"server": "HP-ChaiSOE",         "vendor": "HP"},
+    "HP Color LaserJet 4700":      {"server": "HP-ChaiSOE",         "vendor": "HP"},
+    "HP Color LaserJet CP3525":    {"server": "HP-ChaiSOE",         "vendor": "HP"},
+    "HP Color LaserJet CP3505":    {"server": "HP-ChaiSOE",         "vendor": "HP"},
+    "HP Officejet 6500 E709a":     {"server": "Virata-EmWeb",       "vendor": "HP"},
+    "HP Officejet 6500 E709n":     {"server": "Virata-EmWeb",       "vendor": "HP"},
+    "HP Photosmart C6200":         {"server": "Virata-EmWeb",       "vendor": "HP"},
+    "HP Officejet Pro 8500 A909n": {"server": "Virata-EmWeb",       "vendor": "HP"},
+    "HP Officejet Pro 8500 A909a": {"server": "Virata-EmWeb",       "vendor": "HP"},
+    "HP Officejet Pro L7500":      {"server": "Virata-EmWeb",       "vendor": "HP"},
+    "HP Officejet Pro L7600":      {"server": "Virata-EmWeb",       "vendor": "HP"},
+    "HP HTTP Server":              {"server": "HP HTTP Server",     "vendor": "HP"},
+    "Phaser 7750GX":               {"server": "Allegro-Software-RomPager/4.10",  "vendor": "Xerox"},
+    "Phaser 6360DT":               {"server": "Allegro-Software-RomPager/4.34",  "vendor": "Xerox"},
+    "XEROX WORKCENTRE PRO":        {"server": "Xerox_MicroServer",  "vendor": "Xerox"},
+    "XEROX WORKCENTRE":            {"server": "Xerox_MicroServer",  "vendor": "Xerox"},
+    "Xerox WorkCentre M20i":       {"server": "",                   "vendor": "Xerox"},
+    "Xerox WorkCentre 4150":       {"server": "",                   "vendor": "Xerox"},
+    "Xerox WorkCentre 4250":       {"server": "",                   "vendor": "Xerox"},
+    "Xerox WorkCentre 4260":       {"server": "",                   "vendor": "Xerox"},
+    "Xerox WorkCentre 5638":       {"server": "SNMP",               "vendor": "Xerox"},
+    "Xerox WorkCentre 5645":       {"server": "SNMP",               "vendor": "Xerox"},
+    "Xerox WorkCentre 5655":       {"server": "SNMP",               "vendor": "Xerox"},
+    "Xerox WorkCentre 5735":       {"server": "SNMP",               "vendor": "Xerox"},
+    "Xerox WorkCentre 5740":       {"server": "SNMP",               "vendor": "Xerox"},
+    "Xerox WorkCentre 5745":       {"server": "SNMP",               "vendor": "Xerox"},
+    "Xerox WorkCentre 5755":       {"server": "SNMP",               "vendor": "Xerox"},
+    "Xerox WorkCentre 7775":       {"server": "SNMP",               "vendor": "Xerox"},
+    "Xerox WorkCentre 7535":       {"server": "SNMP",               "vendor": "Xerox"},
+    "Xerox WorkCentre 7545":       {"server": "SNMP",               "vendor": "Xerox"},
+    "Xerox WorkCentre 7556":       {"server": "SNMP",               "vendor": "Xerox"},
+    "TopAccess":                   {"server": "TOSHIBA TEC",        "vendor": "Toshiba"},
+    "CANON HTTP Server":           {"server": "CANON HTTP Server",  "vendor": "Canon"},
+    "Canon iR-ADV 4051":           {"server": "SNMP",               "vendor": "Canon"},
+    "Canon iR-ADV 4045":           {"server": "SNMP",               "vendor": "Canon"},
+    "Canon iR-ADV 4245":           {"server": "SNMP",               "vendor": "Canon"},
+    "Canon iR-ADV 6055":           {"server": "SNMP",               "vendor": "Canon"},
+    "Canon iR-ADV 6065":           {"server": "SNMP",               "vendor": "Canon"},
+    "Canon iR-ADV 6075":           {"server": "SNMP",               "vendor": "Canon"},
+    "Canon iR-ADV 6255":           {"server": "SNMP",               "vendor": "Canon"},
+    "Canon iR-ADV C5030":          {"server": "SNMP",               "vendor": "Canon"},
+    "Canon iR-ADV C5035":          {"server": "SNMP",               "vendor": "Canon"},
+    "Canon iR-ADV C5040":          {"server": "SNMP",               "vendor": "Canon"},
+    "Canon iR-ADV C5045":          {"server": "SNMP",               "vendor": "Canon"},
+    "Canon iR-ADV C5051":          {"server": "SNMP",               "vendor": "Canon"},
+    "Canon iR-ADV C5235":          {"server": "SNMP",               "vendor": "Canon"},
+    "Canon iR-ADV C5240":          {"server": "SNMP",               "vendor": "Canon"},
+    "Canon iR-ADV C5250":          {"server": "SNMP",               "vendor": "Canon"},
+    "Canon iR-ADV C7065":          {"server": "SNMP",               "vendor": "Canon"},
+    "Canon iR-ADV C7055":          {"server": "SNMP",               "vendor": "Canon"},
+    "Canon iR3320":                {"server": "SNMP",               "vendor": "Canon"},
+    "Canon iR2220":                {"server": "SNMP",               "vendor": "Canon"},
+    "Canon iR C5800":              {"server": "SNMP",               "vendor": "Canon"},
+    "Canon iR C2620":              {"server": "SNMP",               "vendor": "Canon"},
+    "Canon iR C3200":              {"server": "SNMP",               "vendor": "Canon"},
+    "Canon iR C3220":              {"server": "SNMP",               "vendor": "Canon"},
+    "Canon iR3035":                {"server": "SNMP",               "vendor": "Canon"},
+    "Canon iR3045":                {"server": "SNMP",               "vendor": "Canon"},
+    "Canon iR5055":                {"server": "SNMP",               "vendor": "Canon"},
+    "KONICA MINOLTA magicolor 4690MF": {"server": "LPC Http Server","vendor": "Konica Minolta"},
+    "KONICA MINOLTA magicolor 1690MF": {"server": "LPC Http Server","vendor": "Konica Minolta"},
+    "KONICA MINOLTA bizhub C452":  {"server": "SNMP",               "vendor": "Konica Minolta"},
+    "KONICA MINOLTA bizhub C220":  {"server": "SNMP",               "vendor": "Konica Minolta"},
+    "KONICA MINOLTA bizhub 223":   {"server": "SNMP",               "vendor": "Konica Minolta"},
+    "KONICA MINOLTA bizhub C280":  {"server": "SNMP",               "vendor": "Konica Minolta"},
+    "KONICA MINOLTA bizhub 283":   {"server": "SNMP",               "vendor": "Konica Minolta"},
+    "KONICA MINOLTA bizhub C284e": {"server": "SNMP",               "vendor": "Konica Minolta"},
+    "KONICA MINOLTA bizhub 363":   {"server": "SNMP",               "vendor": "Konica Minolta"},
+    "KONICA MINOLTA bizhub 423":   {"server": "SNMP",               "vendor": "Konica Minolta"},
+    "KONICA MINOLTA bizhub 552":   {"server": "SNMP",               "vendor": "Konica Minolta"},
+    "KONICA MINOLTA bizhub C554":  {"server": "SNMP",               "vendor": "Konica Minolta"},
+    "KONICA MINOLTA bizhub 602":   {"server": "SNMP",               "vendor": "Konica Minolta"},
+    "Lexmark X656de":              {"server": "",                   "vendor": "Lexmark"},
+    "Web Image Monitor":           {"server": "Web-Server/3.0",     "vendor": "Ricoh"},
+    "Top Page - MX-2600N":         {"server": "Rapid Logic",        "vendor": "Sharp"},
+    "Top Page - MX-2610N":         {"server": "Rapid Logic",        "vendor": "Sharp"},
+    "Top Page - MX-B401":          {"server": "Rapid Logic",        "vendor": "Sharp"},
+    "Top Page - MX-4100N":         {"server": "Rapid Logic",        "vendor": "Sharp"},
+    "Top Page - MX-4101N":         {"server": "Rapid Logic",        "vendor": "Sharp"},
+    "Top Page - MX-M283N":         {"server": "Rapid Logic",        "vendor": "Sharp"},
+    "Top Page - MX-M363N":         {"server": "Rapid Logic",        "vendor": "Sharp"},
+    "Top Page - MX-M453N":         {"server": "Rapid Logic",        "vendor": "Sharp"},
+    "Top Page - MX-M503N":         {"server": "Rapid Logic",        "vendor": "Sharp"},
+    "Top Page - MX-M623N":         {"server": "Rapid Logic",        "vendor": "Sharp"},
+    "Top Page - MX-3501N":         {"server": "Rapid Logic",        "vendor": "Sharp"},
+    "KYOCERA Document Solutions":  {"server": "SNMP",               "vendor": "Kyocera"},
+    "KYOCERA MITA Printing System":{"server": "SNMP",               "vendor": "Kyocera"},
+    "Unauthorized":                {"server": "Spyglass_MicroServer","vendor": "Xerox"},
+    "Principal":                   {"server": "Spyglass_MicroServer","vendor": "Xerox"},
+}
+
+
+def praeda_match(title: str, server: str) -> dict | None:
+    """Return matching Praeda signature if page title / server header matches."""
+    title_l  = title.lower()
+    server_l = server.lower()
+    for key, sig in _PRAEDA_SIGNATURES.items():
+        if key.lower() in title_l or (sig["server"] and sig["server"].lower() in server_l):
+            return {"match": key, **sig}
+    return None
+
+
 # Keep backwards-compat alias
 PRINTER_PORTS = _PRINTER_PORT_LABELS
 

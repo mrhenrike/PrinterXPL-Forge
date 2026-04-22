@@ -112,13 +112,14 @@ python printerxpl-forge.py 192.168.1.100 --scan
 
 ---
 
-## Módulos de Exploit (93 total)
+## Módulos de Exploit (126 total)
 
 | Origem | Qtd | Descrição |
 |--------|-----|-----------|
 | **ExploitDB** | 23 | Exploits do ExploitDB adaptados para Python 3 |
 | **Metasploit** | 19 | Módulos Metasploit portados como wrappers Python |
-| **Research** | 51 | Módulos originais baseados em pesquisa de segurança |
+| **Research** | 58 | Módulos originais baseados em pesquisa de segurança |
+| **Core/Generic** | 26 | Módulos de protocolo genérico (PJL, IPP, SNMP, PS, PCL) |
 
 ### Tipos de Ataque Cobertos
 
@@ -135,16 +136,19 @@ python printerxpl-forge.py 192.168.1.100 --scan
 
 | Fornecedor | Módulos | Vulnerabilidades Notáveis |
 |-----------|---------|--------------------------|
-| HP | 14 | CVE-2021-39237, CVE-2025-26506, JetDirect SNMP |
-| Xerox | 12 | CVE-2024-6333, DLM injection, firmware root |
-| Brother | 9 | CVE-2024-51977/51978, NVRAM, default pass derivation |
-| Ricoh | 8 | CVE-2019-19363, LDAP pass-back, SOAP |
-| Konica | 7 | CVE-2022-1026, SOAP credential dump, bizhub |
-| Canon | 6 | CVE-2025-14232, LDIF extraction, PostScript |
+| HP | 16 | CVE-2025-26506, CVE-2023-6018, CVE-2017-2741, Faxploit, FutureSmart |
+| Xerox | 13 | CVE-2024-6333, CVE-2021-27508, DLM injection, firmware root |
+| Brother | 10 | CVE-2024-51977/51978, NVRAM, serial password derivation |
+| Ricoh | 10 | CVE-2024-34161, CVE-2021-33945, CVE-2022-29943, LDAP pass-back |
+| Konica | 8 | CVE-2022-1026, FIRMWARE-KONICA-001, SOAP credential dump |
+| Canon | 8 | CVE-2022-24673, CVE-2025-14235, EDB-49140, PostScript |
+| Microsoft | 12 | PrintNightmare, GooseEgg, PrintDemon family (CVE-2021-1675+) |
+| Lexmark | 7 | CVE-2023-23560, CVE-2023-50739, CVE-2023-50733, CVE-2023-26067 |
+| Linux/CUPS | 6 | CVE-2024-47176 chain, CVE-2026-34980/34990 |
 | Sharp | 5 | CVE-2022-45796, SMTP/LDAP pass-back |
-| Kyocera | 4 | Brute-force, PJL enum, SNMP |
-| Lexmark | 5 | CVE-2023-23560, CVE-2023-26067 |
-| Outros | 23 | Epson, OKI, Samsung, Dell, Toshiba, generics |
+| Kyocera | 4 | CVE-2022-1026, brute-force, PJL enum |
+| Toshiba | 3 | CVE-2024-21911, TopAccess auth bypass |
+| Outros | 14 | Epson, OKI, Samsung, Dell, generics (PJL/IPP/SNMP) |
 
 ---
 

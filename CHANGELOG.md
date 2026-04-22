@@ -1,3 +1,37 @@
+## [5.0.0] — 2026-04-17
+
+### Added (Mega Expansion)
+- **CVE Catalog**: Expanded from 50 to 80 unique entries (32 new CVEs) — covers RCE, firmware
+  replace, lateral movement, data exfiltration (2020-2026)
+  - Windows Print Spooler: CVE-2020-1337, CVE-2021-34481, CVE-2021-36958, CVE-2022-21997,
+    CVE-2022-22718, CVE-2022-30206, CVE-2023-21678, CVE-2023-32054
+  - Vendor RCE: CVE-2021-27508 (Xerox), CVE-2021-33945 (Ricoh), CVE-2022-24673 (Canon),
+    CVE-2022-24935 (Lexmark), CVE-2022-29943 (Ricoh), CVE-2023-1707 (HP), CVE-2023-50739
+    (Lexmark IPP BOF), CVE-2023-50733 (Lexmark SSRF), CVE-2023-6018 (HP FW bypass),
+    CVE-2024-34161 (Ricoh EWS), CVE-2024-21911 (Toshiba)
+  - CUPS 2026 chain: CVE-2026-34980 + CVE-2026-34990 (unauthenticated RCE → root)
+  - Firmware: FIRMWARE-RICOH-001, FIRMWARE-KONICA-001, FIRMWARE-BROTHER-001, FIRMWARE-EPSON-001
+  - ExploitDB: EDB-50078, EDB-49140, EDB-47812, EDB-51191
+  - Metasploit: MSF-PRINTER-TO-PDF, MSF-HP-PJL-SCAN, MSF-PRINTERDEMON-CVE-2020-1048
+- **exploit_triage.json**: New classification file (45 CVEs by language, strategy, priority)
+- **src/core/poly_runner.py**: Multi-language orchestrator (C/C++/Go/Rust build via gcc/clang,
+  Ruby/Metasploit wrapper via msfconsole -r, Node/PHP/Perl/Python native runners)
+- **26 new exploit modules** (100 → 126 total):
+  - edb-cve-2025-26506, edb-cve-2023-50739, edb-cve-2023-50733, edb-cve-2020-1337,
+    edb-cve-2022-24673, msf-cve-2020-1048-printerdemon
+  - research-xerox-workcentre-cmdinject, research-ricoh-wpa-bof (with source.c for gcc),
+    research-gooseegg-spooler, research-hp-futuresmart-leak, research-hp-fw-bypass,
+    research-ricoh-fw-unsigned, research-konica-fw-upload, research-brother-fw-upload,
+    research-cups-chain-2026, research-cups-root-2026, research-toshiba-auth-bypass,
+    research-ricoh-ews-rce, research-ricoh-web-cmdinject, research-epson-fw-unsigned
+  - edb-50078, edb-49140, edb-47812, edb-51191, msf-printer-to-pdf, msf-hp-pjl-scan
+- **tools/qa/static_check.py**: Full static QA suite (7 checks, 885 assertions all green)
+- **xpl/index.json**: Rebuilt to 126 modules
+
+### Fixed
+- Removed 2 duplicate CVE entries (CVE-2024-51977/51978 were duplicated)
+- Fixed /tmp/ path usage in CVE-2024-6333 exploit (now uses /var/tmp/)
+- Fixed METADATA dict detection for AnnAssign (type-annotated variables)
 # Changelog — PrinterXPL-Forge
 
 All notable changes to this project are documented here.
@@ -443,3 +477,4 @@ Author: André Henrique (@mrhenrike) | União Geek — https://github.com/Uniao-
 ---
 
 *Full git history available via `git log --oneline --all` in the repository.*
+

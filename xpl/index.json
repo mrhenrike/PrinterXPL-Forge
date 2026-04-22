@@ -1730,6 +1730,428 @@
       "destructive": false,
       "irreversible": false,
       "physical_damage": false
+    },
+    {
+      "id": "edb-cve-2025-26506",
+      "path": "xpl/edb-cve-2025-26506",
+      "cve": "CVE-2025-26506",
+      "vendor": "HP",
+      "protocol": "raw/ipp",
+      "port": 9100,
+      "tags": [
+        "rce",
+        "postscript",
+        "hp",
+        "unauthenticated",
+        "critical"
+      ],
+      "severity": "critical",
+      "status": "active"
+    },
+    {
+      "id": "edb-cve-2023-50739",
+      "path": "xpl/edb-cve-2023-50739",
+      "cve": "CVE-2023-50739",
+      "vendor": "Lexmark",
+      "protocol": "ipp",
+      "port": 631,
+      "tags": [
+        "rce",
+        "ipp",
+        "heap-overflow",
+        "lexmark"
+      ],
+      "severity": "high",
+      "status": "active"
+    },
+    {
+      "id": "edb-cve-2023-50733",
+      "path": "xpl/edb-cve-2023-50733",
+      "cve": "CVE-2023-50733",
+      "vendor": "Lexmark",
+      "protocol": "http",
+      "port": 80,
+      "tags": [
+        "ssrf",
+        "lateral_movement",
+        "lexmark"
+      ],
+      "severity": "medium",
+      "status": "active"
+    },
+    {
+      "id": "edb-cve-2020-1337",
+      "path": "xpl/edb-cve-2020-1337",
+      "cve": "CVE-2020-1337",
+      "vendor": "Microsoft",
+      "protocol": "windows",
+      "port": null,
+      "tags": [
+        "lpe",
+        "windows",
+        "print-spooler",
+        "hardlink"
+      ],
+      "severity": "high",
+      "status": "active"
+    },
+    {
+      "id": "msf-cve-2020-1048-printerdemon",
+      "path": "xpl/msf-cve-2020-1048-printerdemon",
+      "cve": "CVE-2020-1048",
+      "vendor": "Microsoft",
+      "protocol": "windows",
+      "port": null,
+      "tags": [
+        "lpe",
+        "persistence",
+        "windows",
+        "metasploit"
+      ],
+      "severity": "high",
+      "status": "active"
+    },
+    {
+      "id": "research-xerox-workcentre-cmdinject",
+      "path": "xpl/research/research-xerox-workcentre-cmdinject",
+      "cve": "CVE-2021-27508",
+      "vendor": "Xerox",
+      "protocol": "http",
+      "port": 80,
+      "tags": [
+        "rce",
+        "cmd-injection",
+        "xerox",
+        "authenticated"
+      ],
+      "severity": "high",
+      "status": "active"
+    },
+    {
+      "id": "research-ricoh-wpa-bof",
+      "path": "xpl/research/research-ricoh-wpa-bof",
+      "cve": "CVE-2021-33945",
+      "vendor": "Ricoh",
+      "protocol": "http",
+      "port": 80,
+      "tags": [
+        "rce",
+        "dos",
+        "ricoh",
+        "stack-overflow",
+        "poly_runner"
+      ],
+      "severity": "high",
+      "status": "active"
+    },
+    {
+      "id": "edb-cve-2022-24673",
+      "path": "xpl/edb-cve-2022-24673",
+      "cve": "CVE-2022-24673",
+      "vendor": "Canon",
+      "protocol": "slp/udp",
+      "port": 427,
+      "tags": [
+        "rce",
+        "slp",
+        "udp",
+        "pre-auth",
+        "stack-overflow",
+        "critical"
+      ],
+      "severity": "critical",
+      "status": "active"
+    },
+    {
+      "id": "research-gooseegg-spooler",
+      "path": "xpl/research/research-gooseegg-spooler",
+      "cve": "CVE-2022-38028",
+      "vendor": "Microsoft",
+      "protocol": "windows",
+      "port": null,
+      "tags": [
+        "lpe",
+        "apt28",
+        "cisa-kev",
+        "windows",
+        "credential_theft"
+      ],
+      "severity": "high",
+      "status": "active"
+    },
+    {
+      "id": "research-hp-futuresmart-leak",
+      "path": "xpl/research/research-hp-futuresmart-leak",
+      "cve": "CVE-2023-1707",
+      "vendor": "HP",
+      "protocol": "http",
+      "port": 443,
+      "tags": [
+        "info_disclosure",
+        "hp",
+        "futuresmart",
+        "data_exfiltration"
+      ],
+      "severity": "critical",
+      "status": "active"
+    },
+    {
+      "id": "research-hp-fw-bypass",
+      "path": "xpl/research/research-hp-fw-bypass",
+      "cve": "CVE-2023-6018",
+      "vendor": "HP",
+      "protocol": "http",
+      "port": 443,
+      "tags": [
+        "firmware_replace",
+        "auth_bypass",
+        "hp",
+        "persistence",
+        "critical"
+      ],
+      "severity": "critical",
+      "status": "active"
+    },
+    {
+      "id": "research-ricoh-fw-unsigned",
+      "path": "xpl/research/research-ricoh-fw-unsigned",
+      "cve": "FIRMWARE-RICOH-001",
+      "vendor": "Ricoh",
+      "protocol": "http",
+      "port": 80,
+      "tags": [
+        "firmware_replace",
+        "ricoh",
+        "persistence",
+        "physical_damage"
+      ],
+      "severity": "high",
+      "status": "active"
+    },
+    {
+      "id": "research-konica-fw-upload",
+      "path": "xpl/research/research-konica-fw-upload",
+      "cve": "FIRMWARE-KONICA-001",
+      "vendor": "Konica Minolta",
+      "protocol": "http",
+      "port": 80,
+      "tags": [
+        "firmware_replace",
+        "konica",
+        "persistence"
+      ],
+      "severity": "high",
+      "status": "active"
+    },
+    {
+      "id": "research-brother-fw-upload",
+      "path": "xpl/research/research-brother-fw-upload",
+      "cve": "FIRMWARE-BROTHER-001",
+      "vendor": "Brother",
+      "protocol": "http",
+      "port": 80,
+      "tags": [
+        "firmware_replace",
+        "brother",
+        "chain",
+        "persistence"
+      ],
+      "severity": "high",
+      "status": "active"
+    },
+    {
+      "id": "research-cups-chain-2026",
+      "path": "xpl/research/research-cups-chain-2026",
+      "cve": "CVE-2026-34980",
+      "vendor": "OpenPrinting/CUPS",
+      "protocol": "ipp",
+      "port": 631,
+      "tags": [
+        "rce",
+        "cups",
+        "unauthenticated",
+        "chain",
+        "critical"
+      ],
+      "severity": "critical",
+      "status": "active"
+    },
+    {
+      "id": "research-cups-root-2026",
+      "path": "xpl/research/research-cups-root-2026",
+      "cve": "CVE-2026-34990",
+      "vendor": "OpenPrinting/CUPS",
+      "protocol": "cups",
+      "port": 631,
+      "tags": [
+        "lpe",
+        "cups",
+        "race-condition",
+        "root",
+        "chain"
+      ],
+      "severity": "high",
+      "status": "active"
+    },
+    {
+      "id": "research-toshiba-auth-bypass",
+      "path": "xpl/research/research-toshiba-auth-bypass",
+      "cve": "CVE-2024-21911",
+      "vendor": "Toshiba",
+      "protocol": "http",
+      "port": 80,
+      "tags": [
+        "auth_bypass",
+        "toshiba",
+        "rce"
+      ],
+      "severity": "high",
+      "status": "active"
+    },
+    {
+      "id": "research-ricoh-ews-rce",
+      "path": "xpl/research/research-ricoh-ews-rce",
+      "cve": "CVE-2024-34161",
+      "vendor": "Ricoh",
+      "protocol": "http",
+      "port": 80,
+      "tags": [
+        "rce",
+        "ricoh",
+        "ews",
+        "memory-corruption"
+      ],
+      "severity": "high",
+      "status": "active"
+    },
+    {
+      "id": "research-ricoh-web-cmdinject",
+      "path": "xpl/research/research-ricoh-web-cmdinject",
+      "cve": "CVE-2022-29943",
+      "vendor": "Ricoh",
+      "protocol": "http",
+      "port": 80,
+      "tags": [
+        "rce",
+        "cmd-injection",
+        "ricoh",
+        "authenticated"
+      ],
+      "severity": "high",
+      "status": "active"
+    },
+    {
+      "id": "research-epson-fw-unsigned",
+      "path": "xpl/research/research-epson-fw-unsigned",
+      "cve": "FIRMWARE-EPSON-001",
+      "vendor": "Epson",
+      "protocol": "http",
+      "port": 80,
+      "tags": [
+        "firmware_replace",
+        "epson",
+        "persistence"
+      ],
+      "severity": "high",
+      "status": "active"
+    },
+    {
+      "id": "edb-50078",
+      "path": "xpl/edb-50078",
+      "cve": "EDB-50078",
+      "vendor": "HP",
+      "protocol": "http",
+      "port": 80,
+      "tags": [
+        "rce",
+        "cmd-injection",
+        "hp",
+        "laserjet"
+      ],
+      "severity": "high",
+      "status": "active"
+    },
+    {
+      "id": "edb-49140",
+      "path": "xpl/edb-49140",
+      "cve": "EDB-49140",
+      "vendor": "Canon",
+      "protocol": "http",
+      "port": 80,
+      "tags": [
+        "rce",
+        "buffer-overflow",
+        "canon",
+        "fax"
+      ],
+      "severity": "high",
+      "status": "active"
+    },
+    {
+      "id": "edb-47812",
+      "path": "xpl/edb-47812",
+      "cve": "EDB-47812",
+      "vendor": "Epson",
+      "protocol": "http",
+      "port": 80,
+      "tags": [
+        "rce",
+        "epson",
+        "ews",
+        "buffer-overflow"
+      ],
+      "severity": "high",
+      "status": "active"
+    },
+    {
+      "id": "edb-51191",
+      "path": "xpl/edb-51191",
+      "cve": "EDB-51191",
+      "vendor": "Brother",
+      "protocol": "http",
+      "port": 80,
+      "tags": [
+        "rce",
+        "auth-bypass",
+        "brother",
+        "dcp"
+      ],
+      "severity": "high",
+      "status": "active"
+    },
+    {
+      "id": "msf-printer-to-pdf",
+      "path": "xpl/msf-printer-to-pdf",
+      "cve": "MSF-PRINTER-TO-PDF",
+      "vendor": "Generic",
+      "protocol": "pjl",
+      "port": 9100,
+      "tags": [
+        "data_exfiltration",
+        "pjl",
+        "filesystem",
+        "metasploit"
+      ],
+      "severity": "medium",
+      "status": "active"
+    },
+    {
+      "id": "msf-hp-pjl-scan",
+      "path": "xpl/msf-hp-pjl-scan",
+      "cve": "MSF-HP-PJL-SCAN",
+      "vendor": "HP",
+      "protocol": "pjl",
+      "port": 9100,
+      "tags": [
+        "info_disclosure",
+        "pjl",
+        "hp",
+        "enumeration",
+        "reconnaissance"
+      ],
+      "severity": "low",
+      "status": "active"
     }
-  ]
+  ],
+  "total": 126
 }

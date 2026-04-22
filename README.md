@@ -11,7 +11,7 @@
 [![GitHub](https://img.shields.io/badge/GitHub-mrhenrike-black?logo=github)](https://github.com/mrhenrike/PrinterXPL-Forge)
 [![Wiki](https://img.shields.io/badge/Wiki-English-orange)](https://github.com/mrhenrike/PrinterXPL-Forge/wiki)
 [![Wiki PT-BR](https://img.shields.io/badge/Wiki-Portugu%C3%AAs-green)](https://github.com/mrhenrike/PrinterXPL-Forge/wiki/Home-pt-BR)
-[![Version](https://img.shields.io/badge/version-4.1.0-red)](https://github.com/mrhenrike/PrinterXPL-Forge/releases)
+[![Version](https://img.shields.io/badge/version-5.0.0-red)](https://github.com/mrhenrike/PrinterXPL-Forge/releases)
 
 > **"Is your printer safe from the void? Find out before someone else does."**
 
@@ -102,12 +102,12 @@ python src/main.py
 
 [PRET](https://github.com/RUB-NDS/PRET) (Printer Exploitation Toolkit) is the reference tool from the BlackHat 2017 research by Müller et al. PrinterXPL-Forge was initially forked from it and has since been rewritten and massively extended.
 
-| Feature | PRET | PrinterXPL-Forge v4.1.0 |
+| Feature | PRET | PrinterXPL-Forge v5.0.0 |
 |---------|------|----------------------|
 | **Languages** | PJL, PS, PCL | PJL, PS, PCL, ESC/P, auto |
 | **Protocols** | RAW, LPD, IPP, USB | RAW, LPD, IPP, SMB, HTTP, SNMP, FTP, Telnet |
-| **CVE Database** | None | 50+ CVEs built-in + NVD API live lookup |
-| **Exploit Library** | None | 93 modules (ExploitDB, Metasploit, Research) |
+| **CVE Database** | None | 80+ CVEs built-in + NVD API live lookup |
+| **Exploit Library** | None | 126 modules (ExploitDB 23, Metasploit 19, Research 58, Core 26) |
 | **Brute-Force** | None | HTTP, FTP, SNMP, Telnet — wordlist-driven, 0 hardcoded creds |
 | **Credential Engine** | None | External wordlists, vendor sections, token expansion, variations |
 | **Network Discovery** | None | SNMP sweep, Shodan, Censys, WSD, installed printers |
@@ -443,7 +443,7 @@ admin:hpinvent!
 ## 5. Exploit Library
 
 ```bash
-# List all 93 modules sorted by CVSS
+# List all 126 modules sorted by CVSS
 python printerxpl-forge.py 192.168.1.100 --xpl-list
 python printerxpl-forge.py 192.168.1.100 --xpl-list --xpl-source exploit-db
 

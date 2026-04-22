@@ -71,6 +71,9 @@ dev = [
     "build>=1.0.0",
     "twine>=5.0.0",
 ]
+# Nmap NSE scripts: pip install printerxpl-forge[nse]
+# After install run: printerxpl-nse install
+nse = []
 # Install everything at once:  pip install printerxpl-forge[full]
 full = [
     "pysmb>=1.2.9",
@@ -85,6 +88,7 @@ full = [
 [project.scripts]
 printerxpl-forge = "main:main"
 PrinterXPL-Forge  = "main:main"
+printerxpl-nse    = "nse.install_nse:main"
 
 # ── Project links ─────────────────────────────────────────────────────────────
 [project.urls]
@@ -101,13 +105,19 @@ Changelog      = "https://github.com/mrhenrike/PrinterXPL-Forge/releases"
 zip-safe = false
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where  = ["."]
+include = ["nse*", "src*"]
 
 [tool.setuptools.package-dir]
-"" = "src"
+"" = "."
 
 # Include non-Python data files shipped with the package
 [tool.setuptools.package-data]
+"nse" = [
+    "scripts/*.nse",
+    "lib/*.lua",
+    "README.md",
+]
 "*" = [
     "assets/fonts/*.pfa",
     "assets/mibs/*",

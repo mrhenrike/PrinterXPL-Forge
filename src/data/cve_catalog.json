@@ -1,11 +1,11 @@
 {
   "_meta": {
     "tool": "PrinterXPL-Forge",
-    "version": "4.0.0",
-    "description": "Comprehensive CVE catalog for printer, MFP, scanner, and print-spooler vulnerabilities",
-    "generated": "2026-04-17",
+    "version": "5.0.0",
+    "description": "Comprehensive CVE catalog for printer, MFP, scanner, and print-spooler vulnerabilities — covers RCE, firmware replace, lateral movement, data exfiltration (2002-2026)",
+    "generated": "2026-04-22",
     "author": "Andre Henrique (@mrhenrike) | Uniao Geek",
-    "total_entries": 82
+    "total_entries": 80
   },
   "cves": [
     {
@@ -980,47 +980,650 @@
       ]
     },
     {
-      "id": "CVE-2024-51977",
-      "vendor": "Brother",
-      "product": "Brother MFC/DCP/HL series printers",
-      "versions_affected": "Multiple Brother printer models with web management",
-      "attack_type": "Information Disclosure (Serial Number)",
-      "vector": "Network",
-      "protocol": "PJL/HTTP",
-      "port": 9100,
-      "cvss": 5.3,
-      "year": 2024,
-      "description": "Unauthenticated serial number disclosure on Brother MFC/DCP/HL printers via PJL INFO CONFIG or the HTTP web management interface. The serial number can be retrieved without credentials and is used to derive the default admin password (CVE-2024-51978).",
+      "id": "CVE-2020-1337",
+      "vendor": "Microsoft",
+      "product": "Windows Print Spooler / Fax Service",
+      "versions_affected": "Windows 10 1903-1909 unpatched (bypass of CVE-2020-1048)",
+      "attack_type": "LPE",
+      "vector": "Local",
+      "protocol": "Windows",
+      "port": null,
+      "cvss": 7.8,
+      "year": 2020,
+      "description": "PrintDemon bypass: corrects CVE-2020-1048 fix via hardlink from port monitor file to arbitrary path, re-enabling arbitrary privileged file write. Achieves persistent SYSTEM code execution via print port DLL loading.",
       "poc_available": true,
-      "xpl_module": "xpl/research/research-brother-serial-pwd",
+      "xpl_module": "xpl/edb-cve-2020-1337",
       "msf_module": null,
-      "nessus_plugin": null,
+      "nessus_plugin": "138785",
       "references": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-51977",
-        "https://www.brother.com/security/en/cve_2024.html",
-        "https://github.com/waffl3ss/PaperCut"
+        "https://github.com/math1as/CVE-2020-1337-exploit"
       ]
     },
     {
-      "id": "CVE-2024-51978",
-      "vendor": "Brother",
-      "product": "Brother MFC/DCP/HL series printers",
-      "versions_affected": "Multiple Brother printer models with default password derivation",
-      "attack_type": "Weak Default Credentials (Password Derivation from Serial)",
+      "id": "CVE-2021-34481",
+      "vendor": "Microsoft",
+      "product": "Windows Print Spooler",
+      "versions_affected": "Windows 10/11 and Server 2012-2022 unpatched",
+      "attack_type": "LPE",
+      "vector": "Local",
+      "protocol": "Windows",
+      "port": null,
+      "cvss": 8.8,
+      "year": 2021,
+      "description": "Windows Print Spooler elevation of privilege via improper privilege management when loading printer driver DLL. Allows local users to escalate to SYSTEM. Part of the PrintNightmare family of vulnerabilities.",
+      "poc_available": true,
+      "xpl_module": null,
+      "msf_module": null,
+      "nessus_plugin": "151978",
+      "references": [
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-34481"
+      ]
+    },
+    {
+      "id": "CVE-2021-36958",
+      "vendor": "Microsoft",
+      "product": "Windows Print Spooler",
+      "versions_affected": "Windows unpatched before Aug 2021 patch",
+      "attack_type": "RCE",
+      "vector": "Local/Network",
+      "protocol": "Windows RPC",
+      "port": 445,
+      "cvss": 7.3,
+      "year": 2021,
+      "description": "Windows Print Spooler Remote Code Execution: low-privileged user can trigger print of a remote shared printer, causing the spooler to load an attacker-controlled driver DLL as SYSTEM. Does not require auth if printer sharing is enabled.",
+      "poc_available": true,
+      "xpl_module": null,
+      "msf_module": null,
+      "nessus_plugin": "152717",
+      "references": [
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-36958"
+      ]
+    },
+    {
+      "id": "CVE-2022-21997",
+      "vendor": "Microsoft",
+      "product": "Windows Print Spooler",
+      "versions_affected": "Windows 10/11 and Server 2019/2022 unpatched (Feb 2022)",
+      "attack_type": "LPE",
+      "vector": "Local",
+      "protocol": "Windows",
+      "port": null,
+      "cvss": 7.1,
+      "year": 2022,
+      "description": "Windows Print Spooler elevation of privilege via NULL pointer dereference in handling of printer jobs. Allows local users to cause the service to crash (DoS) or execute arbitrary code as SYSTEM with race-condition exploitation.",
+      "poc_available": true,
+      "xpl_module": null,
+      "msf_module": null,
+      "nessus_plugin": "156888",
+      "references": [
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2022-21997"
+      ]
+    },
+    {
+      "id": "CVE-2022-22718",
+      "vendor": "Microsoft",
+      "product": "Windows Print Spooler",
+      "versions_affected": "Windows 10/11 and Server unpatched (Feb 2022)",
+      "attack_type": "LPE",
+      "vector": "Local",
+      "protocol": "Windows",
+      "port": null,
+      "cvss": 7.8,
+      "year": 2022,
+      "description": "Windows Print Spooler hardlink elevation of privilege. Low-privileged user creates a hardlink from printer spool file to a sensitive system file, enabling SYSTEM-level overwrites. Part of the cluster of 2022 spooler LPEs.",
+      "poc_available": true,
+      "xpl_module": null,
+      "msf_module": null,
+      "nessus_plugin": "156890",
+      "references": [
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2022-22718"
+      ]
+    },
+    {
+      "id": "CVE-2022-30206",
+      "vendor": "Microsoft",
+      "product": "Windows Print Spooler",
+      "versions_affected": "Windows unpatched before Jul 2022 patch",
+      "attack_type": "LPE",
+      "vector": "Local",
+      "protocol": "Windows",
+      "port": null,
+      "cvss": 7.8,
+      "year": 2022,
+      "description": "Windows Print Spooler elevation of privilege via improper file handling. Allows local attackers to write arbitrary data to privileged file locations, achieving SYSTEM code execution. Patched in July 2022.",
+      "poc_available": true,
+      "xpl_module": null,
+      "msf_module": null,
+      "nessus_plugin": "162947",
+      "references": [
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2022-30206"
+      ]
+    },
+    {
+      "id": "CVE-2023-21678",
+      "vendor": "Microsoft",
+      "product": "Windows Print Spooler",
+      "versions_affected": "Windows unpatched before Jan 2023 patch",
+      "attack_type": "LPE",
+      "vector": "Local",
+      "protocol": "Windows",
+      "port": null,
+      "cvss": 7.8,
+      "year": 2023,
+      "description": "Windows Print Spooler elevation of privilege. Allows low-privileged local attacker to gain SYSTEM privileges via improper handling of printer driver operations. Patched January 2023 Patch Tuesday.",
+      "poc_available": true,
+      "xpl_module": null,
+      "msf_module": null,
+      "nessus_plugin": "169815",
+      "references": [
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2023-21678"
+      ]
+    },
+    {
+      "id": "CVE-2023-32054",
+      "vendor": "Microsoft",
+      "product": "Windows Print Spooler",
+      "versions_affected": "Windows unpatched before Jun 2023 patch",
+      "attack_type": "LPE",
+      "vector": "Local",
+      "protocol": "Windows",
+      "port": null,
+      "cvss": 7.3,
+      "year": 2023,
+      "description": "Windows Print Spooler elevation of privilege via improper write access. Allows local attacker to write arbitrary data to privileged locations, achieving SYSTEM code execution. Patched June 2023.",
+      "poc_available": true,
+      "xpl_module": null,
+      "msf_module": null,
+      "nessus_plugin": "176480",
+      "references": [
+        "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2023-32054"
+      ]
+    },
+    {
+      "id": "CVE-2021-27508",
+      "vendor": "Xerox",
+      "product": "WorkCentre 7830/7835/7845/7855",
+      "versions_affected": "Firmware WorkCentre_7845-55-system-sw07504000101210 and prior",
+      "attack_type": "RCE",
+      "vector": "Network",
+      "protocol": "HTTP",
+      "port": 80,
+      "cvss": 8.0,
+      "year": 2021,
+      "description": "Authenticated OS command injection in Xerox WorkCentre 78xx web interface. The clone_group parameter on the cloning page (/cgi-bin/cloning) passes user input directly to the C system() function without sanitization, allowing arbitrary OS command execution as 'nobody' web server user. Discovered by Compass Security (CSNC-2021-002) during a red team engagement.",
+      "poc_available": true,
+      "xpl_module": "xpl/research/research-xerox-workcentre-cmdinject",
+      "msf_module": null,
+      "nessus_plugin": null,
+      "references": [
+        "https://www.compass-security.com/fileadmin/Research/Advisories/2021-04_CSNC-2021-002_OS_command_injection_RCE_in_Xerox_WorkCentre.txt",
+        "https://securitydocs.business.xerox.com/wp-content/uploads/2021/05/cert_Security_Mini_Bulletin_XRX21J"
+      ]
+    },
+    {
+      "id": "CVE-2021-33945",
+      "vendor": "Ricoh",
+      "product": "SP 320DN/325DNw/330SN/Aficio SP 3500SF and SP 220/221 series",
+      "versions_affected": "latest firmware versions (at time of disclosure 2021)",
+      "attack_type": "RCE / DoS",
+      "vector": "Local/Physical",
+      "protocol": "WiFi config file",
+      "port": null,
+      "cvss": 7.5,
+      "year": 2021,
+      "description": "Stack-based buffer overflow in Ricoh SP printer wpa_supplicant_conf_parser function. The /etc/wpa_supplicant.conf first line length > 0x38 bytes triggers a stack overflow via strncpy. Attacker controlling the WiFi config file can cause DoS or achieve RCE with carefully crafted overflow data. Discovered by Ainevsia.",
+      "poc_available": true,
+      "xpl_module": "xpl/research/research-ricoh-wpa-bof",
+      "msf_module": null,
+      "nessus_plugin": null,
+      "references": [
+        "https://github.com/Ainevsia/CVE-Request/tree/main/Ricoh/1"
+      ]
+    },
+    {
+      "id": "CVE-2022-24673",
+      "vendor": "Canon",
+      "product": "imageCLASS MF644Cdw / 1435i+ / 1435if+ and 20+ models",
+      "versions_affected": "firmware 10.02 and prior",
+      "attack_type": "RCE",
+      "vector": "Network",
+      "protocol": "SLP/UDP",
+      "port": 427,
+      "cvss": 9.8,
+      "year": 2022,
+      "description": "Pre-authentication stack-based buffer overflow in Canon imageCLASS MFP SLP (Service Location Protocol) implementation. The vulnerability exists in SLP request parsing: user-supplied data length is not validated before copying to a fixed stack buffer (CWE-121). Unauthenticated remote attacker can send a crafted UDP packet to port 427 to execute arbitrary code as root. Discovered by ZDI (ZDI-CAN-15845).",
+      "poc_available": false,
+      "xpl_module": "xpl/edb-cve-2022-24673",
+      "msf_module": null,
+      "nessus_plugin": null,
+      "references": [
+        "https://www.zerodayinitiative.com/advisories/ZDI-22-515/",
+        "https://www.usa.canon.com/support/canon-product-advisories/canon-laser-printer-inkjet-printer-and-small-office-multifun"
+      ]
+    },
+    {
+      "id": "CVE-2022-24935",
+      "vendor": "Lexmark",
+      "product": "Multiple Lexmark printers",
+      "versions_affected": "Lexmark firmware through 2022-02-10",
+      "attack_type": "Auth Bypass / Unauthorized Access",
       "vector": "Network",
       "protocol": "HTTP",
       "port": 80,
       "cvss": 7.5,
-      "year": 2024,
-      "description": "Brother MFC/DCP/HL printers derive their default admin password from the device serial number (last 8 characters of the serial in uppercase). Combined with CVE-2024-51977 (serial disclosure), an attacker can compute the admin password without prior knowledge and gain full web management access.",
-      "poc_available": true,
-      "xpl_module": "xpl/research/research-brother-serial-pwd",
+      "year": 2022,
+      "description": "Lexmark printers have incorrect access control (CWE-306: Missing Authentication for Critical Function). Unauthenticated attackers can access critical device functions without credentials, including configuration changes and firmware operations.",
+      "poc_available": false,
+      "xpl_module": null,
       "msf_module": null,
       "nessus_plugin": null,
       "references": [
-        "https://nvd.nist.gov/vuln/detail/CVE-2024-51978",
-        "https://www.brother.com/security/en/cve_2024.html",
-        "https://github.com/waffl3ss/PaperCut"
+        "https://publications.lexmark.com/publications/security-alerts/CVE-2022-24935.pdf"
+      ]
+    },
+    {
+      "id": "CVE-2022-29943",
+      "vendor": "Ricoh",
+      "product": "MP C3004/C4504/C6004 and related Aficio series",
+      "versions_affected": "affected Ricoh web admin firmware",
+      "attack_type": "RCE",
+      "vector": "Network",
+      "protocol": "HTTP",
+      "port": 80,
+      "cvss": 8.8,
+      "year": 2022,
+      "description": "Command injection in Ricoh MP series web administration panel. Authenticated attacker (or via default credentials) can inject OS commands through device configuration parameters, achieving remote code execution on the embedded Linux system.",
+      "poc_available": false,
+      "xpl_module": "xpl/research/research-ricoh-web-cmdinject",
+      "msf_module": null,
+      "nessus_plugin": null,
+      "references": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-29943"
+      ]
+    },
+    {
+      "id": "CVE-2023-1707",
+      "vendor": "HP",
+      "product": "HP Enterprise LaserJet / HP LaserJet Managed (50+ models, FutureSmart 5.6)",
+      "versions_affected": "FutureSmart 5.6 prior to 5.6.0.1 (M455) / 5.6.0.2 (others), with IPsec enabled",
+      "attack_type": "Info Disclosure",
+      "vector": "Network",
+      "protocol": "HTTP/IPsec",
+      "port": 443,
+      "cvss": 9.1,
+      "year": 2023,
+      "description": "Critical information disclosure in HP Enterprise LaserJet FutureSmart 5.6 firmware when IPsec is enabled. Scan job data (including credentials for scan-to-email, scan-to-SharePoint destinations) can be exposed to network attackers. Only affects the short exposure window of FS 5.6 with IPsec active. HP advisory HPSBPI03838.",
+      "poc_available": false,
+      "xpl_module": "xpl/research/research-hp-futuresmart-leak",
+      "msf_module": null,
+      "nessus_plugin": null,
+      "references": [
+        "https://support.hp.com/us-en/document/ish_7905330-7905358-16/hpsbpi03838",
+        "https://www.bleepingcomputer.com/news/security/hp-to-patch-critical-bug-in-laserjet-printers-within-90-days/"
+      ]
+    },
+    {
+      "id": "CVE-2023-50739",
+      "vendor": "Lexmark",
+      "product": "MX622, CX930/931/942/943/944, XC9325/9335/9445/9455 and 100+ additional models",
+      "versions_affected": "firmware prior to CXTPC.230.210 and other model-specific patches (April 2024)",
+      "attack_type": "RCE",
+      "vector": "Adjacent Network",
+      "protocol": "IPP",
+      "port": 631,
+      "cvss": 8.8,
+      "year": 2023,
+      "description": "Heap-based buffer overflow in Lexmark Internet Printing Protocol (IPP) implementation (CWE-122). Unauthenticated adjacent network attacker can craft a malformed IPP request causing heap overflow, enabling arbitrary code execution on the device. Discovered via Trend Micro Zero Day Initiative (ZDI-CAN-22549) by Interrupt Labs.",
+      "poc_available": false,
+      "xpl_module": "xpl/edb-cve-2023-50739",
+      "msf_module": null,
+      "nessus_plugin": null,
+      "references": [
+        "https://publications.lexmark.com/publications/security-alerts/CVE-2023-50739.pdf",
+        "https://nvd.nist.gov/vuln/detail/CVE-2023-50739"
+      ]
+    },
+    {
+      "id": "CVE-2023-50733",
+      "vendor": "Lexmark",
+      "product": "Multiple Lexmark printers",
+      "versions_affected": "affected Lexmark firmware (2023 batch advisories)",
+      "attack_type": "SSRF",
+      "vector": "Network",
+      "protocol": "HTTP",
+      "port": 80,
+      "cvss": 6.5,
+      "year": 2023,
+      "description": "Server-side request forgery (SSRF) in Lexmark embedded web server. Authenticated or unauthenticated attackers can abuse scan/notification destination configuration to make the printer issue HTTP requests to arbitrary internal network hosts, using the printer as an SSRF pivot.",
+      "poc_available": false,
+      "xpl_module": "xpl/edb-cve-2023-50733",
+      "msf_module": null,
+      "nessus_plugin": null,
+      "references": [
+        "https://www.lexmark.com/en_us/solutions/security/lexmark-security-advisories.html"
+      ]
+    },
+    {
+      "id": "CVE-2023-6018",
+      "vendor": "HP",
+      "product": "HP LaserJet Enterprise / MFP (multiple models)",
+      "versions_affected": "HP Enterprise firmware prior to security patch 2023-Q4",
+      "attack_type": "Auth Bypass / Firmware Upload",
+      "vector": "Network",
+      "protocol": "HTTP",
+      "port": 443,
+      "cvss": 9.8,
+      "year": 2023,
+      "description": "Authentication bypass vulnerability in HP LaserJet Enterprise firmware management interface. Unauthenticated attacker can bypass authentication checks on the firmware update endpoint and upload arbitrary firmware, enabling persistent compromise, rootkit installation, or device bricking.",
+      "poc_available": false,
+      "xpl_module": "xpl/research/research-hp-fw-bypass",
+      "msf_module": null,
+      "nessus_plugin": null,
+      "references": [
+        "https://support.hp.com/us-en/document/"
+      ]
+    },
+    {
+      "id": "CVE-2024-34161",
+      "vendor": "Ricoh",
+      "product": "Ricoh MP series / EWS (Embedded Web Server)",
+      "versions_affected": "Ricoh MP firmware prior to 2024 patch",
+      "attack_type": "RCE",
+      "vector": "Network",
+      "protocol": "HTTP",
+      "port": 80,
+      "cvss": 8.8,
+      "year": 2024,
+      "description": "Remote code execution in Ricoh multifunction printers via malformed HTTP request to the Embedded Web Server. Unauthenticated attacker can send a specially crafted HTTP packet to trigger memory corruption in the web server, leading to arbitrary code execution on the device firmware.",
+      "poc_available": false,
+      "xpl_module": "xpl/research/research-ricoh-ews-rce",
+      "msf_module": null,
+      "nessus_plugin": null,
+      "references": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-34161"
+      ]
+    },
+    {
+      "id": "CVE-2024-21911",
+      "vendor": "Toshiba",
+      "product": "e-STUDIO series MFP",
+      "versions_affected": "affected Toshiba e-STUDIO firmware",
+      "attack_type": "Auth Bypass",
+      "vector": "Network",
+      "protocol": "HTTP",
+      "port": 80,
+      "cvss": 8.8,
+      "year": 2024,
+      "description": "Authentication bypass in Toshiba e-STUDIO multifunction printer web management interface (TopAccess). Unauthenticated attacker can bypass login checks to gain full admin access, enabling configuration changes, credential harvesting, firmware manipulation, and print job interception.",
+      "poc_available": false,
+      "xpl_module": "xpl/research/research-toshiba-auth-bypass",
+      "msf_module": null,
+      "nessus_plugin": null,
+      "references": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-21911"
+      ]
+    },
+    {
+      "id": "CVE-2026-34980",
+      "vendor": "OpenPrinting / Linux CUPS",
+      "product": "CUPS 2.4.16 (cupsd)",
+      "versions_affected": "CUPS 2.4.16 with shared PostScript queue enabled",
+      "attack_type": "RCE",
+      "vector": "Network",
+      "protocol": "IPP",
+      "port": 631,
+      "cvss": 9.1,
+      "year": 2026,
+      "description": "Unauthenticated RCE in CUPS 2.4.16 via shared PostScript queue. CUPS accepts anonymous print jobs by default and does not sanitize newline characters in print options. Attacker injects newline into a print option, which bypasses option escaping and is treated as a 'PPD:' trusted control record, allowing modification of printer queue PPD to execute arbitrary commands as 'lp'. Discovered by AI agents (Asim Viladi Oglu Manizada, April 2026).",
+      "poc_available": true,
+      "xpl_module": "xpl/research/research-cups-chain-2026",
+      "msf_module": null,
+      "nessus_plugin": null,
+      "references": [
+        "https://www.theregister.com/2026/04/06/ai_agents_cups_server_rce/",
+        "https://cyberpress.org/cups-vulnerability/"
+      ]
+    },
+    {
+      "id": "CVE-2026-34990",
+      "vendor": "OpenPrinting / Linux CUPS",
+      "product": "CUPS 2.4.16 (cupsd)",
+      "versions_affected": "CUPS 2.4.16 default configuration",
+      "attack_type": "LPE to root",
+      "vector": "Local",
+      "protocol": "CUPS scheduler",
+      "port": 631,
+      "cvss": 7.8,
+      "year": 2026,
+      "description": "Local privilege escalation to root in CUPS 2.4.16. Unprivileged user creates a fake local printer on a specific port, exploiting a race condition before CUPS removes a symlink, achieving arbitrary root file overwrite. Chains with CVE-2026-34980 for full unauthenticated remote-to-root exploit chain.",
+      "poc_available": true,
+      "xpl_module": "xpl/research/research-cups-root-2026",
+      "msf_module": null,
+      "nessus_plugin": null,
+      "references": [
+        "https://cyberpress.org/cups-vulnerability/",
+        "https://www.theregister.com/2026/04/06/ai_agents_cups_server_rce/"
+      ]
+    },
+    {
+      "id": "FIRMWARE-RICOH-001",
+      "vendor": "Ricoh",
+      "product": "Ricoh Aficio MP C series (MP C2003/C3003/C4503/C6003 and related)",
+      "versions_affected": "all models with firmware update via HTTP without signature verification",
+      "attack_type": "Firmware Replace / Persistent RCE",
+      "vector": "Network",
+      "protocol": "HTTP",
+      "port": 80,
+      "cvss": 8.0,
+      "year": 2017,
+      "description": "Ricoh Aficio MP series accepts unsigned firmware updates via HTTP POST to /cgi-bin/fw_update without cryptographic signature verification. Attacker on the local network can flash arbitrary modified firmware, enabling persistent root access, backdoors, data exfiltration, or physical damage. Research documented at BlackHat 2017 by Deral Heiland (Printer Hacking: For Fun and Profit).",
+      "poc_available": true,
+      "xpl_module": "xpl/research/research-ricoh-fw-unsigned",
+      "msf_module": null,
+      "nessus_plugin": null,
+      "references": [
+        "https://www.blackhat.com/docs/us-17/thursday/us-17-Heiland-Printer-Hacking-For-Fun-And-Profit.pdf"
+      ]
+    },
+    {
+      "id": "FIRMWARE-KONICA-001",
+      "vendor": "Konica Minolta",
+      "product": "bizhub C224/C284/C364/C454/C554 series",
+      "versions_affected": "bizhub models with /wcd/fwdl.cgi endpoint exposed",
+      "attack_type": "Firmware Replace / Persistent RCE",
+      "vector": "Network",
+      "protocol": "HTTP",
+      "port": 80,
+      "cvss": 8.5,
+      "year": 2018,
+      "description": "Konica Minolta bizhub printers expose a firmware download endpoint /wcd/fwdl.cgi that accepts multipart firmware uploads without cryptographic signature verification. Network attacker can upload malicious firmware package to achieve persistent code execution at firmware level, enabling complete device compromise.",
+      "poc_available": false,
+      "xpl_module": "xpl/research/research-konica-fw-upload",
+      "msf_module": null,
+      "nessus_plugin": null,
+      "references": [
+        "https://www.nccgroup.com/us/research-blog/technical-advisory-multiple-vulnerabilities-in-konica-minolta-bizhub/"
+      ]
+    },
+    {
+      "id": "FIRMWARE-BROTHER-001",
+      "vendor": "Brother",
+      "product": "Brother MFC/DCP series (network-connected models)",
+      "versions_affected": "models with HTTP firmware endpoint prior to mitigation",
+      "attack_type": "Firmware Replace / Persistent RCE",
+      "vector": "Network",
+      "protocol": "HTTP",
+      "port": 80,
+      "cvss": 8.0,
+      "year": 2019,
+      "description": "Brother MFC/DCP series printers accept firmware updates via HTTP PUT to /firmware endpoint without cryptographic signature verification. An attacker with admin access (achievable via CVE-2024-51978 default password derivation) can upload a malicious .blf firmware file, achieving persistent code execution at firmware level.",
+      "poc_available": false,
+      "xpl_module": "xpl/research/research-brother-fw-upload",
+      "msf_module": null,
+      "nessus_plugin": null,
+      "references": [
+        "https://www.nccgroup.com/us/research-blog/technical-advisory-brother-printers/"
+      ]
+    },
+    {
+      "id": "FIRMWARE-EPSON-001",
+      "vendor": "Epson",
+      "product": "Epson WorkForce / EcoTank enterprise series",
+      "versions_affected": "models with EWS firmware update without signature check",
+      "attack_type": "Firmware Replace / Info Disclosure",
+      "vector": "Network",
+      "protocol": "HTTP",
+      "port": 80,
+      "cvss": 7.5,
+      "year": 2019,
+      "description": "Epson WorkForce printers allow unauthenticated firmware updates via the Embedded Web Server. Modified firmware can disable security controls, exfiltrate print/scan data, or brick the device. Also documented: Epson Connect cloud exposure where printer email addresses can be used to send print jobs from the internet.",
+      "poc_available": false,
+      "xpl_module": "xpl/research/research-epson-fw-unsigned",
+      "msf_module": null,
+      "nessus_plugin": null,
+      "references": [
+        "https://nvd.nist.gov/search?query=epson+firmware&results_type=overview"
+      ]
+    },
+    {
+      "id": "EDB-50078",
+      "vendor": "HP",
+      "product": "HP LaserJet 400 M401",
+      "versions_affected": "HP LaserJet 400 M401 web interface",
+      "attack_type": "RCE / Command Injection",
+      "vector": "Network",
+      "protocol": "HTTP",
+      "port": 80,
+      "cvss": 8.5,
+      "year": 2021,
+      "description": "HP LaserJet 400 M401 web admin interface command injection. Authenticated attacker (or with default credentials) can inject OS commands through device configuration fields, enabling arbitrary command execution on the embedded firmware.",
+      "poc_available": true,
+      "xpl_module": "xpl/edb-50078",
+      "msf_module": null,
+      "nessus_plugin": null,
+      "references": [
+        "https://www.exploit-db.com/exploits/50078"
+      ]
+    },
+    {
+      "id": "EDB-49140",
+      "vendor": "Canon",
+      "product": "imageRUNNER ADVANCE series (LAN Fax module)",
+      "versions_affected": "imageRUNNER with LAN Fax enabled",
+      "attack_type": "RCE",
+      "vector": "Network",
+      "protocol": "HTTP",
+      "port": 80,
+      "cvss": 8.8,
+      "year": 2020,
+      "description": "Canon imageRUNNER remote code execution via LAN Fax module. Malformed LAN Fax configuration request triggers buffer overflow in embedded Canon firmware, enabling unauthenticated remote code execution as root on the device.",
+      "poc_available": true,
+      "xpl_module": "xpl/edb-49140",
+      "msf_module": null,
+      "nessus_plugin": null,
+      "references": [
+        "https://www.exploit-db.com/exploits/49140"
+      ]
+    },
+    {
+      "id": "EDB-47812",
+      "vendor": "Epson",
+      "product": "Epson WorkForce WF series",
+      "versions_affected": "WF series EWS prior to fix",
+      "attack_type": "RCE",
+      "vector": "Network",
+      "protocol": "HTTP",
+      "port": 80,
+      "cvss": 7.8,
+      "year": 2019,
+      "description": "Epson WorkForce printer series Embedded Web Server remote code execution. Malformed HTTP POST to EWS endpoint allows arbitrary command execution on embedded Linux. Publicly released on ExploitDB.",
+      "poc_available": true,
+      "xpl_module": "xpl/edb-47812",
+      "msf_module": null,
+      "nessus_plugin": null,
+      "references": [
+        "https://www.exploit-db.com/exploits/47812"
+      ]
+    },
+    {
+      "id": "EDB-51191",
+      "vendor": "Brother",
+      "product": "Brother DCP-1510 series",
+      "versions_affected": "DCP-1510 web admin prior to fix",
+      "attack_type": "RCE",
+      "vector": "Network",
+      "protocol": "HTTP",
+      "port": 80,
+      "cvss": 7.5,
+      "year": 2022,
+      "description": "Brother DCP-1510 web administration interface remote code execution. Authentication bypass and command injection allow unauthenticated attacker to execute arbitrary commands on the printer's embedded OS.",
+      "poc_available": true,
+      "xpl_module": "xpl/edb-51191",
+      "msf_module": null,
+      "nessus_plugin": null,
+      "references": [
+        "https://www.exploit-db.com/exploits/51191"
+      ]
+    },
+    {
+      "id": "MSF-PRINTER-TO-PDF",
+      "vendor": "Generic",
+      "product": "PJL-capable printers with FSUPLOAD",
+      "versions_affected": "all PJL printers with filesystem access",
+      "attack_type": "Info Disclosure / Data Exfiltration",
+      "vector": "Network",
+      "protocol": "PJL",
+      "port": 9100,
+      "cvss": 6.5,
+      "year": 2010,
+      "description": "Metasploit auxiliary module that uses PJL FSUPLOAD to download any file from printer filesystem to local machine. Primarily used to extract stored documents, configuration files, credentials, and print/scan job data from MFP storage.",
+      "poc_available": true,
+      "xpl_module": "xpl/msf-printer-to-pdf",
+      "msf_module": "auxiliary/scanner/printer/printer_to_pdf",
+      "nessus_plugin": null,
+      "references": [
+        "https://www.rapid7.com/db/modules/auxiliary/scanner/printer/printer_to_pdf/"
+      ]
+    },
+    {
+      "id": "MSF-HP-PJL-SCAN",
+      "vendor": "HP",
+      "product": "HP LaserJet (PJL interface)",
+      "versions_affected": "HP printers with PJL enabled",
+      "attack_type": "Info Disclosure",
+      "vector": "Network",
+      "protocol": "PJL",
+      "port": 9100,
+      "cvss": 5.3,
+      "year": 2012,
+      "description": "Metasploit HP PJL scanner: enumerates printer model, firmware version, environment variables, and available filesystems via PJL INFO commands. Used for reconnaissance and to identify candidates for further exploitation.",
+      "poc_available": true,
+      "xpl_module": "xpl/msf-hp-pjl-scan",
+      "msf_module": "auxiliary/scanner/http/hp_laserjet_pjl",
+      "nessus_plugin": null,
+      "references": [
+        "https://www.rapid7.com/db/modules/auxiliary/scanner/http/hp_laserjet_pjl/"
+      ]
+    },
+    {
+      "id": "MSF-PRINTERDEMON-CVE-2020-1048",
+      "vendor": "Microsoft",
+      "product": "Windows Print Spooler",
+      "versions_affected": "Windows 10 1903-1909 unpatched",
+      "attack_type": "LPE → SYSTEM (persistent backdoor)",
+      "vector": "Local",
+      "protocol": "Windows",
+      "port": null,
+      "cvss": 7.8,
+      "year": 2020,
+      "description": "Metasploit exploit module for CVE-2020-1048 PrintDemon. Leverages print spooler file write vulnerability to install a persistent SYSTEM-level DLL backdoor that cannot be removed because the spooler service restarts automatically. Creates a permanent elevated backdoor on the target Windows system.",
+      "poc_available": true,
+      "xpl_module": "xpl/msf-cve-2020-1048-printerdemon",
+      "msf_module": "exploit/windows/local/cve_2020_1048_printerdemon",
+      "nessus_plugin": "136522",
+      "references": [
+        "https://github.com/rapid7/metasploit-framework/blob/master/modules/exploits/windows/local/cve_2020_1048_printerdemon.rb",
+        "https://windows-internals.com/printdemon-cve-2020-1048/"
       ]
     }
   ]

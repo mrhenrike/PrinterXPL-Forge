@@ -1,3 +1,32 @@
+## [6.0.0] - 2026-04-24 — Cross-Submodule Expansion
+
+### Added
+- **10 novos módulos exploit** derivados de auditoria de dev/ e submodules/:
+  - esearch-ipp-purge-dos — IPP Purge-Jobs DoS (unauthenticated, RFC 2911)
+  - esearch-ipp-print-uri-ssrf — IPP Print-URI SSRF / internal port scan
+  - esearch-ipp-anon-inject — Anonymous IPP Print-Job injection
+  - esearch-pjl-pwd-disclosure — CVE-2011-4786 PJL INFO VARIABLES password leak
+  - esearch-wsd-enum — WSD/DNS-SD printer discovery (UDP 3702 + TCP 5357)
+  - esearch-ftp-printer-grab — FTP filesystem exfiltration (embedded FTP on port 21)
+  - esearch-fax-config-exfil — MFP FAX address book / forwarding rules exposure
+  - esearch-dell-b5460-enum — Dell B5460dn/Lexmark OEM SNMP factory reset + cred dump
+  - esearch-oki-b432-config-dump — OKI B432dn unauthenticated web config dump
+  - esearch-ipp-evil-twin — Rogue IPP printer / evil-twin (bettercap ZeroGod, Go)
+- **12 novos scripts NSE** integrados de dev/Printers/nse/:
+  cups-info, cups-queue-info, hp-printers-cve-2022-1026, http-device-mac,
+  http-hp-ilo-info, http-info-xerox-enum, http-vuln-cve2022-1026 (Kyocera addr book),
+  lexmark-config, pjl-ready-message, snmp-device-mac, snmp-info, snmp-sysdescr
+- **10 novos CVEs** no catálogo (total: 90): CVE-2011-4786, DELL-B5460-SNMP-001,
+  OKI-B432-WEB-001, CVE-2012-4964 (Samsung), WSD-ENUM-001, FAX-CONFIG-EXFIL-001,
+  IPP-PURGE-DOS-001, IPP-ANON-PRINT-001, FTP-PRINTER-ACCESS-001, IPP-EVIL-TWIN-001
+- **Novos vendors cobertos**: Dell, OKI, Samsung CLP/SCX
+
+### Changed
+- Total módulos: 126 → 136
+- Total CVEs: 80 → 90
+- Scripts NSE: 14 → 26
+- Versão: 5.0.0 → 6.0.0
+
 ## [5.0.0] — 2026-04-17
 
 ### Added (Mega Expansion)
@@ -477,4 +506,5 @@ Author: André Henrique (@mrhenrike) | União Geek — https://github.com/Uniao-
 ---
 
 *Full git history available via `git log --oneline --all` in the repository.*
+
 

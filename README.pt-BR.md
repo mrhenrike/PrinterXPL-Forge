@@ -112,7 +112,7 @@ python printerxpl-forge.py 192.168.1.100 --scan
 
 ---
 
-## Módulos de Exploit (126 total)
+## Módulos de Exploit (136 total)
 
 | Origem | Qtd | Descrição |
 |--------|-----|-----------|

@@ -1,6 +1,6 @@
 # PrinterXPL-Forge Wiki
 
-> **Advanced Printer Penetration Testing Toolkit — v3.7.0**
+> **Advanced Printer Penetration Testing Toolkit — v6.1.0**
 
 Welcome to the PrinterXPL-Forge documentation wiki. Select a page below for detailed documentation on each feature.
 
@@ -56,3 +56,4 @@ python printerxpl-forge.py 192.168.1.100 --xpl-list
 ---
 
 > Author: [@mrhenrike](https://github.com/mrhenrike) · [LinkedIn](https://linkedin.com/in/mrhenrike) · [X/Twitter](https://x.com/mrhenrike)
+

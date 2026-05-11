@@ -1,0 +1,1 @@
+{"id":"research-brother-wsd-dos","title":"Brother WSD Device Crash DoS (CVE-2024-51983)","source":"research","cve":["CVE-2024-51983"],"cvss":7.5,"severity":"high","vendor":["Brother"],"protocol":"WSD","port":3702,"tags":["dos","wsd","brother","crash","high"]}

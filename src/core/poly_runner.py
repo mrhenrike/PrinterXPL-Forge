@@ -7,6 +7,15 @@ Suporta compilação (C/C++/Go/Rust) e execução de runtimes externos
 
 Todos os builds usam .tmp/build/ do projeto (nunca diretórios externos).
 
+Funções públicas principais:
+  detect(lang)            → caminho do compilador/runtime ou None
+  detect_msf()            → caminho do msfconsole ou None
+  available_langs()       → dict {lang: path_or_None} para todas as linguagens
+  build(src, lang, ...)   → compila source → binário em .tmp/build/
+  run(src, lang, ...)     → detect + build (se compilado) + executa + retorna dict
+  run_msf(module, ...)    → gera RC script + msfconsole -r → retorna dict
+  run_from_dir(dir, ...)  → auto-detecta source no diretório + despacha para run()
+
 # Autor: André Henrique (@mrhenrike) | União Geek
 """
 from __future__ import annotations
@@ -16,7 +25,6 @@ import re
 import shutil
 import subprocess
 import sys
-import tempfile
 import time
 from pathlib import Path
 from typing import Any, Optional
@@ -45,11 +53,42 @@ _RUNTIMES: dict[str, list[str]] = {
 
 _MSF_BINARIES = ["msfconsole", "msfexec"]
 
+# WSL binary (Windows only) — used as fallback compiler/runtime host
+_WSL_BIN: Optional[str] = shutil.which("wsl") if sys.platform == "win32" else None
+
+
+# ── Source file extension → language key ──────────────────────────────────────
+_EXT_TO_LANG: dict[str, str] = {
+    ".c":   "c",
+    ".cpp": "cpp",
+    ".cc":  "cpp",
+    ".go":  "go",
+    ".rs":  "rust",
+    ".rb":  "ruby",
+    ".js":  "node",
+    ".php": "php",
+    ".pl":  "perl",
+    ".ps1": "powershell",
+    ".sh":  "sh",
+    ".py":  "python",
+}
+
+# Source file names considered as exploit entry points when auto-discovering
+_SOURCE_CANDIDATES = ["source.c", "source.cpp", "exploit.c", "exploit.cpp",
+                      "exploit.rb", "exploit.go", "exploit.rs",
+                      "exploit.js", "exploit.php", "exploit.pl", "exploit.ps1"]
+
 
 # ── Public API ─────────────────────────────────────────────────────────────────
 
 def detect(lang: str) -> Optional[str]:
-    """Return path to first available compiler/runtime for *lang*, or None."""
+    """Return path to first available compiler/runtime for *lang*, or None.
+
+    On Windows, if no native compiler is found for C/C++/Go/Rust, falls back
+    to checking inside WSL via ``wsl <compiler> --version``.  When the WSL
+    fallback succeeds, returns the string ``"wsl:<compiler>"`` as a sentinel
+    that ``build()`` and ``run()`` recognise and dispatch via ``wsl``.
+    """
     lang = lang.lower()
     candidates: list[str] = []
     if lang in _COMPILERS:
@@ -63,6 +102,17 @@ def detect(lang: str) -> Optional[str]:
         found = shutil.which(name)
         if found:
             return found
+
+    # WSL fallback on Windows for compiled languages
+    if sys.platform == "win32" and _WSL_BIN and lang in _COMPILERS:
+        wsl_compiler = _COMPILERS[lang][0]  # e.g. "gcc"
+        probe = subprocess.run(
+            [_WSL_BIN, wsl_compiler, "--version"],
+            capture_output=True, text=True,
+        )
+        if probe.returncode == 0:
+            return f"wsl:{wsl_compiler}"
+
     return None
 
 
@@ -75,6 +125,97 @@ def detect_msf() -> Optional[str]:
     return None
 
 
+def available_langs() -> dict[str, Optional[str]]:
+    """Return a mapping of every supported language to its detected binary path.
+
+    Keys include all compiler languages (c, cpp, go, rust) and all runtime
+    languages (ruby, node, php, perl, powershell, python, sh).  The value is
+    the resolved binary path or ``None`` when not installed.
+
+    Useful for ``--xpl-list`` output to flag exploits with unmet dependencies
+    and for the exploit_manager dependency check.
+
+    Returns:
+        dict: ``{"c": "/usr/bin/gcc", "ruby": None, ...}``
+    """
+    result: dict[str, Optional[str]] = {}
+    for lang in list(_COMPILERS) + list(_RUNTIMES):
+        result[lang] = detect(lang)
+    return result
+
+
+def run_from_dir(
+    module_dir: Path,
+    host: str,
+    port: int,
+    timeout: float = 30.0,
+    dry_run: bool = False,
+    extra_args: Optional[list[str]] = None,
+    build_flags: Optional[list[str]] = None,
+) -> dict[str, Any]:
+    """Auto-detect a non-Python source file in *module_dir* and execute it.
+
+    Searches for candidate source files in *module_dir* following the priority
+    order defined in ``_SOURCE_CANDIDATES``.  The first match determines the
+    language and is passed to :func:`run`.
+
+    This helper lets ``exploit.py`` wrappers delegate execution to poly_runner
+    without needing to know the exact source filename or language key::
+
+        from src.core import poly_runner
+        from pathlib import Path
+
+        _DIR = Path(__file__).parent
+
+        def run(host, port=9100, timeout=15, dry_run=True, **opts):
+            return poly_runner.run_from_dir(_DIR, host, port,
+                                             timeout=timeout, dry_run=dry_run)
+
+    Parameters
+    ----------
+    module_dir  : Directory that contains the source file (usually the same
+                  directory as the calling ``exploit.py``).
+    host        : Target host.
+    port        : Target port.
+    timeout     : Execution timeout in seconds.
+    dry_run     : If True, return metadata without executing.
+    extra_args  : Extra CLI arguments forwarded to the exploit binary/script.
+    build_flags : Compiler flags forwarded to :func:`build` (compiled langs).
+
+    Returns
+    -------
+    dict with keys: success, vulnerable, output, evidence, error, lang, runner.
+    Returns an error dict when no source file is found.
+    """
+    module_dir = Path(module_dir)
+
+    for candidate in _SOURCE_CANDIDATES:
+        src = module_dir / candidate
+        if src.exists():
+            lang = _EXT_TO_LANG.get(src.suffix.lower(), "")
+            if not lang:
+                return _error_result("unknown",
+                                     f"run_from_dir: unsupported extension '{src.suffix}'")
+            artifact = module_dir.name or src.stem
+            return run(
+                src=src,
+                lang=lang,
+                host=host,
+                port=port,
+                timeout=timeout,
+                dry_run=dry_run,
+                extra_args=extra_args,
+                build_flags=build_flags,
+                artifact_name=artifact,
+            )
+
+    return _error_result(
+        "unknown",
+        f"run_from_dir: no supported source file found in '{module_dir}' "
+        f"(searched: {_SOURCE_CANDIDATES})",
+    )
+
+
 def build(
     src: Path,
     lang: str,
@@ -83,6 +224,10 @@ def build(
 ) -> Path:
     """
     Compile *src* → .tmp/build/<artifact_name>/exploit (or .exe on Windows).
+
+    Uses a **compilation cache**: if the binary already exists and its
+    modification time is newer than *src*, the existing binary is returned
+    immediately without recompiling.
 
     Parameters
     ----------
@@ -117,10 +262,39 @@ def build(
     binary_path = out_dir / binary_name
     flags = build_flags or []
 
-    if lang == "go":
+    # Compilation cache: skip rebuild if binary is newer than source
+    if binary_path.exists() and src.exists():
+        if binary_path.stat().st_mtime >= src.stat().st_mtime:
+            return binary_path
+
+    # Detect WSL-based compilation (compiler path starts with "wsl:")
+    using_wsl = compiler.startswith("wsl:")
+    wsl_compiler = compiler.split(":", 1)[1] if using_wsl else compiler
+
+    if using_wsl:
+        # Convert Windows path to WSL Linux path (/mnt/X/ convention)
+        def _win_to_wsl(p: Path) -> str:
+            import re as _re
+            s = str(p.resolve())  # always absolute before converting
+            m = _re.match(r'^([A-Za-z]):[/\\](.*)', s)
+            if m:
+                drive = m.group(1).lower()
+                rest  = m.group(2).replace("\\", "/")
+                return f"/mnt/{drive}/{rest}"
+            return s.replace("\\", "/")
+
+        wsl_src  = _win_to_wsl(src)
+        wsl_out  = _win_to_wsl(binary_path)
+
+        if lang == "go":
+            cmd = [_WSL_BIN, wsl_compiler, "build", "-o", wsl_out, wsl_src]  # type: ignore[list-item]
+        elif lang == "rust":
+            cmd = [_WSL_BIN, "rustc", wsl_src, "-o", wsl_out] + flags  # type: ignore[list-item]
+        else:
+            cmd = [_WSL_BIN, wsl_compiler, wsl_src, "-o", wsl_out] + flags  # type: ignore[list-item]
+    elif lang == "go":
         cmd = [compiler, "build", "-o", str(binary_path), str(src)]
     elif lang == "rust":
-        # For single-file Rust, compile via rustc directly
         rustc = shutil.which("rustc")
         if not rustc:
             raise RuntimeError("poly_runner: rustc not found")
@@ -200,7 +374,22 @@ def run(
     try:
         if lang in _COMPILERS:
             binary = build(src, lang, artifact, build_flags)
-            cmd = [str(binary), host, str(port)] + extra_args
+            # If compiled via WSL, the binary is an ELF — run it via wsl
+            if _WSL_BIN and sys.platform == "win32":
+                probe = subprocess.run(
+                    ["file", str(binary)] if shutil.which("file") else
+                    [_WSL_BIN, "file", _win_to_wsl_safe(binary)],
+                    capture_output=True, text=True,
+                )
+                is_elf = "ELF" in probe.stdout
+            else:
+                is_elf = False
+
+            if is_elf and _WSL_BIN:
+                wsl_bin_path = _win_to_wsl_safe(binary)
+                cmd = [_WSL_BIN, wsl_bin_path, host, str(port)] + extra_args
+            else:
+                cmd = [str(binary), host, str(port)] + extra_args
         elif lang in _RUNTIMES:
             runtime = detect(lang)
             if not runtime:
@@ -313,6 +502,25 @@ def run_msf(
 
 
 # ── Internal helpers ───────────────────────────────────────────────────────────
+
+def _win_to_wsl_safe(p: Path) -> str:
+    """Convert a Windows path to a WSL Linux path string (best-effort).
+
+    Converts ``D:\\foo\\bar`` → ``/mnt/d/foo/bar`` using the standard WSL
+    drive-mount convention.  Falls back to a forward-slash replacement when
+    the path does not match a Windows drive letter pattern.
+    """
+    s = str(p)
+    # Windows absolute path: e.g. D:\foo\bar  or  d:/foo/bar
+    import re as _re
+    m = _re.match(r'^([A-Za-z]):[/\\](.*)', s)
+    if m:
+        drive  = m.group(1).lower()
+        rest   = m.group(2).replace("\\", "/")
+        return f"/mnt/{drive}/{rest}"
+    # Already a WSL/POSIX path or relative
+    return s.replace("\\", "/")
+
 
 def _normalize(stdout: str, stderr: str, rc: int, lang: str) -> dict[str, Any]:
     success = rc == 0

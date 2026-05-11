@@ -11,7 +11,7 @@
 [![GitHub](https://img.shields.io/badge/GitHub-mrhenrike-black?logo=github)](https://github.com/mrhenrike/PrinterXPL-Forge)
 [![Wiki](https://img.shields.io/badge/Wiki-English-orange)](https://github.com/mrhenrike/PrinterXPL-Forge/wiki)
 [![Wiki PT-BR](https://img.shields.io/badge/Wiki-Portugu%C3%AAs-green)](https://github.com/mrhenrike/PrinterXPL-Forge/wiki/Home-pt-BR)
-[![Version](https://img.shields.io/badge/version-6.0.0-red)](https://github.com/mrhenrike/PrinterXPL-Forge/releases)
+[![Version](https://img.shields.io/badge/version-6.1.0-red)](https://github.com/mrhenrike/PrinterXPL-Forge/releases)
 
 > **"Is your printer safe from the void? Find out before someone else does."**
 
@@ -21,7 +21,7 @@
 
 ---
 
-PrinterXPL-Forge is a complete, modular framework for security assessment of network printers. It covers all major printer languages (PJL, PostScript, PCL, ESC/P), all common protocols (RAW, IPP, LPD, SMB, HTTP, SNMP, FTP, Telnet), 126 exploit modules, an external wordlist-driven credential engine with zero hardcoded passwords, ML-assisted fingerprinting, NVD/CVE integration, automated lateral movement, firmware analysis, and Cross-Site Printing payloads.
+PrinterXPL-Forge is a complete, modular framework for security assessment of network printers. It covers all major printer languages (PJL, PostScript, PCL, ESC/P), all common protocols (RAW, IPP, LPD, SMB, HTTP, SNMP, FTP, Telnet, WSD, TFTP), **150 exploit modules**, an external wordlist-driven credential engine with zero hardcoded passwords, ML-assisted fingerprinting, NVD/CVE integration (110 CVEs), automated lateral movement, firmware analysis, and Cross-Site Printing payloads. Multi-language exploit orchestration (Python, C/C++ via WSL gcc, Ruby/Metasploit, Go, Rust) is handled by the built-in `poly_runner` engine.
 
 ---
 
@@ -107,7 +107,7 @@ python src/main.py
 | **Languages** | PJL, PS, PCL | PJL, PS, PCL, ESC/P, auto |
 | **Protocols** | RAW, LPD, IPP, USB | RAW, LPD, IPP, SMB, HTTP, SNMP, FTP, Telnet |
 | **CVE Database** | None | 90+ CVEs built-in + NVD API live lookup |
-| **Exploit Library** | None | 136 modules (ExploitDB 23, Metasploit 19, Research 68, Core 26) |
+| **Exploit Library** | None | **150 modules** (ExploitDB 25, Metasploit 19, Research 80, Core 26) — 110 CVEs catalogued |
 | **Brute-Force** | None | HTTP, FTP, SNMP, Telnet — wordlist-driven, 0 hardcoded creds |
 | **Credential Engine** | None | External wordlists, vendor sections, token expansion, variations |
 | **Network Discovery** | None | SNMP sweep, Shodan, Censys, WSD, installed printers |
@@ -443,7 +443,7 @@ admin:hpinvent!
 ## 5. Exploit Library
 
 ```bash
-# List all 136 modules sorted by CVSS
+# List all 150 modules sorted by CVSS
 python printerxpl-forge.py 192.168.1.100 --xpl-list
 python printerxpl-forge.py 192.168.1.100 --xpl-list --xpl-source exploit-db
 
@@ -461,6 +461,38 @@ python printerxpl-forge.py --xpl-fetch 45273
 # Rebuild index after adding modules
 python printerxpl-forge.py --xpl-update
 ```
+
+### New HIGH/CRITICAL Modules Added in v6.1.0
+
+| Module ID | CVE(s) | CVSS | Vendor | Type |
+|---|---|---|---|---|
+| `research-hp-printing-shellz` | CVE-2021-39238 | 9.8 | HP | Wormable RCE (FutureSmart BOF) |
+| `research-hp-bof-series-2022` | CVE-2022-28721 / CVE-2023-1329 / CVE-2024-0794 | 9.8 | HP | Network BOF series |
+| `edb-cve-2021-3441` | CVE-2021-3441 | 7.4 | HP | Stored XSS via unauthenticated PUT |
+| `research-ssport-lpe` | CVE-2021-3438 | 7.8 | HP/Samsung/Xerox | Windows kernel LPE (SSPORT.SYS) |
+| `research-canon-xps-bof-2025b` | CVE-2025-14234 / CVE-2025-14237 | 9.8 | Canon | XPS BOF (advisory CP2026-001) |
+| `research-lexmark-ps-bof-50734` | CVE-2023-50734 | 9.0 | Lexmark | PS interpreter stack BOF |
+| `research-lexmark-ps-bof-50736` | CVE-2023-50736 | 9.0 | Lexmark | PS memory corruption |
+| `research-lexmark-fw-downgrade` | CVE-2023-50738 | 8.8 | Lexmark | Firmware downgrade → RCE |
+| `research-lexmark-heap-bof` | CVE-2024-11345 | 7.3 | Lexmark | Heap BOF via multipart upload |
+| `research-lexmark-pwn2own-2026` | CVE-2025-65079/65080/65081 | 8.8 | Lexmark | Pwn2Own 2026 heap BOF chain |
+| `research-ricoh-http-bof` | CVE-2024-47939 | 7.7 | Ricoh/Konica Minolta | Web Image Monitor stack BOF |
+| `research-xerox-ipp-bof` | CVE-2019-13165 / CVE-2019-13168 | 8.1 | Xerox | Unauthenticated IPP BOF |
+| `research-xerox-http-bof` | CVE-2019-13169 / CVE-2019-13172 | 8.1 | Xerox | HTTP header/cookie BOF |
+| `edb-cve-2016-11061` | CVE-2016-11061 | 9.8 | Xerox | WorkCentre configrui.php unauthenticated RCE |
+| `research-brother-wsd-ssrf` | CVE-2024-51980 / CVE-2024-51981 | 7.5 | Brother | WSD forced TCP / SSRF |
+| `research-brother-wsd-dos` | CVE-2024-51983 | 7.5 | Brother | WSD device crash DoS |
+| `research-brother-passback` | CVE-2024-51984 | 7.1 | Brother | LDAP/SMTP credential pass-back |
+| `edb-cve-2023-3710` | CVE-2023-3710 | 8.8 | Honeywell | PM43 command injection (EDB-51885) |
+| `research-tftp-loop-dos` | CVE-2024-2169 | 7.5 | Brother/Generic | TFTP infinite loop DoS |
+
+### poly_runner Engine — v6.1.0 Enhancements
+
+The built-in multi-language exploit orchestrator now includes:
+- **`available_langs()`** — Returns a dict of all supported compilers/runtimes detected on the system
+- **`run_from_dir(module_dir, ...)`** — Auto-detects source files (`source.c`, `exploit.rb`, `exploit.go`) in a module directory and dispatches to the correct runner
+- **Compilation cache** — Skips rebuild when binary is newer than source (`os.path.getmtime` check)
+- **WSL fallback** — On Windows, if native gcc/clang is absent, automatically uses `wsl gcc` (WSL2 required)
 
 ---
 
@@ -761,5 +793,3 @@ Made with care for the security community.
 [Documentation](https://github.com/mrhenrike/PrinterXPL-Forge/wiki) | [Issues](https://github.com/mrhenrike/PrinterXPL-Forge/issues) | [Releases](https://github.com/mrhenrike/PrinterXPL-Forge/releases)
 
 </div>
-
-

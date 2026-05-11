@@ -1,0 +1,1 @@
+{"id":"research-lexmark-ps-bof-50734","title":"Lexmark PostScript Interpreter Stack BOF RCE (CVE-2023-50734)","source":"research","cve":["CVE-2023-50734"],"cvss":9.0,"severity":"critical","vendor":["Lexmark"],"protocol":"RAW","port":9100,"tags":["rce","bof","postscript","raw","lexmark","unauthenticated","critical"]}

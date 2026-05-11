@@ -1,0 +1,29 @@
+{
+  "id": "research-ssport-lpe",
+  "title": "HP/Samsung/Xerox SSPORT.SYS Kernel Driver LPE — CVE-2021-3438",
+  "source": "research",
+  "url": "https://www.sentinelone.com/labs/cve-2021-3438-16-years-in-hiding-millions-of-printers-worldwide-vulnerable/",
+  "cve": ["CVE-2021-3438"],
+  "cvss": 7.8,
+  "severity": "high",
+  "vendor": ["HP", "Samsung", "Xerox"],
+  "product": "HP LaserJet (380+ models), Samsung CLP/CLX/ML series, Xerox B2xx/PH30xx/WC series",
+  "versions_affected": "SSPORT.SYS driver — all versions prior to 2021 PSIRT patch; present since 2005",
+  "attack_type": "LPE",
+  "type": "local",
+  "category": "lpe",
+  "protocol": "local",
+  "port": 0,
+  "vector": "Local",
+  "tags": ["lpe", "kernel", "driver", "windows", "ioctl", "hp", "samsung", "xerox", "ssport", "privilege-escalation"],
+  "language": "c",
+  "poc_available": true,
+  "date": "2021-05-19",
+  "author": "André Henrique (@mrhenrike) | União Geek",
+  "references": [
+    "https://www.sentinelone.com/labs/cve-2021-3438-16-years-in-hiding-millions-of-printers-worldwide-vulnerable/",
+    "https://nvd.nist.gov/vuln/detail/CVE-2021-3438",
+    "https://www.cybersecurity-help.cz/vdb/exploit/6575/"
+  ],
+  "description": "The SSPORT.SYS kernel driver (bundled with HP, Samsung, and Xerox Windows printer drivers) contains a buffer overflow in its IOCTL handler. The 'strncpy' call in the driver accepts a user-controlled size parameter without validation, allowing a local unprivileged user to overflow a kernel buffer via a crafted IOCTL call, leading to arbitrary code execution in kernel mode and full SYSTEM privilege escalation. The driver is loaded automatically at Windows boot when the printer driver is installed, affecting hundreds of millions of Windows endpoints."
+}

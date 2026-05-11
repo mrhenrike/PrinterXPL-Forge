@@ -1,8 +1,8 @@
 {
   "_meta": {
-    "total": 130,
-    "generated": "2026-04-24",
-    "version": "6.0.0"
+    "total": 150,
+    "generated": "2026-05-03",
+    "version": "6.1.0"
   },
   "modules": [
     {
@@ -2627,6 +2627,468 @@
       "port": 0,
       "tags": [],
       "path": "xpl/edb-cve-2025-26508"
+    },
+    {
+      "id": "research-hp-printing-shellz",
+      "title": "HP LaserJet Enterprise MFP FutureSmart Stack BOF RCE (CVE-2021-39238)",
+      "source": "research",
+      "cve": "CVE-2021-39238",
+      "cvss": 9.8,
+      "severity": "critical",
+      "vendor": [
+        "HP"
+      ],
+      "protocol": "HTTP",
+      "port": 80,
+      "tags": [
+        "rce",
+        "bof",
+        "http",
+        "hp",
+        "futuresmart",
+        "printing-shellz",
+        "unauthenticated",
+        "wormable"
+      ],
+      "path": "xpl/research/research-hp-printing-shellz"
+    },
+    {
+      "id": "research-hp-bof-series-2022",
+      "title": "HP Multi-Model Network BOF Series (CVE-2022-28721 / CVE-2023-1329 / CVE-2024-0794)",
+      "source": "research",
+      "cve": "CVE-2022-28721",
+      "cvss": 9.8,
+      "severity": "critical",
+      "vendor": [
+        "HP"
+      ],
+      "protocol": "HTTP",
+      "port": 80,
+      "tags": [
+        "rce",
+        "bof",
+        "http",
+        "hp",
+        "laserjet",
+        "deskjet",
+        "unauthenticated",
+        "critical"
+      ],
+      "path": "xpl/research/research-hp-bof-series-2022"
+    },
+    {
+      "id": "edb-cve-2021-3441",
+      "title": "HP OfficeJet Stored XSS via Unauthenticated HTTP PUT (CVE-2021-3441)",
+      "source": "exploit-db",
+      "cve": "CVE-2021-3441",
+      "cvss": 7.4,
+      "severity": "high",
+      "vendor": [
+        "HP"
+      ],
+      "protocol": "HTTP",
+      "port": 80,
+      "tags": [
+        "xss",
+        "stored-xss",
+        "http",
+        "hp",
+        "officejet",
+        "unauthenticated",
+        "put"
+      ],
+      "path": "xpl/edb-cve-2021-3441"
+    },
+    {
+      "id": "research-ssport-lpe",
+      "title": "HP/Samsung/Xerox SSPORT.SYS Kernel Driver LPE (CVE-2021-3438)",
+      "source": "research",
+      "cve": "CVE-2021-3438",
+      "cvss": 7.8,
+      "severity": "high",
+      "vendor": [
+        "HP",
+        "Samsung",
+        "Xerox"
+      ],
+      "protocol": "local",
+      "port": 0,
+      "tags": [
+        "lpe",
+        "kernel",
+        "driver",
+        "windows",
+        "ioctl",
+        "hp",
+        "samsung",
+        "xerox",
+        "ssport"
+      ],
+      "path": "xpl/research/research-ssport-lpe"
+    },
+    {
+      "id": "research-canon-xps-bof-2025b",
+      "title": "Canon XPS Parser BOF RCE — CVE-2025-14234 + CVE-2025-14237 (Advisory CP2026-001)",
+      "source": "research",
+      "cve": "CVE-2025-14234",
+      "cvss": 9.8,
+      "severity": "critical",
+      "vendor": [
+        "Canon"
+      ],
+      "protocol": "HTTP",
+      "port": 80,
+      "tags": [
+        "rce",
+        "bof",
+        "xps",
+        "http",
+        "canon",
+        "unauthenticated",
+        "critical"
+      ],
+      "path": "xpl/research/research-canon-xps-bof-2025b"
+    },
+    {
+      "id": "research-lexmark-ps-bof-50734",
+      "title": "Lexmark PostScript Interpreter Stack BOF RCE (CVE-2023-50734)",
+      "source": "research",
+      "cve": "CVE-2023-50734",
+      "cvss": 9.0,
+      "severity": "critical",
+      "vendor": [
+        "Lexmark"
+      ],
+      "protocol": "RAW",
+      "port": 9100,
+      "tags": [
+        "rce",
+        "bof",
+        "postscript",
+        "raw",
+        "lexmark",
+        "unauthenticated",
+        "critical"
+      ],
+      "path": "xpl/research/research-lexmark-ps-bof-50734"
+    },
+    {
+      "id": "research-lexmark-ps-bof-50736",
+      "title": "Lexmark PostScript Memory Corruption RCE (CVE-2023-50736)",
+      "source": "research",
+      "cve": "CVE-2023-50736",
+      "cvss": 9.0,
+      "severity": "critical",
+      "vendor": [
+        "Lexmark"
+      ],
+      "protocol": "RAW",
+      "port": 9100,
+      "tags": [
+        "rce",
+        "bof",
+        "memory-corruption",
+        "postscript",
+        "raw",
+        "lexmark",
+        "unauthenticated",
+        "critical"
+      ],
+      "path": "xpl/research/research-lexmark-ps-bof-50736"
+    },
+    {
+      "id": "research-lexmark-fw-downgrade",
+      "title": "Lexmark Firmware Downgrade to Arbitrary Code Execution (CVE-2023-50738)",
+      "source": "research",
+      "cve": "CVE-2023-50738",
+      "cvss": 8.8,
+      "severity": "high",
+      "vendor": [
+        "Lexmark"
+      ],
+      "protocol": "HTTP",
+      "port": 80,
+      "tags": [
+        "rce",
+        "firmware-downgrade",
+        "http",
+        "lexmark",
+        "high"
+      ],
+      "path": "xpl/research/research-lexmark-fw-downgrade"
+    },
+    {
+      "id": "research-lexmark-heap-bof",
+      "title": "Lexmark Heap Buffer Overflow via Multipart Form Upload (CVE-2024-11345)",
+      "source": "research",
+      "cve": "CVE-2024-11345",
+      "cvss": 7.3,
+      "severity": "high",
+      "vendor": [
+        "Lexmark"
+      ],
+      "protocol": "HTTP",
+      "port": 80,
+      "tags": [
+        "rce",
+        "heap-bof",
+        "http",
+        "multipart",
+        "lexmark",
+        "high"
+      ],
+      "path": "xpl/research/research-lexmark-heap-bof"
+    },
+    {
+      "id": "research-lexmark-pwn2own-2026",
+      "title": "Lexmark CX532adwe Pwn2Own 2026 Heap BOF RCE Chain (CVE-2025-65079/65080/65081)",
+      "source": "research",
+      "cve": "CVE-2025-65079",
+      "cvss": 8.8,
+      "severity": "high",
+      "vendor": [
+        "Lexmark"
+      ],
+      "protocol": "RAW",
+      "port": 9100,
+      "tags": [
+        "rce",
+        "heap-bof",
+        "postscript",
+        "cff-font",
+        "pwn2own",
+        "raw",
+        "lexmark",
+        "high",
+        "2026"
+      ],
+      "path": "xpl/research/research-lexmark-pwn2own-2026"
+    },
+    {
+      "id": "research-ricoh-http-bof",
+      "title": "Ricoh Web Image Monitor Stack BOF RCE (CVE-2024-47939)",
+      "source": "research",
+      "cve": "CVE-2024-47939",
+      "cvss": 7.7,
+      "severity": "high",
+      "vendor": [
+        "Ricoh",
+        "Konica Minolta"
+      ],
+      "protocol": "HTTP",
+      "port": 80,
+      "tags": [
+        "rce",
+        "bof",
+        "http",
+        "ricoh",
+        "konica-minolta",
+        "ews",
+        "high"
+      ],
+      "path": "xpl/research/research-ricoh-http-bof"
+    },
+    {
+      "id": "research-xerox-ipp-bof",
+      "title": "Xerox IPP Unauthenticated Buffer Overflow (CVE-2019-13165 / CVE-2019-13168)",
+      "source": "research",
+      "cve": "CVE-2019-13165",
+      "cvss": 8.1,
+      "severity": "high",
+      "vendor": [
+        "Xerox"
+      ],
+      "protocol": "IPP",
+      "port": 631,
+      "tags": [
+        "rce",
+        "bof",
+        "ipp",
+        "xerox",
+        "unauthenticated",
+        "high"
+      ],
+      "path": "xpl/research/research-xerox-ipp-bof"
+    },
+    {
+      "id": "research-xerox-http-bof",
+      "title": "Xerox HTTP Header/Cookie Buffer Overflow (CVE-2019-13169 / CVE-2019-13172)",
+      "source": "research",
+      "cve": "CVE-2019-13169",
+      "cvss": 8.1,
+      "severity": "high",
+      "vendor": [
+        "Xerox"
+      ],
+      "protocol": "HTTP",
+      "port": 80,
+      "tags": [
+        "rce",
+        "bof",
+        "http",
+        "xerox",
+        "unauthenticated",
+        "high",
+        "cookie"
+      ],
+      "path": "xpl/research/research-xerox-http-bof"
+    },
+    {
+      "id": "edb-cve-2016-11061",
+      "title": "Xerox WorkCentre configrui.php Unauthenticated RCE (CVE-2016-11061)",
+      "source": "exploit-db",
+      "cve": "CVE-2016-11061",
+      "cvss": 9.8,
+      "severity": "critical",
+      "vendor": [
+        "Xerox"
+      ],
+      "protocol": "HTTP",
+      "port": 80,
+      "tags": [
+        "rce",
+        "command-injection",
+        "http",
+        "xerox",
+        "unauthenticated",
+        "critical",
+        "workcentre"
+      ],
+      "path": "xpl/edb-cve-2016-11061"
+    },
+    {
+      "id": "research-brother-wsd-ssrf",
+      "title": "Brother WSD Forced TCP / SSRF (CVE-2024-51980 + CVE-2024-51981)",
+      "source": "research",
+      "cve": "CVE-2024-51980",
+      "cvss": 7.5,
+      "severity": "high",
+      "vendor": [
+        "Brother",
+        "Konica Minolta"
+      ],
+      "protocol": "WSD",
+      "port": 3702,
+      "tags": [
+        "ssrf",
+        "wsd",
+        "brother",
+        "tcp-coerce",
+        "high"
+      ],
+      "path": "xpl/research/research-brother-wsd-ssrf"
+    },
+    {
+      "id": "research-brother-wsd-dos",
+      "title": "Brother WSD Device Crash DoS (CVE-2024-51983)",
+      "source": "research",
+      "cve": "CVE-2024-51983",
+      "cvss": 7.5,
+      "severity": "high",
+      "vendor": [
+        "Brother"
+      ],
+      "protocol": "WSD",
+      "port": 3702,
+      "tags": [
+        "dos",
+        "wsd",
+        "brother",
+        "crash",
+        "high"
+      ],
+      "path": "xpl/research/research-brother-wsd-dos"
+    },
+    {
+      "id": "research-brother-passback",
+      "title": "Brother LDAP/SMTP Credential Pass-Back Attack (CVE-2024-51984)",
+      "source": "research",
+      "cve": "CVE-2024-51984",
+      "cvss": 7.1,
+      "severity": "high",
+      "vendor": [
+        "Brother"
+      ],
+      "protocol": "HTTP",
+      "port": 80,
+      "tags": [
+        "passback",
+        "credential-theft",
+        "ldap",
+        "smtp",
+        "http",
+        "brother",
+        "high"
+      ],
+      "path": "xpl/research/research-brother-passback"
+    },
+    {
+      "id": "edb-cve-2023-3710",
+      "title": "Honeywell PM43 Command Injection via HTTP POST (CVE-2023-3710)",
+      "source": "exploit-db",
+      "cve": "CVE-2023-3710",
+      "cvss": 8.8,
+      "severity": "high",
+      "vendor": [
+        "Honeywell"
+      ],
+      "protocol": "HTTP",
+      "port": 80,
+      "tags": [
+        "rce",
+        "command-injection",
+        "http",
+        "honeywell",
+        "pm43",
+        "industrial",
+        "high"
+      ],
+      "path": "xpl/edb-cve-2023-3710"
+    },
+    {
+      "id": "research-tftp-loop-dos",
+      "title": "TFTP Infinite Loop DoS — Multi-vendor (CVE-2024-2169)",
+      "source": "research",
+      "cve": "CVE-2024-2169",
+      "cvss": 7.5,
+      "severity": "high",
+      "vendor": [
+        "Brother",
+        "Generic"
+      ],
+      "protocol": "TFTP",
+      "port": 69,
+      "tags": [
+        "dos",
+        "tftp",
+        "brother",
+        "infinite-loop",
+        "high"
+      ],
+      "path": "xpl/research/research-tftp-loop-dos"
+    },
+    {
+      "id": "research-lexmark-pwn2own-2026-65080",
+      "title": "Lexmark PS Dict Operator Heap Corruption (CVE-2025-65080) — Pwn2Own 2026",
+      "source": "research",
+      "cve": "CVE-2025-65080",
+      "cvss": 8.8,
+      "severity": "high",
+      "vendor": [
+        "Lexmark"
+      ],
+      "protocol": "RAW",
+      "port": 9100,
+      "tags": [
+        "rce",
+        "heap-bof",
+        "postscript",
+        "pwn2own",
+        "raw",
+        "lexmark",
+        "high"
+      ],
+      "path": "xpl/research/research-lexmark-pwn2own-2026"
     }
   ]
 }

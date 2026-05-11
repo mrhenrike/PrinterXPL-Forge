@@ -1,0 +1,1 @@
+{"id":"research-xerox-ipp-bof","title":"Xerox IPP Unauthenticated Buffer Overflow (CVE-2019-13165 / CVE-2019-13168)","source":"research","cve":["CVE-2019-13165","CVE-2019-13168"],"cvss":8.1,"severity":"high","vendor":["Xerox"],"protocol":"IPP","port":631,"tags":["rce","bof","ipp","xerox","unauthenticated","high"]}

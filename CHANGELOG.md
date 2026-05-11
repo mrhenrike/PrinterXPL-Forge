@@ -1,17 +1,69 @@
+## [6.1.0] - 2026-05-03 — Maximum Coverage Expansion
+
+### Added
+- **20 new exploit modules** covering HIGH/CRITICAL CVEs absent from previous versions:
+  - `research-hp-printing-shellz` — CVE-2021-39238 HP FutureSmart "Printing Shellz" wormable BOF (CVSS 9.8) with `source.c`
+  - `research-hp-bof-series-2022` — CVE-2022-28721 / CVE-2023-1329 / CVE-2024-0794 HP multi-model network BOF series (CVSS 9.8)
+  - `edb-cve-2021-3441` — CVE-2021-3441 HP OfficeJet Stored XSS via unauthenticated PUT (EDB-50227)
+  - `research-ssport-lpe` — CVE-2021-3438 HP/Samsung/Xerox SSPORT.SYS kernel driver LPE → SYSTEM (CVSS 7.8) with `source.c`
+  - `research-canon-xps-bof-2025b` — CVE-2025-14234 + CVE-2025-14237 Canon XPS BOF (CP2026-001 complement)
+  - `research-lexmark-ps-bof-50734` — CVE-2023-50734 Lexmark PS interpreter stack BOF (CVSS 9.0)
+  - `research-lexmark-ps-bof-50736` — CVE-2023-50736 Lexmark PS memory corruption (CVSS 9.0)
+  - `research-lexmark-fw-downgrade` — CVE-2023-50738 Lexmark firmware downgrade bypass → RCE (CVSS 8.8)
+  - `research-lexmark-heap-bof` — CVE-2024-11345 Lexmark heap BOF via multipart upload (CVSS 7.3)
+  - `research-lexmark-pwn2own-2026` — CVE-2025-65079/65080/65081 Lexmark Pwn2Own 2026 chain (CVSS 8.8)
+  - `research-ricoh-http-bof` — CVE-2024-47939 Ricoh Web Image Monitor stack BOF (CVSS 7.7)
+  - `research-xerox-ipp-bof` — CVE-2019-13165 + CVE-2019-13168 Xerox unauthenticated IPP BOF
+  - `research-xerox-http-bof` — CVE-2019-13169 + CVE-2019-13172 Xerox HTTP header/cookie BOF
+  - `edb-cve-2016-11061` — CVE-2016-11061 Xerox WorkCentre configrui.php unauthenticated RCE (CVSS 9.8)
+  - `research-brother-wsd-ssrf` — CVE-2024-51980 + CVE-2024-51981 Brother WSD forced TCP / SSRF
+  - `research-brother-wsd-dos` — CVE-2024-51983 Brother WSD device crash DoS
+  - `research-brother-passback` — CVE-2024-51984 Brother LDAP/SMTP credential pass-back
+  - `edb-cve-2023-3710` — CVE-2023-3710 Honeywell PM43 command injection (EDB-51885, CVSS 8.8)
+  - `research-tftp-loop-dos` — CVE-2024-2169 TFTP infinite loop DoS multi-vendor
+- **Honeywell** added as new supported vendor (PM43 industrial label printer)
+- **3 poly_runner enhancements** (`src/core/poly_runner.py`):
+  - `available_langs()` — Dict of all detected compilers/runtimes on the system
+  - `run_from_dir()` — Auto-detects source file language from module directory
+  - Compilation cache — Skips rebuild when binary mtime >= source mtime
+  - WSL fallback — Uses `wsl gcc` on Windows when native gcc absent
+- 20 new CVE entries in `src/data/cve_catalog.json` (total: 90 → 110)
+- 20 new module entries in `xpl/index.json` (total: 130 → 150)
+- QA gateway scripts `tools/qa/gate{2-6}_check.py` and `tools/qa/update_catalogs.py`
+
+### Changed
+- Total modules: 130 → **150**
+- Total CVEs: 90 → **110**
+- New vendor: **Honeywell** (PM43 industrial printer)
+- poly_runner: C/C++ via WSL on Windows, compile cache, auto-detection
+- Version: 6.0.0 → **6.1.0**
+
+---
+
 ## [6.0.0] - 2026-04-24 — Cross-Submodule Expansion
 
 ### Added
 - **10 novos módulos exploit** derivados de auditoria de dev/ e submodules/:
-  - esearch-ipp-purge-dos — IPP Purge-Jobs DoS (unauthenticated, RFC 2911)
-  - esearch-ipp-print-uri-ssrf — IPP Print-URI SSRF / internal port scan
-  - esearch-ipp-anon-inject — Anonymous IPP Print-Job injection
-  - esearch-pjl-pwd-disclosure — CVE-2011-4786 PJL INFO VARIABLES password leak
-  - esearch-wsd-enum — WSD/DNS-SD printer discovery (UDP 3702 + TCP 5357)
-  - esearch-ftp-printer-grab — FTP filesystem exfiltration (embedded FTP on port 21)
-  - esearch-fax-config-exfil — MFP FAX address book / forwarding rules exposure
-  - esearch-dell-b5460-enum — Dell B5460dn/Lexmark OEM SNMP factory reset + cred dump
-  - esearch-oki-b432-config-dump — OKI B432dn unauthenticated web config dump
-  - esearch-ipp-evil-twin — Rogue IPP printer / evil-twin (bettercap ZeroGod, Go)
+  - 
+esearch-ipp-purge-dos — IPP Purge-Jobs DoS (unauthenticated, RFC 2911)
+  - 
+esearch-ipp-print-uri-ssrf — IPP Print-URI SSRF / internal port scan
+  - 
+esearch-ipp-anon-inject — Anonymous IPP Print-Job injection
+  - 
+esearch-pjl-pwd-disclosure — CVE-2011-4786 PJL INFO VARIABLES password leak
+  - 
+esearch-wsd-enum — WSD/DNS-SD printer discovery (UDP 3702 + TCP 5357)
+  - 
+esearch-ftp-printer-grab — FTP filesystem exfiltration (embedded FTP on port 21)
+  - 
+esearch-fax-config-exfil — MFP FAX address book / forwarding rules exposure
+  - 
+esearch-dell-b5460-enum — Dell B5460dn/Lexmark OEM SNMP factory reset + cred dump
+  - 
+esearch-oki-b432-config-dump — OKI B432dn unauthenticated web config dump
+  - 
+esearch-ipp-evil-twin — Rogue IPP printer / evil-twin (bettercap ZeroGod, Go)
 - **12 novos scripts NSE** integrados de dev/Printers/nse/:
   cups-info, cups-queue-info, hp-printers-cve-2022-1026, http-device-mac,
   http-hp-ilo-info, http-info-xerox-enum, http-vuln-cve2022-1026 (Kyocera addr book),
@@ -506,5 +558,3 @@ Author: André Henrique (@mrhenrike) | União Geek — https://github.com/Uniao-
 ---
 
 *Full git history available via `git log --oneline --all` in the repository.*
-
-

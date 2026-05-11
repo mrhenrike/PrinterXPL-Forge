@@ -23,7 +23,7 @@
 
 ## O que é
 
-PrinterXPL-Forge é um framework modular completo para **avaliação de segurança** de impressoras em rede. Cobre todas as principais linguagens de impressora (PJL, PostScript, PCL, ESC/P), todos os protocolos comuns (RAW, IPP, LPD, SMB, HTTP, SNMP, FTP, Telnet), 126 módulos de exploit, motor de credenciais via **wordlists externas** (zero senhas hardcoded), fingerprinting com ML, integração **NVD/CVE**, movimento lateral automatizado, análise de firmware e payloads de Cross-Site Printing.
+PrinterXPL-Forge é um framework modular completo para **avaliação de segurança** de impressoras em rede. Cobre todas as principais linguagens de impressora (PJL, PostScript, PCL, ESC/P), todos os protocolos comuns (RAW, IPP, LPD, SMB, HTTP, SNMP, FTP, Telnet), **150 módulos de exploit**, motor de credenciais via **wordlists externas** (zero senhas hardcoded), fingerprinting com ML, integração **NVD/CVE**, movimento lateral automatizado, análise de firmware e payloads de Cross-Site Printing. Orquestração multi-linguagem (Python, C/C++ via WSL gcc, Ruby/Metasploit, Go, Rust) é gerenciada pelo motor `poly_runner` integrado. Catálogo NVD/CVE com 110 entradas.
 
 ---
 
@@ -112,14 +112,45 @@ python printerxpl-forge.py 192.168.1.100 --scan
 
 ---
 
-## Módulos de Exploit (136 total)
+## Módulos de Exploit (150 total)
 
 | Origem | Qtd | Descrição |
 |--------|-----|-----------|
-| **ExploitDB** | 23 | Exploits do ExploitDB adaptados para Python 3 |
+| **ExploitDB** | 25 | Exploits do ExploitDB adaptados para Python 3 |
 | **Metasploit** | 19 | Módulos Metasploit portados como wrappers Python |
-| **Research** | 58 | Módulos originais baseados em pesquisa de segurança |
+| **Research** | 80 | Módulos originais baseados em pesquisa de segurança |
 | **Core/Generic** | 26 | Módulos de protocolo genérico (PJL, IPP, SNMP, PS, PCL) |
+
+### Novos Módulos HIGH/CRITICAL (v6.1.0)
+
+| Módulo | CVE(s) | CVSS | Fabricante | Tipo |
+|---|---|---|---|---|
+| `research-hp-printing-shellz` | CVE-2021-39238 | 9.8 | HP | RCE wormable (FutureSmart BOF) |
+| `research-hp-bof-series-2022` | CVE-2022-28721/2023-1329/2024-0794 | 9.8 | HP | Série de BOF em rede |
+| `edb-cve-2021-3441` | CVE-2021-3441 | 7.4 | HP | XSS persistente via PUT sem autenticação |
+| `research-ssport-lpe` | CVE-2021-3438 | 7.8 | HP/Samsung/Xerox | LPE kernel Windows (SSPORT.SYS) |
+| `research-canon-xps-bof-2025b` | CVE-2025-14234/CVE-2025-14237 | 9.8 | Canon | XPS BOF (advisory CP2026-001) |
+| `research-lexmark-ps-bof-50734` | CVE-2023-50734 | 9.0 | Lexmark | BOF no interpretador PostScript |
+| `research-lexmark-ps-bof-50736` | CVE-2023-50736 | 9.0 | Lexmark | Corrupção de memória PS |
+| `research-lexmark-fw-downgrade` | CVE-2023-50738 | 8.8 | Lexmark | Downgrade de firmware → RCE |
+| `research-lexmark-heap-bof` | CVE-2024-11345 | 7.3 | Lexmark | Heap BOF via upload multipart |
+| `research-lexmark-pwn2own-2026` | CVE-2025-65079/65080/65081 | 8.8 | Lexmark | Cadeia Pwn2Own 2026 |
+| `research-ricoh-http-bof` | CVE-2024-47939 | 7.7 | Ricoh/Konica Minolta | Stack BOF Web Image Monitor |
+| `research-xerox-ipp-bof` | CVE-2019-13165/CVE-2019-13168 | 8.1 | Xerox | BOF IPP sem autenticação |
+| `research-xerox-http-bof` | CVE-2019-13169/CVE-2019-13172 | 8.1 | Xerox | BOF HTTP header/cookie |
+| `edb-cve-2016-11061` | CVE-2016-11061 | 9.8 | Xerox | RCE sem autenticação (configrui.php) |
+| `research-brother-wsd-ssrf` | CVE-2024-51980/CVE-2024-51981 | 7.5 | Brother | WSD TCP forçado / SSRF |
+| `research-brother-wsd-dos` | CVE-2024-51983 | 7.5 | Brother | WSD DoS — queda do dispositivo |
+| `research-brother-passback` | CVE-2024-51984 | 7.1 | Brother | Pass-back LDAP/SMTP |
+| `edb-cve-2023-3710` | CVE-2023-3710 | 8.8 | Honeywell | Injeção de comando PM43 (EDB-51885) |
+| `research-tftp-loop-dos` | CVE-2024-2169 | 7.5 | Brother/Genérico | Loop infinito TFTP — DoS |
+
+### Motor poly_runner — Melhorias v6.1.0
+
+- **`available_langs()`** — Retorna dicionário de compiladores/runtimes detectados no sistema
+- **`run_from_dir(module_dir, ...)`** — Auto-detecta arquivos fonte (`source.c`, `exploit.rb`, `exploit.go`) e despacha para o runner correto
+- **Cache de compilação** — Ignora recompilação quando o binário é mais novo que o fonte
+- **Fallback WSL** — No Windows, usa automaticamente `wsl gcc` quando gcc nativo não está disponível
 
 ### Tipos de Ataque Cobertos
 
@@ -136,17 +167,18 @@ python printerxpl-forge.py 192.168.1.100 --scan
 
 | Fornecedor | Módulos | Vulnerabilidades Notáveis |
 |-----------|---------|--------------------------|
-| HP | 16 | CVE-2025-26506, CVE-2023-6018, CVE-2017-2741, Faxploit, FutureSmart |
-| Xerox | 13 | CVE-2024-6333, CVE-2021-27508, DLM injection, firmware root |
-| Brother | 10 | CVE-2024-51977/51978, NVRAM, serial password derivation |
-| Ricoh | 10 | CVE-2024-34161, CVE-2021-33945, CVE-2022-29943, LDAP pass-back |
-| Konica | 8 | CVE-2022-1026, FIRMWARE-KONICA-001, SOAP credential dump |
-| Canon | 8 | CVE-2022-24673, CVE-2025-14235, EDB-49140, PostScript |
+| HP | 22 | CVE-2025-26506, CVE-2021-39238, CVE-2022-28721, CVE-2023-1329, CVE-2024-0794, CVE-2021-3438, Faxploit |
+| Xerox | 16 | CVE-2024-6333, CVE-2016-11061, CVE-2019-13165/13168/13169/13172, CVE-2021-27508 |
+| Brother | 13 | CVE-2024-51977/51978/51980/51981/51983/51984, NVRAM, serial password derivation |
+| Ricoh | 11 | CVE-2024-47939, CVE-2024-34161, CVE-2021-33945, CVE-2022-29943, LDAP pass-back |
+| Lexmark | 12 | CVE-2023-50734/50736/50738, CVE-2024-11345, CVE-2025-65079, CVE-2023-23560 |
+| Canon | 10 | CVE-2025-14232/14234/14235/14237, CVE-2022-24673, EDB-49140 |
 | Microsoft | 12 | PrintNightmare, GooseEgg, PrintDemon family (CVE-2021-1675+) |
-| Lexmark | 7 | CVE-2023-23560, CVE-2023-50739, CVE-2023-50733, CVE-2023-26067 |
+| Konica Minolta | 9 | CVE-2022-1026, CVE-2024-47939, FIRMWARE-KONICA-001, SOAP credential dump |
 | Linux/CUPS | 6 | CVE-2024-47176 chain, CVE-2026-34980/34990 |
 | Sharp | 5 | CVE-2022-45796, SMTP/LDAP pass-back |
 | Kyocera | 4 | CVE-2022-1026, brute-force, PJL enum |
+| Honeywell | 1 | CVE-2023-3710 (PM43 command injection) |
 | Toshiba | 3 | CVE-2024-21911, TopAccess auth bypass |
 | Outros | 14 | Epson, OKI, Samsung, Dell, generics (PJL/IPP/SNMP) |
 
@@ -195,5 +227,3 @@ Este framework é destinado **exclusivamente** para uso em sistemas próprios ou
 **Autor:** André Henrique ([@mrhenrike](https://github.com/mrhenrike)) | [União Geek](https://github.com/Uniao-Geek)
 
 </div>
-
-

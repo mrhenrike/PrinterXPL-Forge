@@ -1,0 +1,1 @@
+{"id":"research-lexmark-ps-bof-50736","title":"Lexmark PostScript Memory Corruption RCE (CVE-2023-50736)","source":"research","cve":["CVE-2023-50736"],"cvss":9.0,"severity":"critical","vendor":["Lexmark"],"protocol":"RAW","port":9100,"tags":["rce","bof","memory-corruption","postscript","raw","lexmark","unauthenticated","critical"]}

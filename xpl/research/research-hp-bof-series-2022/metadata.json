@@ -1,0 +1,30 @@
+{
+  "id": "research-hp-bof-series-2022",
+  "title": "HP Multi-Model Network BOF Series — CVE-2022-28721 / CVE-2023-1329 / CVE-2024-0794",
+  "source": "research",
+  "url": "https://support.hp.com/us-en/document/ish_6839789-6839813-16/hpsbpi03810",
+  "cve": ["CVE-2022-28721", "CVE-2023-1329", "CVE-2024-0794"],
+  "cvss": 9.8,
+  "severity": "critical",
+  "vendor": ["HP"],
+  "product": "HP DeskJet / ENVY / OfficeJet / LaserJet Pro / PageWide / DesignJet / Workpath MFP",
+  "versions_affected": "Multiple models — see HP PSIRT advisories HPSBPI03810, HPSBPI03863, HPSBPI03951",
+  "attack_type": "RCE",
+  "type": "remote",
+  "category": "rce",
+  "protocol": "HTTP",
+  "port": 80,
+  "vector": "Network",
+  "tags": ["rce", "bof", "http", "hp", "laserjet", "deskjet", "envy", "workpath", "unauthenticated"],
+  "language": "python",
+  "poc_available": false,
+  "date": "2022-06-01",
+  "author": "André Henrique (@mrhenrike) | União Geek",
+  "references": [
+    "https://support.hp.com/us-en/document/ish_6839789-6839813-16/hpsbpi03810",
+    "https://nvd.nist.gov/vuln/detail/CVE-2022-28721",
+    "https://nvd.nist.gov/vuln/detail/CVE-2023-1329",
+    "https://nvd.nist.gov/vuln/detail/CVE-2024-0794"
+  ],
+  "description": "Three related buffer overflow vulnerabilities in HP consumer and enterprise printers (DeskJet, ENVY, OfficeJet, LaserJet Pro, PageWide, DesignJet, Workpath MFP). CVE-2022-28721: network BOF in rendering subsystem (CVSS 9.8). CVE-2023-1329: BOF in HP Workpath platform affecting 1914 MFP models (CVSS 9.8). CVE-2024-0794: BOF in PDF font rendering path allowing unauthenticated RCE via a specially crafted print job (CVSS 9.8). All three share the same attack vector: a malformed document sent over the network triggers a stack or heap overflow leading to arbitrary code execution."
+}

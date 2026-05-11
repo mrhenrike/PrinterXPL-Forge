@@ -28,8 +28,12 @@ PrinterXPL-Forge has been tested and validated against the following vendors. De
 | Languages | PJL, PostScript, PCL |
 | Default creds | `Admin:Admin`, `jetdirect:`, `admin:hpinvent!` |
 | Login URL | `/hp/device/webAccess/index.htm` |
-| CVEs | CVE-2019-6329, CVE-2018-5925, CVE-2010-4107 |
-| Exploits | `edb-15631`, `edb-35151`, `msf-hp-ews-auth`, `research-hp-factory-reset` |
+| CVEs | CVE-2025-26506, CVE-2021-39238, CVE-2022-28721, CVE-2023-1329, CVE-2024-0794, CVE-2021-3438, CVE-2021-3441, CVE-2018-5924, CVE-2017-2741, CVE-2023-6018 |
+| Exploits | `research-hp-printing-shellz`, `research-hp-bof-series-2022`, `edb-cve-2021-3441`, `research-ssport-lpe`, `edb-cve-2018-5924`, `edb-cve-2025-26506` |
+
+**CVE-2021-39238 (Printing Shellz):** Wormable stack BOF in HP FutureSmart printer font parser. CVSS 9.8. Use `research-hp-printing-shellz` (C exploit via poly_runner).
+
+**CVE-2021-3438:** Windows kernel driver SSPORT.SYS LPE → SYSTEM. Affects HP LaserJet drivers. CVSS 7.8. Use `research-ssport-lpe`.
 
 ---
 
@@ -37,16 +41,22 @@ PrinterXPL-Forge has been tested and validated against the following vendors. De
 
 | Property | Details |
 |----------|---------|
-| Protocols | HTTP/EWS, SNMP, IPP, PJL/9100, Telnet |
+| Protocols | HTTP/EWS, SNMP, IPP, PJL/9100, Telnet, WSD/3702 |
 | Languages | PJL, PostScript, PCL |
 | Default creds | `admin:initpass`, `admin:access`, `admin:<serial[-8:]>` |
 | Login URL | `/general/status.html` |
-| CVEs | CVE-2024-51977, CVE-2024-51978 |
-| Exploits | `research-brother-serial-pwd`, `research-brother-nvram`, `research-brother-vuln-enum` |
+| CVEs | CVE-2024-51977, CVE-2024-51978, CVE-2024-51980, CVE-2024-51981, CVE-2024-51983, CVE-2024-51984, CVE-2024-51982, CVE-2024-2169 |
+| Exploits | `research-brother-serial-pwd`, `research-brother-nvram`, `research-brother-vuln-enum`, `research-brother-wsd-ssrf`, `research-brother-wsd-dos`, `research-brother-passback`, `research-cve-2024-51982`, `research-tftp-loop-dos` |
 
 **CVE-2024-51977:** Unauthenticated serial number disclosure via PJL INFO CONFIG or HTTP web interface.
 
 **CVE-2024-51978:** Default admin password is derived from the last 8 characters of the serial number. Use `research-brother-serial-pwd` to retrieve serial and compute password automatically.
+
+**CVE-2024-51980/51981:** WSD service accepts crafted WS-Discovery messages causing forced TCP connections (SSRF / network scan from printer).
+
+**CVE-2024-51983:** Malformed WSD message causes device crash → DoS.
+
+**CVE-2024-51984:** LDAP/SMTP server override → credential pass-back via rogue server.
 
 **NVRAM attack:** `research-brother-nvram` sends rapid PJL SET COLLATE commands to exhaust NVRAM write cycles — causes permanent device failure (irreversible DoS).
 
@@ -233,22 +243,38 @@ PrinterXPL-Forge has been tested and validated against the following vendors. De
 | Vendor | PJL | PS | PCL | SNMP | HTTP BF | Exploit Modules |
 |--------|-----|----|-----|------|---------|-----------------|
 | Epson | partial | no | no | yes | yes | 4 |
-| HP | yes | yes | yes | yes | yes | 11 |
-| Brother | yes | yes | yes | yes | yes | 7 |
-| Ricoh | yes | yes | yes | yes | yes | 5 |
-| Xerox | yes | yes | yes | yes | yes | 7 |
-| Canon | no | yes | yes | yes | yes | 5 |
+| HP | yes | yes | yes | yes | yes | 22 |
+| Brother | yes | yes | yes | yes | yes | 13 |
+| Ricoh | yes | yes | yes | yes | yes | 11 |
+| Xerox | yes | yes | yes | yes | yes | 16 |
+| Canon | no | yes | yes | yes | yes | 10 |
 | Kyocera | yes | yes | yes | yes | yes | 4 |
 | Samsung | yes | yes | no | yes | yes | 2 |
 | OKI | yes | yes | yes | yes | yes | 1 |
-| Lexmark | yes | yes | yes | yes | yes | 6 |
-| Konica | no | yes | yes | yes | yes | 4 |
+| Lexmark | yes | yes | yes | yes | yes | 12 |
+| Konica Minolta | no | yes | yes | yes | yes | 9 |
 | Sharp | partial | yes | no | yes | yes | 3 |
 | Toshiba | no | yes | yes | yes | yes | 1 |
 | Zebra | no | no | no | yes | yes | 1 |
 | Fujifilm | no | yes | yes | yes | yes | 1 |
 | Dell | no | no | no | yes | yes | 2 |
+| Honeywell | no | no | no | no | no | 1 |
 | Windows/CUPS | — | — | — | — | — | 9 (spooler/cups) |
 | Generic IoT | — | — | — | — | yes | 3 (mirai/wifi/grpc) |
 
-**Total modules: 93** (23 ExploitDB + 19 Metasploit + 51 Research)
+**Total modules: 150** (25 ExploitDB + 19 Metasploit + 80 Research + 26 Core/Generic)
+
+---
+
+## Honeywell
+
+| Property | Details |
+|----------|---------|
+| Protocols | HTTP/EWS (port 80/443) |
+| Languages | ZPL (label printing) |
+| Default creds | `admin:admin` |
+| Login URL | `/loadfile.lp?pageid=Configure` |
+| CVEs | CVE-2023-3710 |
+| Exploits | `edb-cve-2023-3710` |
+
+**CVE-2023-3710:** Unauthenticated OS command injection in PM43 web interface via `username` field with newline injection. Firmware < P10.19.050004. CVSS 8.8. EDB-51885.

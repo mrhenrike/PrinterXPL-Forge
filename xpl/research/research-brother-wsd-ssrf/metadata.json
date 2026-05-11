@@ -1,0 +1,1 @@
+{"id":"research-brother-wsd-ssrf","title":"Brother WSD Forced TCP / SSRF (CVE-2024-51980 + CVE-2024-51981)","source":"research","cve":["CVE-2024-51980","CVE-2024-51981"],"cvss":7.5,"severity":"high","vendor":["Brother","Konica Minolta"],"protocol":"WSD","port":3702,"tags":["ssrf","wsd","brother","tcp-coerce","high"]}

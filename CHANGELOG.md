@@ -1,3 +1,62 @@
+## [6.2.0] - 2026-05-12 - EmbedXPL Absorption: Maximum Coverage Expansion
+
+### Added - 35 New Exploit Modules (absorbed from EmbedXPL-Forge)
+
+#### HP (9 new modules)
+- research-hp-fw-auth-bypass-2023-6018 (CVE-2023-6018, CVSS 9.8)
+- research-hp-uart-bof-2022-3942 (CVE-2022-3942, CVSS 9.8)
+- research-hp-pagewide-ssrf-2017-2750 (CVE-2017-2750, CVSS 9.8)
+- research-hp-mfp-bof-2021-39237 (CVE-2021-39237, CVSS 9.8)
+- edb-cve-2011-4065 (CVE-2011-4065, CVSS 9.8)
+- research-hp-pjl-traversal-2010-4107 (CVE-2010-4107, CVSS 7.8)
+- research-hp-ews-ssrf-2024-4479 (CVE-2024-4479, CVSS 8.6)
+- research-hp-efi-rootkit (EFI/UEFI Rootkit, CVSS 9.0)
+- research-hp-disk-access (Internal HDD Access, CVSS 7.5)
+
+#### Lexmark (1 new module)
+- research-lexmark-ssrf-rce-2023-23560 (CVE-2023-23560, Pwn2Own Toronto 2022, CVSS 9.0)
+
+#### Ricoh (3 new modules)
+- research-ricoh-http-bof-2024-34161 (CVE-2024-34161 HTTP BOF, CVSS 9.8)
+- research-ricoh-ews-rce-2024-34161 (CVE-2024-34161 EWS CGI, CVSS 9.8)
+- research-ricoh-driver-lpe-2019-19363 (CVE-2019-19363 LPE, CVSS 7.8)
+
+#### Xerox (1 new module)
+- research-xerox-altalink-unauth-2022-23968 (CVE-2022-23968, CVSS 9.8)
+
+#### Kyocera - NEW VENDOR (1 new module)
+- research-kyocera-pjl-creds (PJL Credential Extraction, CVSS 7.5)
+
+#### CUPS/Linux - Pwn2Own 2026 Chain (6 new modules)
+- research-cups-pwn2own-2026-chain (CVE-2026-34480, Full Chain, CVSS 9.8)
+- research-cups-pwn2own-2026-stage1 (CVE-2026-34477, UAF, CVSS 9.8)
+- research-cups-pwn2own-2026-stage2 (CVE-2026-34478, Heap Spray, CVSS 9.8)
+- research-cups-pwn2own-2026-stage3 (CVE-2026-34479, ROP, CVSS 9.8)
+- research-cups-chain-2026-34980 (CVE-2026-34980, CRLF RCE, CVSS 9.8)
+
+#### Domain Attack Modules (3)
+- research-zerologon-printserver (CVE-2020-1472, CVSS 10.0)
+- research-smb-auth-relay-print (SMB NTLM Relay, CVSS 8.1)
+- research-printer-c2-smb (C2 via SMB, CVSS 8.0)
+
+#### C2 / APT Research (2)
+- research-printer-c2-dns (DNS Tunnel C2, CVSS 7.5)
+- research-printer-c2-http (HTTP Polling C2, CVSS 7.5)
+
+#### Advanced Research / Red Team (10)
+- research-printer-iot-lateral, research-printer-net-reconn
+- research-universal-printer-enum, research-ps-lang-abuse
+- research-ps-overlay-watermark, research-print-track-steg
+- research-rfid-badge-exfil, research-smartcard-printer-bypass
+- research-thermal-printer-rprint, research-printer-fw-tamper
+
+### Updated
+- xpl/index.json: 150 -> 185 modules
+- src/data/cve_catalog.json: 110 -> 120 CVEs
+- Version bumped 6.1.0 -> 6.2.0
+
+---
+
 ## [6.1.0] - 2026-05-03 — Maximum Coverage Expansion
 
 ### Added
@@ -558,3 +617,4 @@ Author: André Henrique (@mrhenrike) | União Geek — https://github.com/Uniao-
 ---
 
 *Full git history available via `git log --oneline --all` in the repository.*
+

@@ -23,7 +23,7 @@
 
 ## O que é
 
-PrinterXPL-Forge é um framework modular completo para **avaliação de segurança** de impressoras em rede. Cobre todas as principais linguagens de impressora (PJL, PostScript, PCL, ESC/P), todos os protocolos comuns (RAW, IPP, LPD, SMB, HTTP, SNMP, FTP, Telnet), **150 módulos de exploit**, motor de credenciais via **wordlists externas** (zero senhas hardcoded), fingerprinting com ML, integração **NVD/CVE**, movimento lateral automatizado, análise de firmware e payloads de Cross-Site Printing. Orquestração multi-linguagem (Python, C/C++ via WSL gcc, Ruby/Metasploit, Go, Rust) é gerenciada pelo motor `poly_runner` integrado. Catálogo NVD/CVE com 110 entradas.
+PrinterXPL-Forge é um framework modular completo para **avaliação de segurança** de impressoras em rede. Cobre todas as principais linguagens de impressora (PJL, PostScript, PCL, ESC/P), todos os protocolos comuns (RAW, IPP, LPD, SMB, HTTP, SNMP, FTP, Telnet), **185 módulos de exploit**, motor de credenciais via **wordlists externas** (zero senhas hardcoded), fingerprinting com ML, integração **NVD/CVE**, movimento lateral automatizado, análise de firmware e payloads de Cross-Site Printing. Orquestração multi-linguagem (Python, C/C++ via WSL gcc, Ruby/Metasploit, Go, Rust) é gerenciada pelo motor `poly_runner` integrado. Catálogo NVD/CVE com 120 entradas.
 
 ---
 
@@ -112,7 +112,7 @@ python printerxpl-forge.py 192.168.1.100 --scan
 
 ---
 
-## Módulos de Exploit (150 total)
+## Módulos de Exploit (185 total)
 
 | Origem | Qtd | Descrição |
 |--------|-----|-----------|
@@ -227,3 +227,4 @@ Este framework é destinado **exclusivamente** para uso em sistemas próprios ou
 **Autor:** André Henrique ([@mrhenrike](https://github.com/mrhenrike)) | [União Geek](https://github.com/Uniao-Geek)
 
 </div>
+

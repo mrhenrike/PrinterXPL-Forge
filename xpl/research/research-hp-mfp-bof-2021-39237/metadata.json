@@ -1,0 +1,1 @@
+{"id":"research-hp-mfp-bof-2021-39237","title":"HP LaserJet MFP Stack Buffer Overflow (CVE-2021-39237)","source":"research","cve":["CVE-2021-39237"],"cvss":9.8,"severity":"critical","vendor":["HP"],"protocol":"RAW/9100","port":9100,"tags":["rce","bof","raw9100","hp","laserjet","mfp","printing-shellz","critical"]}

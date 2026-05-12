@@ -1,0 +1,1 @@
+{"id":"research-hp-fw-auth-bypass-2023-6018","title":"HP LaserJet Firmware Auth Bypass + Upload (CVE-2023-6018)","source":"research","cve":["CVE-2023-6018"],"cvss":9.8,"severity":"critical","vendor":["HP"],"protocol":"HTTPS","port":443,"tags":["auth-bypass","firmware","upload","rce","http","hp","critical"]}

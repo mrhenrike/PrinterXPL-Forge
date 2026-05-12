@@ -1,0 +1,1 @@
+{"id":"research-cups-pwn2own-2026-stage3","title":"CUPS ROP Chain via job-name Overflow Stage 3 — Pwn2Own 2026 (CVE-2026-34479)","source":"research","cve":["CVE-2026-34479"],"cvss":9.8,"severity":"critical","vendor":["CUPS","Linux"],"protocol":"IPP/631","port":631,"tags":["rce","bof","rop","ipp","cups","pwn2own-2026","stage3","linux","critical"]}

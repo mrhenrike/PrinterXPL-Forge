@@ -1,0 +1,1 @@
+{"id":"research-hp-uart-bof-2022-3942","title":"HP LaserJet MFP UART Buffer Overflow RCE (CVE-2022-3942)","source":"research","cve":["CVE-2022-3942"],"cvss":9.8,"severity":"critical","vendor":["HP"],"protocol":"HTTP","port":80,"tags":["rce","bof","http","hp","laserjet","mfp","critical"]}

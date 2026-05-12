@@ -11,7 +11,7 @@
 [![GitHub](https://img.shields.io/badge/GitHub-mrhenrike-black?logo=github)](https://github.com/mrhenrike/PrinterXPL-Forge)
 [![Wiki](https://img.shields.io/badge/Wiki-English-orange)](https://github.com/mrhenrike/PrinterXPL-Forge/wiki)
 [![Wiki PT-BR](https://img.shields.io/badge/Wiki-Portugu%C3%AAs-green)](https://github.com/mrhenrike/PrinterXPL-Forge/wiki/Home-pt-BR)
-[![Version](https://img.shields.io/badge/version-6.1.0-red)](https://github.com/mrhenrike/PrinterXPL-Forge/releases)
+[![Version](https://img.shields.io/badge/version-6.2.0-red)](https://github.com/mrhenrike/PrinterXPL-Forge/releases)
 
 > **"Is your printer safe from the void? Find out before someone else does."**
 
@@ -21,7 +21,7 @@
 
 ---
 
-PrinterXPL-Forge is a complete, modular framework for security assessment of network printers. It covers all major printer languages (PJL, PostScript, PCL, ESC/P), all common protocols (RAW, IPP, LPD, SMB, HTTP, SNMP, FTP, Telnet, WSD, TFTP), **150 exploit modules**, an external wordlist-driven credential engine with zero hardcoded passwords, ML-assisted fingerprinting, NVD/CVE integration (110 CVEs), automated lateral movement, firmware analysis, and Cross-Site Printing payloads. Multi-language exploit orchestration (Python, C/C++ via WSL gcc, Ruby/Metasploit, Go, Rust) is handled by the built-in `poly_runner` engine.
+PrinterXPL-Forge is a complete, modular framework for security assessment of network printers. It covers all major printer languages (PJL, PostScript, PCL, ESC/P), all common protocols (RAW, IPP, LPD, SMB, HTTP, SNMP, FTP, Telnet, WSD, TFTP), **185 exploit modules**, an external wordlist-driven credential engine with zero hardcoded passwords, ML-assisted fingerprinting, NVD/CVE integration (120 CVEs), automated lateral movement, firmware analysis, and Cross-Site Printing payloads. Multi-language exploit orchestration (Python, C/C++ via WSL gcc, Ruby/Metasploit, Go, Rust) is handled by the built-in `poly_runner` engine.
 
 ---
 
@@ -474,6 +474,46 @@ python printerxpl-forge.py --xpl-update
 | `research-lexmark-ps-bof-50734` | CVE-2023-50734 | 9.0 | Lexmark | PS interpreter stack BOF |
 | `research-lexmark-ps-bof-50736` | CVE-2023-50736 | 9.0 | Lexmark | PS memory corruption |
 | `research-lexmark-fw-downgrade` | CVE-2023-50738 | 8.8 | Lexmark | Firmware downgrade → RCE |
+
+### New HIGH/CRITICAL Modules Added in v6.2.0 (EmbedXPL Absorption)
+
+| Module ID | CVE(s) | CVSS | Vendor | Type |
+|---|---|---|---|---|
+| `research-hp-fw-auth-bypass-2023-6018` | CVE-2023-6018 | **9.8** | HP | FW Auth Bypass + Upload |
+| `research-hp-uart-bof-2022-3942` | CVE-2022-3942 | **9.8** | HP | UART BOF / RCE |
+| `research-hp-pagewide-ssrf-2017-2750` | CVE-2017-2750 | **9.8** | HP | Solution Bundle RCE/SSRF |
+| `research-hp-mfp-bof-2021-39237` | CVE-2021-39237 | **9.8** | HP | MFP Stack BOF (Printing Shellz) |
+| `edb-cve-2011-4065` | CVE-2011-4065 | **9.8** | HP | Web JetAdmin Unauth RCE |
+| `research-hp-pjl-traversal-2010-4107` | CVE-2010-4107 | 7.8 | HP | PJL Dir Traversal |
+| `research-hp-ews-ssrf-2024-4479` | CVE-2024-4479 | 8.6 | HP | EWS SSRF |
+| `research-hp-efi-rootkit` | — | 9.0 | HP | EFI/UEFI Rootkit (Printing Shellz) |
+| `research-hp-disk-access` | — | 7.5 | HP | Internal HDD Access via EWS |
+| `research-lexmark-ssrf-rce-2023-23560` | CVE-2023-23560 | **9.0** | Lexmark | SSRF→RCE (Pwn2Own Toronto '22) |
+| `research-ricoh-http-bof-2024-34161` | CVE-2024-34161 | **9.8** | Ricoh | HTTP Stack BOF |
+| `research-ricoh-ews-rce-2024-34161` | CVE-2024-34161 | **9.8** | Ricoh | EWS CGI RCE |
+| `research-ricoh-driver-lpe-2019-19363` | CVE-2019-19363 | 7.8 | Ricoh | Windows Driver LPE |
+| `research-xerox-altalink-unauth-2022-23968` | CVE-2022-23968 | **9.8** | Xerox | AltaLink Unauth Admin API |
+| `research-kyocera-pjl-creds` | — | 7.5 | Kyocera | PJL Credential Extraction |
+| `research-cups-pwn2own-2026-chain` | CVE-2026-34480 | **9.8** | CUPS | Pwn2Own 2026 Full Chain |
+| `research-cups-pwn2own-2026-stage1` | CVE-2026-34477 | **9.8** | CUPS | UAF Stage 1 |
+| `research-cups-pwn2own-2026-stage2` | CVE-2026-34478 | **9.8** | CUPS | Heap Spray Stage 2 |
+| `research-cups-pwn2own-2026-stage3` | CVE-2026-34479 | **9.8** | CUPS | ROP Chain Stage 3 |
+| `research-cups-chain-2026-34980` | CVE-2026-34980 | **9.8** | CUPS | CRLF Injection RCE |
+| `research-zerologon-printserver` | CVE-2020-1472 | **10.0** | Microsoft | ZeroLogon via Print Server |
+| `research-printer-c2-dns` | — | 7.5 | Generic | C2 via DNS Tunnel |
+| `research-printer-c2-http` | — | 7.5 | Generic | C2 via HTTP Polling |
+| `research-printer-c2-smb` | — | 8.0 | Generic | C2 via SMB/MS-RPRN |
+| `research-printer-iot-lateral` | — | 8.0 | Generic | Printer-as-Pivot Lateral Movement |
+| `research-printer-net-reconn` | — | 5.3 | Generic | Network Recon from Printer |
+| `research-smb-auth-relay-print` | — | 8.1 | Generic | SMB NTLM Relay via Spooler |
+| `research-universal-printer-enum` | — | — | Generic | Multi-protocol Fingerprinting |
+| `research-ps-lang-abuse` | — | 7.8 | Generic | PostScript Dict Abuse |
+| `research-ps-overlay-watermark` | — | 5.5 | Generic | PS Watermark Injection |
+| `research-print-track-steg` | — | — | Generic | MIC Tracking Dots Forensics |
+| `research-rfid-badge-exfil` | — | 7.5 | Generic | RFID Badge Data Exfil |
+| `research-smartcard-printer-bypass` | — | 8.0 | Generic | Smartcard/CAC Bypass |
+| `research-thermal-printer-rprint` | — | 6.5 | Epson/Star | Thermal Printer Remote Print |
+| `research-printer-fw-tamper` | — | 9.0 | Generic | Firmware Tampering Research |
 | `research-lexmark-heap-bof` | CVE-2024-11345 | 7.3 | Lexmark | Heap BOF via multipart upload |
 | `research-lexmark-pwn2own-2026` | CVE-2025-65079/65080/65081 | 8.8 | Lexmark | Pwn2Own 2026 heap BOF chain |
 | `research-ricoh-http-bof` | CVE-2024-47939 | 7.7 | Ricoh/Konica Minolta | Web Image Monitor stack BOF |

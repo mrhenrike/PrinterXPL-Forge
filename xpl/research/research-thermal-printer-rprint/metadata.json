@@ -1,0 +1,1 @@
+{"id":"research-thermal-printer-rprint","title":"Remote Unauthenticated Print to Thermal Printers via ESC/P","source":"research","cve":[],"cvss":6.5,"severity":"medium","vendor":["Epson","Star","Bixolon","Generic"],"protocol":"RAW/9100","port":9100,"tags":["manipulation","thermal","esc-p","pos","receipt","raw9100","medium"]}

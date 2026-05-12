@@ -1,0 +1,1 @@
+{"id":"research-hp-disk-access","title":"HP LaserJet Internal Disk Access via EWS (Research)","source":"research","cve":[],"cvss":7.5,"severity":"high","vendor":["HP"],"protocol":"HTTPS","port":443,"tags":["info-disclosure","disk","hdd","ews","hp","laserjet","high"]}

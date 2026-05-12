@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "total": 150,
+    "total": 185,
     "generated": "2026-05-03",
     "version": "6.1.0"
   },
@@ -3089,6 +3089,511 @@
         "high"
       ],
       "path": "xpl/research/research-lexmark-pwn2own-2026"
+    },
+    {
+      "id": "research-hp-fw-auth-bypass-2023-6018",
+      "title": "HP LaserJet Firmware Auth Bypass + Upload (CVE-2023-6018)",
+      "source": "research",
+      "cve": [
+        "CVE-2023-6018"
+      ],
+      "cvss": 9.8,
+      "severity": "critical",
+      "vendor": [
+        "HP"
+      ],
+      "protocol": "HTTPS",
+      "port": 443
+    },
+    {
+      "id": "research-hp-ews-ssrf-2024-4479",
+      "title": "HP LaserJet EWS SSRF (CVE-2024-4479)",
+      "source": "research",
+      "cve": [
+        "CVE-2024-4479"
+      ],
+      "cvss": 8.6,
+      "severity": "high",
+      "vendor": [
+        "HP"
+      ],
+      "protocol": "HTTPS",
+      "port": 443
+    },
+    {
+      "id": "research-hp-uart-bof-2022-3942",
+      "title": "HP LaserJet MFP UART Buffer Overflow RCE (CVE-2022-3942)",
+      "source": "research",
+      "cve": [
+        "CVE-2022-3942"
+      ],
+      "cvss": 9.8,
+      "severity": "critical",
+      "vendor": [
+        "HP"
+      ],
+      "protocol": "HTTP",
+      "port": 80
+    },
+    {
+      "id": "research-hp-pagewide-ssrf-2017-2750",
+      "title": "HP PageWide Enterprise Solution Bundle RCE/SSRF (CVE-2017-2750)",
+      "source": "research",
+      "cve": [
+        "CVE-2017-2750"
+      ],
+      "cvss": 9.8,
+      "severity": "critical",
+      "vendor": [
+        "HP"
+      ],
+      "protocol": "HTTPS",
+      "port": 443
+    },
+    {
+      "id": "research-hp-mfp-bof-2021-39237",
+      "title": "HP LaserJet MFP Stack Buffer Overflow (CVE-2021-39237)",
+      "source": "research",
+      "cve": [
+        "CVE-2021-39237"
+      ],
+      "cvss": 9.8,
+      "severity": "critical",
+      "vendor": [
+        "HP"
+      ],
+      "protocol": "RAW/9100",
+      "port": 9100
+    },
+    {
+      "id": "edb-cve-2011-4065",
+      "title": "HP Web JetAdmin 10.3 Remote Code Execution (CVE-2011-4065)",
+      "source": "edb",
+      "cve": [
+        "CVE-2011-4065"
+      ],
+      "cvss": 9.8,
+      "severity": "critical",
+      "vendor": [
+        "HP"
+      ],
+      "protocol": "HTTP",
+      "port": 8000
+    },
+    {
+      "id": "research-hp-pjl-traversal-2010-4107",
+      "title": "HP JetDirect PJL Directory Traversal (CVE-2010-4107)",
+      "source": "research",
+      "cve": [
+        "CVE-2010-4107"
+      ],
+      "cvss": 7.8,
+      "severity": "high",
+      "vendor": [
+        "HP"
+      ],
+      "protocol": "PJL/9100",
+      "port": 9100
+    },
+    {
+      "id": "research-lexmark-ssrf-rce-2023-23560",
+      "title": "Lexmark Multi-Model SSRF-to-RCE (CVE-2023-23560)",
+      "source": "research",
+      "cve": [
+        "CVE-2023-23560"
+      ],
+      "cvss": 9.0,
+      "severity": "critical",
+      "vendor": [
+        "Lexmark"
+      ],
+      "protocol": "HTTPS",
+      "port": 443
+    },
+    {
+      "id": "research-ricoh-http-bof-2024-34161",
+      "title": "Ricoh MP Series EWS HTTP Stack Buffer Overflow (CVE-2024-34161)",
+      "source": "research",
+      "cve": [
+        "CVE-2024-34161"
+      ],
+      "cvss": 9.8,
+      "severity": "critical",
+      "vendor": [
+        "Ricoh"
+      ],
+      "protocol": "HTTP",
+      "port": 80
+    },
+    {
+      "id": "research-ricoh-ews-rce-2024-34161",
+      "title": "Ricoh MP EWS CGI Remote Code Execution (CVE-2024-34161)",
+      "source": "research",
+      "cve": [
+        "CVE-2024-34161"
+      ],
+      "cvss": 9.8,
+      "severity": "critical",
+      "vendor": [
+        "Ricoh"
+      ],
+      "protocol": "HTTP",
+      "port": 80
+    },
+    {
+      "id": "research-ricoh-driver-lpe-2019-19363",
+      "title": "Ricoh Printer Driver Windows LPE (CVE-2019-19363)",
+      "source": "research",
+      "cve": [
+        "CVE-2019-19363"
+      ],
+      "cvss": 7.8,
+      "severity": "high",
+      "vendor": [
+        "Ricoh"
+      ],
+      "protocol": "local",
+      "port": 0
+    },
+    {
+      "id": "research-xerox-altalink-unauth-2022-23968",
+      "title": "Xerox AltaLink/WorkCentre Unauthenticated Admin API (CVE-2022-23968)",
+      "source": "research",
+      "cve": [
+        "CVE-2022-23968"
+      ],
+      "cvss": 9.8,
+      "severity": "critical",
+      "vendor": [
+        "Xerox"
+      ],
+      "protocol": "HTTPS",
+      "port": 443
+    },
+    {
+      "id": "research-kyocera-pjl-creds",
+      "title": "Kyocera TASKALFA PJL Credential & Config Extraction",
+      "source": "research",
+      "cve": [],
+      "cvss": 7.5,
+      "severity": "high",
+      "vendor": [
+        "Kyocera"
+      ],
+      "protocol": "PJL/9100",
+      "port": 9100
+    },
+    {
+      "id": "research-cups-pwn2own-2026-stage1",
+      "title": "CUPS cups-browsed UAF Stage 1 (CVE-2026-34477)",
+      "source": "research",
+      "cve": [
+        "CVE-2026-34477"
+      ],
+      "cvss": 9.8,
+      "severity": "critical",
+      "vendor": [
+        "CUPS",
+        "Linux"
+      ],
+      "protocol": "IPP/631",
+      "port": 631
+    },
+    {
+      "id": "research-cups-pwn2own-2026-stage2",
+      "title": "CUPS Heap Spray Stage 2 (CVE-2026-34478)",
+      "source": "research",
+      "cve": [
+        "CVE-2026-34478"
+      ],
+      "cvss": 9.8,
+      "severity": "critical",
+      "vendor": [
+        "CUPS",
+        "Linux"
+      ],
+      "protocol": "IPP/631",
+      "port": 631
+    },
+    {
+      "id": "research-cups-pwn2own-2026-stage3",
+      "title": "CUPS ROP Chain Stage 3 (CVE-2026-34479)",
+      "source": "research",
+      "cve": [
+        "CVE-2026-34479"
+      ],
+      "cvss": 9.8,
+      "severity": "critical",
+      "vendor": [
+        "CUPS",
+        "Linux"
+      ],
+      "protocol": "IPP/631",
+      "port": 631
+    },
+    {
+      "id": "research-cups-pwn2own-2026-chain",
+      "title": "CUPS Pwn2Own 2026 Full Chain Orchestrator (CVE-2026-34480)",
+      "source": "research",
+      "cve": [
+        "CVE-2026-34480",
+        "CVE-2026-34477",
+        "CVE-2026-34478",
+        "CVE-2026-34479"
+      ],
+      "cvss": 9.8,
+      "severity": "critical",
+      "vendor": [
+        "CUPS",
+        "Linux"
+      ],
+      "protocol": "IPP/631",
+      "port": 631
+    },
+    {
+      "id": "research-cups-chain-2026-34980",
+      "title": "CUPS 2.4.16 CRLF Injection RCE (CVE-2026-34980)",
+      "source": "research",
+      "cve": [
+        "CVE-2026-34980"
+      ],
+      "cvss": 9.8,
+      "severity": "critical",
+      "vendor": [
+        "CUPS",
+        "Linux"
+      ],
+      "protocol": "IPP/631",
+      "port": 631
+    },
+    {
+      "id": "research-printer-c2-dns",
+      "title": "Printer C2 Channel via DNS Tunneling (Research)",
+      "source": "research",
+      "cve": [],
+      "cvss": 7.5,
+      "severity": "high",
+      "vendor": [
+        "Generic"
+      ],
+      "protocol": "DNS",
+      "port": 53
+    },
+    {
+      "id": "research-printer-c2-http",
+      "title": "Printer C2 Channel via HTTP Polling Beacon (Research)",
+      "source": "research",
+      "cve": [],
+      "cvss": 7.5,
+      "severity": "high",
+      "vendor": [
+        "Generic"
+      ],
+      "protocol": "HTTP",
+      "port": 80
+    },
+    {
+      "id": "research-printer-c2-smb",
+      "title": "Printer C2 Channel via SMB Auth Relay (Research)",
+      "source": "research",
+      "cve": [],
+      "cvss": 8.0,
+      "severity": "high",
+      "vendor": [
+        "Generic",
+        "Microsoft"
+      ],
+      "protocol": "SMB/445",
+      "port": 445
+    },
+    {
+      "id": "research-printer-iot-lateral",
+      "title": "Printer-as-Pivot IoT/OT Lateral Movement (Research)",
+      "source": "research",
+      "cve": [],
+      "cvss": 8.0,
+      "severity": "high",
+      "vendor": [
+        "Generic"
+      ],
+      "protocol": "multi",
+      "port": 9100
+    },
+    {
+      "id": "research-printer-net-reconn",
+      "title": "Network Reconnaissance from Compromised Printer (Research)",
+      "source": "research",
+      "cve": [],
+      "cvss": 5.3,
+      "severity": "medium",
+      "vendor": [
+        "Generic"
+      ],
+      "protocol": "multi",
+      "port": 9100
+    },
+    {
+      "id": "research-zerologon-printserver",
+      "title": "ZeroLogon via Print Server Domain Account (CVE-2020-1472)",
+      "source": "research",
+      "cve": [
+        "CVE-2020-1472"
+      ],
+      "cvss": 10.0,
+      "severity": "critical",
+      "vendor": [
+        "Microsoft",
+        "Generic"
+      ],
+      "protocol": "SMB/445",
+      "port": 445
+    },
+    {
+      "id": "research-smb-auth-relay-print",
+      "title": "SMB Auth Relay via Print Spooler MS-RPRN (Research)",
+      "source": "research",
+      "cve": [],
+      "cvss": 8.1,
+      "severity": "high",
+      "vendor": [
+        "Microsoft",
+        "Generic"
+      ],
+      "protocol": "SMB/445",
+      "port": 445
+    },
+    {
+      "id": "research-universal-printer-enum",
+      "title": "Universal Printer Enumeration and Fingerprinting",
+      "source": "research",
+      "cve": [],
+      "cvss": 0.0,
+      "severity": "info",
+      "vendor": [
+        "Generic"
+      ],
+      "protocol": "multi",
+      "port": 9100
+    },
+    {
+      "id": "research-ps-lang-abuse",
+      "title": "PostScript Printer Language Abuse - Dictionary Attacks",
+      "source": "research",
+      "cve": [],
+      "cvss": 7.8,
+      "severity": "high",
+      "vendor": [
+        "Generic"
+      ],
+      "protocol": "RAW/9100",
+      "port": 9100
+    },
+    {
+      "id": "research-ps-overlay-watermark",
+      "title": "PostScript Overlay Watermark Injection",
+      "source": "research",
+      "cve": [],
+      "cvss": 5.5,
+      "severity": "medium",
+      "vendor": [
+        "Generic"
+      ],
+      "protocol": "RAW/9100",
+      "port": 9100
+    },
+    {
+      "id": "research-print-track-steg",
+      "title": "Machine Identification Code (MIC) Print Tracking Dots Analysis",
+      "source": "research",
+      "cve": [],
+      "cvss": 0.0,
+      "severity": "info",
+      "vendor": [
+        "Generic"
+      ],
+      "protocol": "local",
+      "port": 0
+    },
+    {
+      "id": "research-rfid-badge-exfil",
+      "title": "RFID Badge Data Exfiltration via MFP Card Reader",
+      "source": "research",
+      "cve": [],
+      "cvss": 7.5,
+      "severity": "high",
+      "vendor": [
+        "Generic"
+      ],
+      "protocol": "PJL/9100",
+      "port": 9100
+    },
+    {
+      "id": "research-smartcard-printer-bypass",
+      "title": "Smartcard/CAC Authentication Bypass on MFP (Research)",
+      "source": "research",
+      "cve": [],
+      "cvss": 8.0,
+      "severity": "high",
+      "vendor": [
+        "Generic"
+      ],
+      "protocol": "multi",
+      "port": 9100
+    },
+    {
+      "id": "research-thermal-printer-rprint",
+      "title": "Remote Unauthenticated Print to Thermal Printers via ESC/P",
+      "source": "research",
+      "cve": [],
+      "cvss": 6.5,
+      "severity": "medium",
+      "vendor": [
+        "Epson",
+        "Star",
+        "Bixolon",
+        "Generic"
+      ],
+      "protocol": "RAW/9100",
+      "port": 9100
+    },
+    {
+      "id": "research-hp-efi-rootkit",
+      "title": "HP LaserJet EFI/UEFI Rootkit Research (Printing Shellz)",
+      "source": "research",
+      "cve": [],
+      "cvss": 9.0,
+      "severity": "critical",
+      "vendor": [
+        "HP"
+      ],
+      "protocol": "HTTPS",
+      "port": 443
+    },
+    {
+      "id": "research-hp-disk-access",
+      "title": "HP LaserJet Internal Disk Access via EWS (Research)",
+      "source": "research",
+      "cve": [],
+      "cvss": 7.5,
+      "severity": "high",
+      "vendor": [
+        "HP"
+      ],
+      "protocol": "HTTPS",
+      "port": 443
+    },
+    {
+      "id": "research-printer-fw-tamper",
+      "title": "Printer Firmware Tampering - Generic Research Module",
+      "source": "research",
+      "cve": [],
+      "cvss": 9.0,
+      "severity": "critical",
+      "vendor": [
+        "Generic"
+      ],
+      "protocol": "HTTPS",
+      "port": 443
     }
   ]
 }

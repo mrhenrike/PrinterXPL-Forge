@@ -1,0 +1,1 @@
+{"id":"research-printer-c2-smb","title":"Printer C2 Channel via SMB Auth Relay (Research)","source":"research","cve":[],"cvss":8.0,"severity":"high","vendor":["Generic","Microsoft"],"protocol":"SMB/445","port":445,"tags":["c2","smb","ntlm-relay","ms-rprn","apt","research","red-team","high"]}

@@ -1,0 +1,1 @@
+{"id":"research-printer-net-reconn","title":"Network Reconnaissance from Compromised Printer (Research)","source":"research","cve":[],"cvss":5.3,"severity":"medium","vendor":["Generic"],"protocol":"multi","port":9100,"tags":["recon","network-scan","pivot","ssrf","research","red-team","medium"]}

@@ -1,0 +1,1 @@
+{"id":"research-printer-c2-http","title":"Printer C2 Channel via HTTP Polling Beacon (Research)","source":"research","cve":[],"cvss":7.5,"severity":"high","vendor":["Generic"],"protocol":"HTTP","port":80,"tags":["c2","http","beacon","polling","apt","research","red-team","high"]}

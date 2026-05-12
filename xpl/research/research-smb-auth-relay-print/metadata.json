@@ -1,0 +1,1 @@
+{"id":"research-smb-auth-relay-print","title":"SMB Auth Relay via Print Spooler MS-RPRN (Research)","source":"research","cve":[],"cvss":8.1,"severity":"high","vendor":["Microsoft","Generic"],"protocol":"SMB/445","port":445,"tags":["auth-relay","ntlm","smb","ms-rprn","spooler","high"]}

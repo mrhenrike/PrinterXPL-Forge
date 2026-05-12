@@ -1,0 +1,1 @@
+{"id":"research-universal-printer-enum","title":"Universal Printer Enumeration and Fingerprinting","source":"research","cve":[],"cvss":0.0,"severity":"info","vendor":["Generic"],"protocol":"multi","port":9100,"tags":["recon","enum","fingerprint","pjl","snmp","ipp","http","info"]}

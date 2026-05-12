@@ -1,0 +1,1 @@
+{"id":"research-smartcard-printer-bypass","title":"Smartcard/CAC Authentication Bypass on MFP (Research)","source":"research","cve":[],"cvss":8.0,"severity":"high","vendor":["Generic"],"protocol":"multi","port":9100,"tags":["auth-bypass","smartcard","cac","mfp","pjl","research","high"]}

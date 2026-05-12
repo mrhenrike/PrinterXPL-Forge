@@ -1,0 +1,1 @@
+{"id":"research-kyocera-pjl-creds","title":"Kyocera TASKALFA PJL Credential & Config Extraction","source":"research","cve":[],"cvss":7.5,"severity":"high","vendor":["Kyocera"],"protocol":"PJL/9100","port":9100,"tags":["info-disclosure","pjl","raw9100","kyocera","credentials","nvram","high"]}

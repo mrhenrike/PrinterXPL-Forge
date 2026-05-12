@@ -1,0 +1,1 @@
+{"id":"research-cups-pwn2own-2026-stage1","title":"CUPS cups-browsed UAF Stage 1 — Pwn2Own 2026 (CVE-2026-34477)","source":"research","cve":["CVE-2026-34477"],"cvss":9.8,"severity":"critical","vendor":["CUPS","Linux"],"protocol":"IPP/631","port":631,"tags":["rce","uaf","ipp","cups","pwn2own-2026","stage1","linux","critical"]}

@@ -1,0 +1,1 @@
+{"id":"research-hp-pagewide-ssrf-2017-2750","title":"HP PageWide Enterprise Solution Bundle RCE/SSRF (CVE-2017-2750)","source":"research","cve":["CVE-2017-2750"],"cvss":9.8,"severity":"critical","vendor":["HP"],"protocol":"HTTPS","port":443,"tags":["rce","ssrf","https","hp","pagewide","critical"]}

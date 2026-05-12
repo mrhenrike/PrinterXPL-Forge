@@ -1,0 +1,1 @@
+{"id":"research-cups-chain-2026-34980","title":"CUPS 2.4.16 CRLF Injection RCE (CVE-2026-34980)","source":"research","cve":["CVE-2026-34980"],"cvss":9.8,"severity":"critical","vendor":["CUPS","Linux"],"protocol":"IPP/631","port":631,"tags":["rce","crlf-injection","ipp","cups","anonymous-print","linux","critical"]}

@@ -1,0 +1,1 @@
+{"id":"research-lexmark-ssrf-rce-2023-23560","title":"Lexmark Multi-Model SSRF-to-RCE (CVE-2023-23560)","source":"research","cve":["CVE-2023-23560"],"cvss":9.0,"severity":"critical","vendor":["Lexmark"],"protocol":"HTTPS","port":443,"tags":["rce","ssrf","https","lexmark","pwn2own","critical"]}

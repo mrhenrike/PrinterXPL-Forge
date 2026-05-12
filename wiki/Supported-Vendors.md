@@ -278,3 +278,4 @@ PrinterXPL-Forge has been tested and validated against the following vendors. De
 | Exploits | `edb-cve-2023-3710` |
 
 **CVE-2023-3710:** Unauthenticated OS command injection in PM43 web interface via `username` field with newline injection. Firmware < P10.19.050004. CVSS 8.8. EDB-51885.
+

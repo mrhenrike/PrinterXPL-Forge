@@ -1,0 +1,1 @@
+{"id":"research-printer-fw-tamper","title":"Printer Firmware Tampering — Generic Research Module","source":"research","cve":[],"cvss":9.0,"severity":"critical","vendor":["Generic"],"protocol":"HTTPS","port":443,"tags":["persistence","firmware","tamper","downgrade","unsigned","generic","critical"]}

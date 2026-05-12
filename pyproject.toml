@@ -7,8 +7,8 @@ build-backend = "setuptools.build_meta"
 # ──────────────────────────────────────────────────────────────────────────────
 [project]
 name = "printerxpl-forge"
-version = "4.0.0"
-description = "Advanced Printer Penetration Testing Toolkit — PJL, PostScript, PCL, CVE scanner, brute-force, pivot"
+version = "6.2.0"
+description = "Advanced Printer Penetration Testing Toolkit — PJL, PostScript, PCL, CVE scanner, brute-force, pivot, C2 research — 185 exploit modules"
 readme = { file = "README.md", content-type = "text/markdown" }
 license = { file = "LICENSE" }
 requires-python = ">=3.8"

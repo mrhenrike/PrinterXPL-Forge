@@ -1,0 +1,1 @@
+{"id":"research-cups-pwn2own-2026-chain","title":"CUPS Pwn2Own 2026 Full Chain Orchestrator (CVE-2026-34480)","source":"research","cve":["CVE-2026-34480","CVE-2026-34477","CVE-2026-34478","CVE-2026-34479"],"cvss":9.8,"severity":"critical","vendor":["CUPS","Linux"],"protocol":"IPP/631","port":631,"tags":["rce","chain","ipp","cups","pwn2own-2026","linux","critical"]}

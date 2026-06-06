@@ -1,4 +1,4 @@
-[build-system]
+﻿[build-system]
 requires = ["setuptools>=61", "wheel"]
 build-backend = "setuptools.build_meta"
 
@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 # ──────────────────────────────────────────────────────────────────────────────
 [project]
 name = "printerxpl-forge"
-version = "6.2.0"
+version = "6.3.0"
 description = "Advanced Printer Penetration Testing Toolkit — PJL, PostScript, PCL, CVE scanner, brute-force, pivot, C2 research — 185 exploit modules"
 readme = { file = "README.md", content-type = "text/markdown" }
 license = { file = "LICENSE" }

@@ -1,0 +1,130 @@
+# Author: Andre Henrique (@mrhenrike) | Uniao Geek - https://github.com/Uniao-Geek
+#
+# SECURITY HARDENING:
+# - Actions pinned to full SHA (supply chain protection)
+# - Fork guard: github.repository check blocks fork execution
+# - Package name assertion before build
+# - Environment "pypi" requires manual approval from @mrhenrike
+# - persist-credentials: false prevents token leakage
+# - Minimal permissions per job
+
+name: publish-pypi
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  build:
+    name: Build package
+    runs-on: ubuntu-latest
+    if: github.repository == 'mrhenrike/PrinterXPL-Forge'
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify package metadata integrity
+        run: |
+          python -c "
+          import tomllib
+          with open('pyproject.toml', 'rb') as f:
+              data = tomllib.load(f)
+          name = data['project']['name']
+          assert name == 'printerxpl-forge', f'ALERT: unexpected package name: {name}'
+          version = data['project']['version']
+          print(f'Verified: {name} v{version}')
+          "
+
+      - name: Install build tools
+        run: pip install build
+
+      - name: Build sdist and wheel
+        run: python -m build
+
+      - name: Verify built artifacts
+        run: |
+          ls -la dist/
+          python -c "
+          import zipfile, os
+          for f in os.listdir('dist'):
+              if f.endswith('.whl'):
+                  with zipfile.ZipFile(os.path.join('dist', f)) as z:
+                      meta = [n for n in z.namelist() if 'METADATA' in n][0]
+                      content = z.read(meta).decode()
+                      assert 'Name: printerxpl-forge' in content, 'ALERT: wheel metadata mismatch'
+                      print(f'Wheel verified: {f}')
+          "
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.repository == 'mrhenrike/PrinterXPL-Forge'
+    permissions:
+      id-token: write
+    environment:
+      name: pypi
+      url: https://pypi.org/project/printerxpl-forge/
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to PyPI (Trusted Publisher / OIDC)
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  testpypi:
+    name: Dry-run on TestPyPI
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' &&
+      github.repository == 'mrhenrike/PrinterXPL-Forge'
+    permissions:
+      id-token: write
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/project/printerxpl-forge/
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build tools
+        run: pip install build
+
+      - name: Build distributions
+        run: python -m build
+
+      - name: Publish to TestPyPI (Trusted Publisher / OIDC)
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/

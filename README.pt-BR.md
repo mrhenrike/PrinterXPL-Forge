@@ -103,11 +103,12 @@ python src/main.py
 ```bash
 git clone https://github.com/mrhenrike/PrinterXPL-Forge.git
 cd PrinterXPL-Forge
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-python printerxpl-forge.py --version
+bash setup_venv.sh              # Linux/macOS (PEP 668 safe)
+# .\setup_venv.ps1              # Windows
+
+python printerxpl-forge.py --version   # auto-detecta .venv
 python printerxpl-forge.py 192.168.1.100 --scan
+# ou: ./run.sh 192.168.1.100 --scan
 ```
 
 ---

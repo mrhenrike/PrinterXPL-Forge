@@ -4,12 +4,12 @@
 # Usage: .\run.ps1 --check-config
 # Usage: .\run.ps1 --discover-local
 
+$ErrorActionPreference = "Stop"
 $venv_python = Join-Path $PSScriptRoot ".venv\Scripts\python.exe"
 
 if (-not (Test-Path $venv_python)) {
-    Write-Host "[!] Venv not found. Creating..." -ForegroundColor Yellow
-    python -m venv "$PSScriptRoot\.venv" --prompt PrinterXPL-Forge
-    & "$PSScriptRoot\.venv\Scripts\pip.exe" install -r "$PSScriptRoot\requirements.txt"
+    Write-Host "[!] Venv not found. Running setup_venv.ps1 ..." -ForegroundColor Yellow
+    & "$PSScriptRoot\setup_venv.ps1"
 }
 
 & $venv_python "$PSScriptRoot\src\main.py" @args

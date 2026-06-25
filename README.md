@@ -138,13 +138,24 @@ python src/main.py
 git clone https://github.com/mrhenrike/PrinterXPL-Forge.git
 cd PrinterXPL-Forge
 
-python -m venv .venv
+# Recommended (PEP 668 safe — Debian/Ubuntu, etc.)
+bash setup_venv.sh          # Linux / macOS
+# .\setup_venv.ps1          # Windows PowerShell
+
+./run.sh --help
+# or
+python printerxpl-forge.py --version
+```
+
+Manual venv (alternative):
+
+```bash
+python3 -m venv .venv
 source .venv/bin/activate        # Linux / macOS
 .venv\Scripts\activate           # Windows PowerShell
-
 pip install -r requirements.txt
-python printerxpl-forge.py --version
-# → PrinterXPL-Forge Version 3.7.0 (2026-03-25)
+export PYTHONPATH=src
+python src/main.py --version
 ```
 
 **Requirements:** Python 3.8+ · Windows / Linux / macOS · 80 MB disk

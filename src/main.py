@@ -12,6 +12,21 @@ Main entry point.
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+_REPO = Path(__file__).resolve().parent.parent
+if str(_REPO) not in sys.path:
+    sys.path.insert(0, str(_REPO))
+
+from tools.venv_bootstrap import ensure_runtime
+
+ensure_runtime(__file__)
+
+_SRC = _REPO / "src"
+if str(_SRC) not in sys.path:
+    sys.path.insert(0, str(_SRC))
+
 import argparse
 import csv
 import io

@@ -23,15 +23,20 @@ Examples:
 
 from __future__ import annotations
 
-import os
 import sys
+from pathlib import Path
 
-# Ensure src/ is on the path regardless of where the script is invoked from
-_ROOT = os.path.dirname(os.path.abspath(__file__))
-_SRC  = os.path.join(_ROOT, "src")
+_REPO = Path(__file__).resolve().parent
+if str(_REPO) not in sys.path:
+    sys.path.insert(0, str(_REPO))
 
-if _SRC not in sys.path:
-    sys.path.insert(0, _SRC)
+from tools.venv_bootstrap import ensure_runtime
+
+ensure_runtime(__file__)
+
+_SRC = _REPO / "src"
+if str(_SRC) not in sys.path:
+    sys.path.insert(0, str(_SRC))
 
 if __name__ == "__main__":
     try:
@@ -42,5 +47,6 @@ if __name__ == "__main__":
         sys.exit(0)
     except ImportError as exc:
         print(f"[!] Import error: {exc}")
-        print(f"    Make sure dependencies are installed: pip install -r requirements.txt")
+        print("    Run: ./setup_venv.sh   (Linux/macOS)  or  .\\setup_venv.ps1   (Windows)")
+        print("    Or:  ./run.sh")
         sys.exit(1)

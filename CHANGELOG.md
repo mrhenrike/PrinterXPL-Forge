@@ -1,3 +1,17 @@
+## [6.2.1] - 2026-06-25 - PEP 668 venv bootstrap + CI auto-publish
+
+### Added
+- `tools/venv_bootstrap.py` — auto-create/sync `.venv` on Debian/Ubuntu (PEP 668 safe)
+- `setup_venv.sh` / `setup_venv.ps1` — manual venv setup scripts
+- `run.sh` / `run.ps1` — auto-run setup when `.venv` is missing
+
+### Changed
+- `printerxpl-forge.py` and `src/main.py` re-exec into `.venv` before imports
+- README installation section updated for PEP 668 distros
+- Restored `pyproject.toml` and GitHub Actions auto-publish workflow
+
+---
+
 ## [6.2.0] - 2026-05-12 - EmbedXPL Absorption: Maximum Coverage Expansion
 
 ### Added - 35 New Exploit Modules (absorbed from EmbedXPL-Forge)

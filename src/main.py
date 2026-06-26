@@ -784,9 +784,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     # ── Interactive mode ───────────────────────────────────────────────────────
     parser.add_argument(
-        "--interactive", "-I",
+        "-I", "--interactive",
         action="store_true",
         help="Launch guided interactive menu (default when run with no arguments)",
+    )
+    parser.add_argument(
+        "-D", "--doctor", "--check", "--env-check",
+        action="store_true",
+        dest="doctor",
+        help="Run environment / dependency check and exit",
     )
     return parser
 
@@ -1740,6 +1746,13 @@ def main() -> None:
         sys.exit(0)
 
     args = get_args()
+
+    if getattr(args, "doctor", False):
+        _repo = Path(__file__).resolve().parent.parent
+        if str(_repo) not in sys.path:
+            sys.path.insert(0, str(_repo))
+        from tools.env_doctor import main as doctor_main
+        raise SystemExit(doctor_main())
 
     # Handle discovery shortcuts that do not require positionals
     if args.discover_local:

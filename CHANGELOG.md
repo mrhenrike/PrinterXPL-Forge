@@ -1,3 +1,11 @@
+## [6.2.2] - 2026-06-25 - CLI doctor + global flags
+
+### Added
+- `-D`/`--doctor`/`--check` environment validation (`tools/env_doctor.py`)
+- Colorized dependency check with module inventory
+
+---
+
 ## [6.2.1] - 2026-06-25 - PEP 668 venv bootstrap + CI auto-publish
 
 ### Added

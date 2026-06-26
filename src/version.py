@@ -14,8 +14,8 @@ Versioning scheme: MAJOR.MINOR.PATCH  (semver-inspired)
 # LinkedIn  : https://linkedin.com/in/mrhenrike
 # X/Twitter : https://x.com/mrhenrike
 
-__version__      = "6.2.1"
-__version_info__ = (6, 2, 1)
+__version__      = "6.2.2"
+__version_info__ = (6, 2, 2)
 __release_date__ = "2026-06-25"
 __author__       = "Andre Henrique"
 __license__      = "MIT"

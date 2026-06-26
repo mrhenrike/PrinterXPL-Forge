@@ -59,8 +59,15 @@ logs/
 vendor-repos/
 .tmp/vendor-repos/
 
-# Sample files (not for public repository)
-sample*
+# === Local runtime / lab artifacts (never commit) ===
+temp/
+temps/
+tmp/
+examples/
+labs/
+samples/
+HANDOFF-AUDIT.md
+
 
 # Test results and outputs
 tests/qa_report_*.json

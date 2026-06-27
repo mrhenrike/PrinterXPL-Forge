@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 # ──────────────────────────────────────────────────────────────────────────────
 [project]
 name = "printerxpl-forge"
-version = "6.2.2"
+version = "6.3.1"
 description = "Advanced Printer Penetration Testing Toolkit — PJL, PostScript, PCL, CVE scanner, brute-force, pivot, C2 research — 185 exploit modules"
 readme = { file = "README.md", content-type = "text/markdown" }
 license = { file = "LICENSE" }
@@ -53,6 +53,52 @@ dependencies = [
 
 # ── Optional dependency groups ────────────────────────────────────────────────
 [project.optional-dependencies]
+# Default focus: 2020+ modules (runtime filter — same wheel, profile `modern`)
+modern = []
+
+# Full 30-year arsenal (all modules in manifest)
+full-depth = []
+fullyear = []
+full30 = []
+
+# Native engines / RCE-only views
+native-only = []
+engines-rce = []
+
+# Toolchain hints for poly_runner (C/C++/Go/Rust) — install OS compilers separately
+native-compilers = []
+native-all = []
+
+# Per-vendor module profiles (apply after pip: pxf-profile vendor-<name>)
+vendor-hp = []
+vendor-ricoh = []
+vendor-brother = []
+vendor-xerox = []
+vendor-lexmark = []
+vendor-canon = []
+vendor-epson = []
+vendor-kyocera = []
+vendor-samsung = []
+vendor-generic = []
+vendor-konica = []
+vendor-toshiba = []
+vendor-sharp = []
+vendor-oki = []
+vendor-cups = []
+vendor-microsoft = []
+
+# Modern + vendor combos (2020+ only for that vendor)
+modern-vendor-hp = []
+modern-vendor-ricoh = []
+modern-vendor-brother = []
+modern-vendor-xerox = []
+modern-vendor-lexmark = []
+modern-vendor-canon = []
+modern-vendor-epson = []
+modern-vendor-kyocera = []
+modern-vendor-samsung = []
+modern-vendor-generic = []
+
 smb = [
     "pysmb>=1.2.9",
     "impacket>=0.12.0",
@@ -71,10 +117,7 @@ dev = [
     "build>=1.0.0",
     "twine>=5.0.0",
 ]
-# Nmap NSE scripts: pip install printerxpl-forge[nse]
-# After install run: printerxpl-nse install
 nse = []
-# Install everything at once:  pip install printerxpl-forge[full]
 full = [
     "pysmb>=1.2.9",
     "impacket>=0.12.0",
@@ -86,8 +129,10 @@ full = [
 
 # ── Entry points ──────────────────────────────────────────────────────────────
 [project.scripts]
-printerxpl-forge = "main:main"
+pxf               = "main:main"
+printerxpl-forge  = "main:main"
 PrinterXPL-Forge  = "main:main"
+pxf-profile       = "utils.profile_cli:main"
 printerxpl-nse    = "nse.install_nse:main"
 
 # ── Project links ─────────────────────────────────────────────────────────────
@@ -122,6 +167,9 @@ include = ["nse*", "src*"]
     "assets/fonts/*.pfa",
     "assets/mibs/*",
     "assets/overlays/*.eps",
+]
+"src.data" = [
+    "*.json",
 ]
 
 # ──────────────────────────────────────────────────────────────────────────────

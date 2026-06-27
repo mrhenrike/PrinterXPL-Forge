@@ -47,10 +47,11 @@ class ps(printer):
         # Categories aligned with README
         categories = {
             "filesystem": [
-                "ls", "get", "put", "delete", "cat"
+                "ls", "get", "put", "delete", "cat", "mirror", "rename", "find", "mkdir"
             ],
             "information": [
-                "id", "version", "devices", "uptime", "date", "dicts", "dump", "known", "search", "pagecount"
+                "id", "version", "devices", "uptime", "date", "dicts", "dump", "known",
+                "search", "pagecount", "df", "free", "resource"
             ],
             "control": [
                 "config", "restart", "reset", "hold", "display"
@@ -62,7 +63,7 @@ class ps(printer):
                 "destroy", "hang", "overlay", "cross", "replace", "capture", "payload"
             ],
             "advanced": [
-                "exec_ps"
+                "exec_ps", "shell"
             ],
         }
 
@@ -151,6 +152,10 @@ class ps(printer):
 
     def do_id(self, *args):
         "Show comprehensive printer identification (PostScript-specific)"
+        if not self.conn:
+            output().warning("Not connected to RAW — showing passive fingerprint:")
+            self._show_passive_id()
+            return
         print("PostScript Printer Identification:")
         print("=" * 60)
         
@@ -240,6 +245,116 @@ class ps(printer):
         result = self.cmd("realtime print")
         if result:
             print(f"System Time (ticks): {result.strip()}")
+
+    def do_df(self, arg):
+        "Show volume information"
+        print(f"{'VOLUME':<12} {'TOTAL':<8} {'FREE':<8} {'WRITABLE':<10}")
+        print("-" * 50)
+        for vol in self.vol_exists():
+            result = self.cmd(
+                f"({vol}) devstatus dup {{pop == == == == == == == ==}} if"
+            )
+            cols = result.splitlines() if result else []
+            row = (vol,) + tuple(cols[:8] if len(cols) >= 8 else ["-"] * 8)
+            print(" ".join(str(x) for x in row))
+
+    def do_free(self, arg):
+        "Show available memory"
+        ram = self.cmd(
+            "currentsystemparams dup\n"
+            "/mb 1048576 def /str 32 string def\n"
+            "(RAM free: ) print /RamSize known {/RamSize get mb div =}{(-) =} ifelse\n"
+        )
+        if ram:
+            print(ram.strip())
+        vm = self.cmd("vmstatus")
+        if vm:
+            print("Virtual memory:")
+            print(vm.strip())
+
+    def do_mirror(self, arg):
+        "Mirror remote filesystem to local directory"
+        for name in self.dirlist(arg).splitlines():
+            name = name.strip()
+            if name:
+                self.mirror(name, True)
+
+    def do_rename(self, arg):
+        "Rename remote file: rename <old> <new>"
+        parts = re.split(r"\s+", arg.strip(), 1)
+        if len(parts) < 2:
+            output().errmsg("Usage: rename <old> <new>")
+            return
+        old = self.rpath(parts[0])
+        new = self.rpath(parts[1])
+        self.cmd(f"({old}) ({new}) renamefile", False)
+        output().message(f"Renamed {parts[0]} -> {parts[1]}")
+
+    do_mv = do_rename
+
+    options_resource = []
+
+    def populate_resource(self):
+        if not self.options_resource:
+            result = self.cmd(
+                "(*) {print (\\n) print} 128 string /Category resourceforall"
+            )
+            self.options_resource = [ln.strip() for ln in result.splitlines() if ln.strip()]
+
+    def do_resource(self, arg):
+        "List or dump PostScript resource: resource <category> [dump]"
+        parts = re.split(r"\s+", (arg or "").strip(), 1)
+        cat = parts[0]
+        dump = len(parts) > 1
+        self.populate_resource()
+        if cat in self.options_resource:
+            items = self.cmd(
+                f"(*) {{128 string cvs print (\\n) print}} 128 string /{cat} resourceforall"
+            )
+            for res in sorted(items.splitlines()):
+                res = res.strip()
+                if not res:
+                    continue
+                output().info(res)
+                if dump:
+                    self.do_dump(f"/{res} /{cat} findresource", True)
+        else:
+            output().errmsg(f"Unknown resource category. Available: {', '.join(self.options_resource[:12])}")
+
+    def complete_resource(self, text, line, begidx, endidx):
+        self.populate_resource()
+        return [c for c in self.options_resource if c.startswith(text)]
+
+    def do_shell(self, arg):
+        "Open interactive PostScript executive shell"
+        if not self.conn:
+            output().errmsg(self.offline_str)
+            return
+        output().info("PostScript executive shell. Ctrl+D to exit.")
+        try:
+            self.send(c.UEL + c.PS_HEADER + "false echo executive\n")
+            while True:
+                str_recv = self.recv(c.PS_PROMPT + "$|" + c.PS_FLUSH, False, False)
+                output().raw(str_recv, "")
+                if re.search(c.PS_FLUSH, str_recv):
+                    break
+                try:
+                    line = input("")
+                except (EOFError, KeyboardInterrupt):
+                    break
+                self.send(line + "\n")
+        except (EOFError, KeyboardInterrupt):
+            pass
+        self.do_reconnect(None)
+
+    def vol_exists(self, vol=""):
+        result = self.cmd(
+            "(*) {128 string cvs print (\\n) print} 128 string /IODevice resourceforall"
+        )
+        vols = [ln.strip() for ln in result.splitlines() if ln.strip()]
+        if vol:
+            return vol in vols
+        return vols
 
     # --------------------------------------------------------------------
     # 📁 FILESYSTEM COMMANDS

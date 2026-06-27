@@ -7,7 +7,7 @@ PrinterXPL-Forge reads a `config.json` file for API keys and runtime settings.
 ## Check Current Configuration
 
 ```bash
-python printerxpl-forge.py --check-config
+python pxf.py --check-config
 ```
 
 **Output:**
@@ -24,11 +24,11 @@ python printerxpl-forge.py --check-config
 
 ## Config File Location
 
-By default, PrinterXPL-Forge looks for `config.json` in the project root (same directory as `printerxpl-forge.py`).
+By default, PrinterXPL-Forge looks for `config.json` in the project root (same directory as `pxf.py`).
 
 Use a custom path with:
 ```bash
-python printerxpl-forge.py --config /path/to/my_config.json [...]
+python pxf.py --config /path/to/my_config.json [...]
 ```
 
 ---
@@ -156,7 +156,7 @@ cp config.json.example config.json
 
 # Edit config.json and add your keys
 # Then verify:
-python printerxpl-forge.py --check-config
+python pxf.py --check-config
 ```
 
 ---

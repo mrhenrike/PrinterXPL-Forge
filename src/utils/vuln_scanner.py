@@ -378,6 +378,27 @@ def _cve_mentions_model(desc: str, make: str, model: str) -> bool:
     return False
 
 
+def _catalog_applies_to_model(entry: dict, make: str, model: str) -> bool:
+    """Skip enterprise-only catalog entries on consumer inkjet/MFP models."""
+    product = entry.get('product', '').lower()
+    model_l = f"{make} {model}".lower()
+    if not product or not model_l.strip():
+        return True
+
+    consumer_kw = ('deskjet', 'officejet', 'envy', 'photosmart', 'smart tank')
+    enterprise_kw = (
+        'laserjet enterprise', 'pagewide', 'futuresmart', 'laserjet managed',
+        'enterprise mfp', 'color laserjet enterprise',
+    )
+
+    is_consumer = any(k in model_l for k in consumer_kw)
+    is_enterprise_product = any(k in product for k in enterprise_kw)
+
+    if is_consumer and is_enterprise_product:
+        return False
+    return True
+
+
 # ── NVD API ───────────────────────────────────────────────────────────────────
 
 def _query_nvd(
@@ -562,6 +583,38 @@ def _check_misconfigs(
     return mc
 
 
+def _filter_generic_cves(
+    generic:       List[CVEEntry],
+    open_ports:    List[int],
+    printer_langs: List[str],
+    snmp_descr:    str = '',
+) -> List[CVEEntry]:
+    """Drop protocol-level advisories when the required port/lang is absent."""
+    ports = set(open_ports or [])
+    langs = {l.upper() for l in (printer_langs or [])}
+    if not ports and not snmp_descr:
+        return []
+
+    out: List[CVEEntry] = []
+    for cve in generic:
+        blob = f"{cve.cve_id} {cve.description}".lower()
+        if 'pjl' in blob or 'fsdownload' in blob:
+            if 9100 in ports and ('PJL' in langs or not langs):
+                out.append(cve)
+        elif 'ipp' in blob or 'airprint' in blob:
+            if 631 in ports:
+                out.append(cve)
+        elif 'snmp' in blob:
+            if 161 in ports or snmp_descr:
+                out.append(cve)
+        elif 'lpd' in blob or 'port 515' in blob:
+            if 515 in ports:
+                out.append(cve)
+        elif ports:
+            out.append(cve)
+    return out
+
+
 # ── Risk scoring ──────────────────────────────────────────────────────────────
 
 def _compute_risk(
@@ -656,6 +709,8 @@ def scan(
             cid = entry.get("id", "")
             if cid in seen_local:
                 continue
+            if not _catalog_applies_to_model(entry, make, model):
+                continue
             seen_local.add(cid)
             cvss_v = float(entry.get("cvss", 0.0))
             catalog_entry = CVEEntry(
@@ -713,6 +768,7 @@ def scan(
     spec_cves = _dedup(spec_cves)
     vend_cves = _dedup(vend_cves)
     gen_cves  = _dedup(gen_cves)
+    gen_cves  = _filter_generic_cves(gen_cves, open_ports, printer_langs, snmp_descr)
 
     # ── Misconfigurations ──────────────────────────────────────────────────────
     misconfigs = _check_misconfigs(open_ports, printer_langs, snmp_descr, doc_formats)

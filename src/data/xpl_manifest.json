@@ -1,0 +1,3594 @@
+{
+  "_meta": {
+    "generated": "2026-06-26",
+    "total": 191,
+    "by_era": {
+      "legacy": 77,
+      "modern": 98,
+      "timeless": 16
+    },
+    "by_vendor": {
+      "generic": 51,
+      "hp": 45,
+      "kyocera": 7,
+      "ricoh": 26,
+      "lexmark": 25,
+      "brother": 20,
+      "samsung": 2,
+      "konica": 13,
+      "epson": 7,
+      "canon": 16,
+      "microsoft": 10,
+      "xerox": 20,
+      "honeywell": 1,
+      "linux/cups": 3,
+      "openprinting/cups": 2,
+      "cups": 5,
+      "linux": 5,
+      "fujifilm": 1,
+      "toshiba": 2,
+      "dell": 5,
+      "sharp": 6,
+      "oki": 1,
+      "bixolon": 1,
+      "star": 1,
+      "all": 1
+    },
+    "by_integration": {
+      "native_python": 169,
+      "orchestration_msf": 19,
+      "native_poly_c": 3
+    },
+    "default_profile": "modern"
+  },
+  "modules": [
+    {
+      "id": "xpl/edb-15631/exploit.py",
+      "path": "xpl/edb-15631",
+      "source": "exploit-db",
+      "title": "HP LaserJet PJL - Directory Traversal / Filesystem Access",
+      "cve": "UNKNOWN",
+      "year": 2010,
+      "era": "legacy",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "info_disclosure"
+      ],
+      "severity": "unknown",
+      "cvss": 0.0
+    },
+    {
+      "id": "xpl/edb-17636/exploit.py",
+      "path": "xpl/edb-17636",
+      "source": "exploit-db",
+      "title": "HP JetDirect PJL - Interactive Query Shell / File Exfiltration",
+      "cve": "UNKNOWN",
+      "year": 2011,
+      "era": "legacy",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "info_disclosure"
+      ],
+      "severity": "unknown",
+      "cvss": 0.0
+    },
+    {
+      "id": "xpl/edb-20565/exploit.py",
+      "path": "xpl/edb-20565",
+      "source": "exploit-db",
+      "title": "HP JetDirect - Remote LCD Display Modification / Social Engineering",
+      "cve": "UNKNOWN",
+      "year": 2012,
+      "era": "legacy",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "social_engineering"
+      ],
+      "severity": "unknown",
+      "cvss": 0.0
+    },
+    {
+      "id": "edb-22319",
+      "path": "xpl/edb-22319",
+      "source": "exploit-db",
+      "title": "HP JetDirect SNMP EWS Password Disclosure",
+      "cve": "CVE-2002-1048",
+      "year": 2002,
+      "era": "legacy",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "medium",
+      "cvss": 7.5
+    },
+    {
+      "id": "EDB-23147",
+      "path": "xpl/edb-23147",
+      "source": "exploit-db",
+      "title": "Kyocera ECOSYS Information Disclosure (SNMP/HTTP)",
+      "cve": "",
+      "year": 2012,
+      "era": "legacy",
+      "vendors": [
+        "kyocera"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "info_disclosure"
+      ],
+      "severity": "medium",
+      "cvss": 5.0
+    },
+    {
+      "id": "xpl/edb-35151/exploit.py",
+      "path": "xpl/edb-35151",
+      "source": "exploit-db",
+      "title": "Xerox MFP - Dynamic Loadable Module (DLM) Arbitrary Code Execution",
+      "cve": "UNKNOWN",
+      "year": 2014,
+      "era": "legacy",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "unknown",
+      "cvss": 0.0
+    },
+    {
+      "id": "EDB-36608",
+      "path": "xpl/edb-36608",
+      "source": "exploit-db",
+      "title": "Ricoh MP Web Management Authentication Bypass",
+      "cve": "CVE-2014-9321",
+      "year": 2014,
+      "era": "legacy",
+      "vendors": [
+        "ricoh"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "auth_bypass"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "EDB-36913",
+      "path": "xpl/edb-36913",
+      "source": "exploit-db",
+      "title": "Lexmark Printer Arbitrary File Read (Path Traversal)",
+      "cve": "CVE-2014-8738",
+      "year": 2014,
+      "era": "legacy",
+      "vendors": [
+        "lexmark"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "info_disclosure"
+      ],
+      "severity": "high",
+      "cvss": 7.8
+    },
+    {
+      "id": "EDB-37956",
+      "path": "xpl/edb-37956",
+      "source": "exploit-db",
+      "title": "Brother HL/MFC Default Credentials & Admin Access",
+      "cve": "",
+      "year": 2015,
+      "era": "legacy",
+      "vendors": [
+        "brother"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "auth_bypass"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "EDB-40909",
+      "path": "xpl/edb-40909",
+      "source": "exploit-db",
+      "title": "Samsung SCX Printer Web Command Injection",
+      "cve": "CVE-2016-6556",
+      "year": 2016,
+      "era": "legacy",
+      "vendors": [
+        "samsung"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.0
+    },
+    {
+      "id": "EDB-41920",
+      "path": "xpl/edb-41920",
+      "source": "exploit-db",
+      "title": "HP LaserJet/MFP Hardcoded Maintenance Credentials",
+      "cve": "CVE-2017-2740",
+      "year": 2017,
+      "era": "legacy",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "auth_bypass"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "EDB-43178",
+      "path": "xpl/edb-43178",
+      "source": "exploit-db",
+      "title": "Konica Minolta PageScope Session Fixation / Info Disclosure",
+      "cve": "CVE-2017-6321",
+      "year": 2017,
+      "era": "legacy",
+      "vendors": [
+        "konica"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "auth_bypass"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "EDB-45205",
+      "path": "xpl/edb-45205",
+      "source": "exploit-db",
+      "title": "HP PageWide/OfficeJet SSRF via Firmware Update URL (CVE-2017-2750)",
+      "cve": "CVE-2017-2750",
+      "year": 2017,
+      "era": "legacy",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "ssrf"
+      ],
+      "severity": "high",
+      "cvss": 8.8
+    },
+    {
+      "id": "xpl/edb-45273/exploit.py",
+      "path": "xpl/edb-45273",
+      "source": "exploit-db",
+      "title": "HP Jetdirect - PJL Path Traversal to Arbitrary Code Execution",
+      "cve": "UNKNOWN",
+      "year": 2018,
+      "era": "legacy",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "unknown",
+      "cvss": 0.0
+    },
+    {
+      "id": "edb-47812",
+      "path": "xpl/edb-47812",
+      "source": "exploit-db",
+      "title": "Epson WorkForce EWS RCE (EDB-47812)",
+      "cve": "EDB-47812",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "epson"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "high",
+      "cvss": 7.8
+    },
+    {
+      "id": "xpl/edb-47850/exploit.py",
+      "path": "xpl/edb-47850",
+      "source": "exploit-db",
+      "title": "IBM RICOH Infoprint 1532 - Persistent Cross-Site Scripting (Stored XSS)",
+      "cve": "UNKNOWN",
+      "year": 2020,
+      "era": "modern",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "xss"
+      ],
+      "severity": "unknown",
+      "cvss": 0.0
+    },
+    {
+      "id": "edb-49140",
+      "path": "xpl/edb-49140",
+      "source": "exploit-db",
+      "title": "Canon imageRUNNER LAN Fax BOF RCE (EDB-49140)",
+      "cve": "EDB-49140",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "canon"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "high",
+      "cvss": 8.8
+    },
+    {
+      "id": "edb-50078",
+      "path": "xpl/edb-50078",
+      "source": "exploit-db",
+      "title": "HP LaserJet 400 M401 Cmd Injection (EDB-50078)",
+      "cve": "EDB-50078",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "high",
+      "cvss": 8.5
+    },
+    {
+      "id": "edb-50498",
+      "path": "xpl/edb-50498",
+      "source": "exploit-db",
+      "title": "PrintNightmare Windows Print Spooler RCE/LPE",
+      "cve": "['CVE-2021-1675', 'CVE-2021-34527']",
+      "year": 2021,
+      "era": "modern",
+      "vendors": [
+        "microsoft"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "lpe",
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 8.8
+    },
+    {
+      "id": "edb-51191",
+      "path": "xpl/edb-51191",
+      "source": "exploit-db",
+      "title": "Brother DCP-1510 Auth Bypass RCE (EDB-51191)",
+      "cve": "EDB-51191",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "brother"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "edb-51606",
+      "path": "xpl/edb-51606",
+      "source": "exploit-db",
+      "title": "SpoolFool Windows Print Spooler LPE (CVE-2022-21999)",
+      "cve": "CVE-2022-21999",
+      "year": 2022,
+      "era": "modern",
+      "vendors": [
+        "ricoh"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "lpe"
+      ],
+      "severity": "high",
+      "cvss": 7.8
+    },
+    {
+      "id": "EDB-51755",
+      "path": "xpl/edb-51755",
+      "source": "exploit-db",
+      "title": "Ricoh Printer FTP Guest/Guest Filesystem Exposure (2024)",
+      "cve": "",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "ricoh"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "info_disclosure"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "edb-51928",
+      "path": "xpl/edb-51928",
+      "source": "exploit-db",
+      "title": "Lexmark Multi-Model SSRF-to-RCE (CVE-2023-23560)",
+      "cve": "CVE-2023-23560",
+      "year": 2023,
+      "era": "modern",
+      "vendors": [
+        "lexmark"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce",
+        "ssrf"
+      ],
+      "severity": "critical",
+      "cvss": 9.0
+    },
+    {
+      "id": "edb-cve-2011-4065",
+      "path": "xpl/edb-cve-2011-4065",
+      "source": "edb",
+      "title": "HP Web JetAdmin 10.3 Remote Code Execution (CVE-2011-4065)",
+      "cve": "CVE-2011-4065",
+      "year": 2011,
+      "era": "legacy",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "edb-cve-2016-11061",
+      "path": "xpl/edb-cve-2016-11061",
+      "source": "exploit-db",
+      "title": "Xerox WorkCentre configrui.php Unauthenticated RCE (CVE-2016-11061)",
+      "cve": "CVE-2016-11061",
+      "year": 2016,
+      "era": "legacy",
+      "vendors": [
+        "xerox"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "edb-cve-2017-2741",
+      "path": "xpl/edb-cve-2017-2741",
+      "source": "exploit-db",
+      "title": "HP JetDirect Path Traversal RCE (CVE-2017-2741)",
+      "cve": "CVE-2017-2741",
+      "year": 2017,
+      "era": "legacy",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "edb-cve-2018-5924",
+      "path": "xpl/edb-cve-2018-5924",
+      "source": "research",
+      "title": "FAXPLOIT HP/Samsung MFP Fax RCE (CVE-2018-5924/5925)",
+      "cve": "['CVE-2018-5924', 'CVE-2018-5925']",
+      "year": 2018,
+      "era": "legacy",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "xpl/edb-cve-2019-14308/exploit.py",
+      "path": "xpl/edb-cve-2019-14308",
+      "source": "research",
+      "title": "Ricoh Printers - LPD Buffer Overflow Remote Code Execution",
+      "cve": "UNKNOWN",
+      "year": 2019,
+      "era": "legacy",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "unknown",
+      "cvss": 0.0
+    },
+    {
+      "id": "edb-cve-2020-1337",
+      "path": "xpl/edb-cve-2020-1337",
+      "source": "research",
+      "title": "PrintDemon Hardlink Bypass LPE (CVE-2020-1337)",
+      "cve": "CVE-2020-1337",
+      "year": 2020,
+      "era": "modern",
+      "vendors": [
+        "microsoft"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "lpe"
+      ],
+      "severity": "high",
+      "cvss": 7.8
+    },
+    {
+      "id": "edb-cve-2021-3441",
+      "path": "xpl/edb-cve-2021-3441",
+      "source": "exploit-db",
+      "title": "HP OfficeJet Stored XSS via Unauthenticated HTTP PUT (CVE-2021-3441)",
+      "cve": "CVE-2021-3441",
+      "year": 2021,
+      "era": "modern",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "xss"
+      ],
+      "severity": "high",
+      "cvss": 7.4
+    },
+    {
+      "id": "edb-cve-2022-1026",
+      "path": "xpl/edb-cve-2022-1026",
+      "source": "research",
+      "title": "Kyocera MFP SOAP Credential Dump (CVE-2022-1026)",
+      "cve": "CVE-2022-1026",
+      "year": 2022,
+      "era": "modern",
+      "vendors": [
+        "kyocera"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "edb-cve-2022-24673",
+      "path": "xpl/edb-cve-2022-24673",
+      "source": "research",
+      "title": "Canon imageCLASS SLP Pre-Auth BOF → root RCE (CVE-2022-24673)",
+      "cve": "CVE-2022-24673",
+      "year": 2022,
+      "era": "modern",
+      "vendors": [
+        "canon"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "edb-cve-2023-26067",
+      "path": "xpl/edb-cve-2023-26067",
+      "source": "exploit-db",
+      "title": "Lexmark CVE-2023-26067 Unauthenticated Command Injection",
+      "cve": "CVE-2023-26067",
+      "year": 2023,
+      "era": "modern",
+      "vendors": [
+        "lexmark"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.0
+    },
+    {
+      "id": "edb-cve-2023-3710",
+      "path": "xpl/edb-cve-2023-3710",
+      "source": "exploit-db",
+      "title": "Honeywell PM43 Command Injection via HTTP POST (CVE-2023-3710)",
+      "cve": "CVE-2023-3710",
+      "year": 2023,
+      "era": "modern",
+      "vendors": [
+        "honeywell"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "high",
+      "cvss": 8.8
+    },
+    {
+      "id": "edb-cve-2023-50733",
+      "path": "xpl/edb-cve-2023-50733",
+      "source": "research",
+      "title": "Lexmark SSRF via EWS (CVE-2023-50733)",
+      "cve": "CVE-2023-50733",
+      "year": 2023,
+      "era": "modern",
+      "vendors": [
+        "lexmark"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "ssrf"
+      ],
+      "severity": "medium",
+      "cvss": 6.5
+    },
+    {
+      "id": "edb-cve-2023-50739",
+      "path": "xpl/edb-cve-2023-50739",
+      "source": "research",
+      "title": "Lexmark IPP Heap BOF → RCE (CVE-2023-50739)",
+      "cve": "CVE-2023-50739",
+      "year": 2023,
+      "era": "modern",
+      "vendors": [
+        "lexmark"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "high",
+      "cvss": 8.8
+    },
+    {
+      "id": "edb-cve-2024-47176",
+      "path": "xpl/edb-cve-2024-47176",
+      "source": "research",
+      "title": "CUPS/cups-browsed Unauthenticated RCE Chain",
+      "cve": "['CVE-2024-47176', 'CVE-2024-47076', 'CVE-2024-47175', 'CVE-2024-47177']",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "linux/cups"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.9
+    },
+    {
+      "id": "edb-cve-2024-51977",
+      "path": "xpl/edb-cve-2024-51977",
+      "source": "research",
+      "title": "Brother Printer Serial Number Disclosure (CVE-2024-51977)",
+      "cve": "CVE-2024-51977",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "brother"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "high",
+      "cvss": 5.3
+    },
+    {
+      "id": "edb-cve-2024-51978",
+      "path": "xpl/edb-cve-2024-51978",
+      "source": "research",
+      "title": "Brother Printers — Default Admin Password Exposure (CVE-2024-51978)",
+      "cve": "CVE-2024-51978",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "brother"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "critical",
+      "cvss": 7.5
+    },
+    {
+      "id": "edb-cve-2024-6333",
+      "path": "xpl/edb-cve-2024-6333",
+      "source": "research",
+      "title": "Xerox VersaLink MFP OS Command Injection (CVE-2024-6333)",
+      "cve": "CVE-2024-6333",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "xerox"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "high",
+      "cvss": 8.6
+    },
+    {
+      "id": "edb-cve-2025-26506",
+      "path": "xpl/edb-cve-2025-26506",
+      "source": "research",
+      "title": "HP LaserJet PostScript RCE (CVE-2025-26506)",
+      "cve": "CVE-2025-26506",
+      "year": 2025,
+      "era": "modern",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "xpl/edb-cve-2025-26508/exploit.py",
+      "path": "xpl/edb-cve-2025-26508",
+      "source": "research",
+      "title": "HP FutureSmart - PostScript Interpreter Remote Code Execution (CVSS 10)",
+      "cve": "UNKNOWN",
+      "year": 2025,
+      "era": "modern",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "unknown",
+      "cvss": 0.0
+    },
+    {
+      "id": "MSF-HP-WEBJETADMIN-RCE",
+      "path": "xpl/msf/msf-hp-web-jetadmin-rce",
+      "source": "metasploit",
+      "title": "HP Web JetAdmin Unauthenticated RCE (MSF)",
+      "cve": "CVE-2011-4065",
+      "year": 2011,
+      "era": "legacy",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "orchestration_msf",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 10.0
+    },
+    {
+      "id": "MSF-IPP-PRINTER-CHECK",
+      "path": "xpl/msf/msf-ipp-printer-check",
+      "source": "metasploit",
+      "title": "IPP / AirPrint Anonymous Enumeration & Job Submission",
+      "cve": "CVE-2017-18190",
+      "year": 2017,
+      "era": "legacy",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "orchestration_msf",
+      "categories": [
+        "info_disclosure"
+      ],
+      "severity": "medium",
+      "cvss": 7.5
+    },
+    {
+      "id": "MSF-PRINTER-DIR-LIST",
+      "path": "xpl/msf/msf-printer-dir-list",
+      "source": "metasploit",
+      "title": "PJL Filesystem Directory Listing (MSF)",
+      "cve": "CVE-2010-4107",
+      "year": 2010,
+      "era": "legacy",
+      "vendors": [
+        "hp",
+        "lexmark",
+        "ricoh"
+      ],
+      "integration": "orchestration_msf",
+      "categories": [
+        "info_disclosure"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "MSF-PRINTER-ENV-VARS",
+      "path": "xpl/msf/msf-printer-env-vars",
+      "source": "metasploit",
+      "title": "PJL Environment Variable Enumeration (MSF)",
+      "cve": "CVE-2010-4107",
+      "year": 2010,
+      "era": "legacy",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "orchestration_msf",
+      "categories": [
+        "info_disclosure"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "MSF-PRINTER-FILE-DOWNLOAD",
+      "path": "xpl/msf/msf-printer-file-download",
+      "source": "metasploit",
+      "title": "PJL File Download via FSUPLOAD (MSF)",
+      "cve": "CVE-2010-4107",
+      "year": 2010,
+      "era": "legacy",
+      "vendors": [
+        "hp",
+        "lexmark",
+        "ricoh"
+      ],
+      "integration": "orchestration_msf",
+      "categories": [
+        "info_disclosure"
+      ],
+      "severity": "high",
+      "cvss": 7.8
+    },
+    {
+      "id": "MSF-PRINTER-FILE-UPLOAD",
+      "path": "xpl/msf/msf-printer-file-upload",
+      "source": "metasploit",
+      "title": "PJL File Upload via FSDOWNLOAD (MSF)",
+      "cve": "CVE-2010-4107",
+      "year": 2010,
+      "era": "legacy",
+      "vendors": [
+        "hp",
+        "lexmark"
+      ],
+      "integration": "orchestration_msf",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.0
+    },
+    {
+      "id": "MSF-PRINTER-INFO",
+      "path": "xpl/msf/msf-printer-info",
+      "source": "metasploit",
+      "title": "PJL Printer Information Gathering (MSF)",
+      "cve": "",
+      "year": 2010,
+      "era": "legacy",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "orchestration_msf",
+      "categories": [
+        "info_disclosure",
+        "recon"
+      ],
+      "severity": "medium",
+      "cvss": 5.0
+    },
+    {
+      "id": "MSF-RICOH-LOGINOUT-DOS",
+      "path": "xpl/msf/msf-ricoh-loginout-dos",
+      "source": "metasploit",
+      "title": "Ricoh MFP SNMP Login/Logout DoS (MSF)",
+      "cve": "",
+      "year": 2013,
+      "era": "legacy",
+      "vendors": [
+        "ricoh"
+      ],
+      "integration": "orchestration_msf",
+      "categories": [
+        "dos"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "MSF-SNMP-PRINTER-ENUM",
+      "path": "xpl/msf/msf-snmp-printer-enum",
+      "source": "metasploit",
+      "title": "SNMP Printer Enumeration — MIB Dump (MSF)",
+      "cve": "CWE-284",
+      "year": 2006,
+      "era": "legacy",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "orchestration_msf",
+      "categories": [
+        "info_disclosure",
+        "recon"
+      ],
+      "severity": "medium",
+      "cvss": 6.5
+    },
+    {
+      "id": "msf-brother-default-auth-bypass",
+      "path": "xpl/msf-brother-default-auth-bypass",
+      "source": "metasploit",
+      "title": "Brother Default Admin Auth Bypass (CVE-2024-51978)",
+      "cve": "['CVE-2024-51977', 'CVE-2024-51978']",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "brother"
+      ],
+      "integration": "orchestration_msf",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "high",
+      "cvss": 9.8
+    },
+    {
+      "id": "msf-canon-driver-privesc",
+      "path": "xpl/msf-canon-driver-privesc",
+      "source": "metasploit",
+      "title": "Canon TR150 Driver LPE (CVE-2021-38085)",
+      "cve": "CVE-2021-38085",
+      "year": 2021,
+      "era": "modern",
+      "vendors": [
+        "canon"
+      ],
+      "integration": "orchestration_msf",
+      "categories": [
+        "lpe"
+      ],
+      "severity": "high",
+      "cvss": 7.8
+    },
+    {
+      "id": "msf-canon-wireless-dos",
+      "path": "xpl/msf-canon-wireless-dos",
+      "source": "metasploit",
+      "title": "Canon Wireless Printer DoS (CVE-2013-4615)",
+      "cve": "CVE-2013-4615",
+      "year": 2013,
+      "era": "legacy",
+      "vendors": [
+        "canon"
+      ],
+      "integration": "orchestration_msf",
+      "categories": [
+        "dos"
+      ],
+      "severity": "medium",
+      "cvss": 7.8
+    },
+    {
+      "id": "msf-cups-ipp-rce",
+      "path": "xpl/msf-cups-ipp-rce",
+      "source": "metasploit",
+      "title": "CUPS IPP RCE (CVE-2024-47176 chain)",
+      "cve": "['CVE-2024-47176', 'CVE-2024-47076', 'CVE-2024-47175', 'CVE-2024-47177']",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "linux/cups"
+      ],
+      "integration": "orchestration_msf",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.9
+    },
+    {
+      "id": "msf-cve-2020-1048-printerdemon",
+      "path": "xpl/msf-cve-2020-1048-printerdemon",
+      "source": "metasploit",
+      "title": "PrintDemon LPE Persistent Backdoor MSF (CVE-2020-1048)",
+      "cve": "CVE-2020-1048",
+      "year": 2020,
+      "era": "modern",
+      "vendors": [
+        "microsoft"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "lpe",
+        "persistence"
+      ],
+      "severity": "high",
+      "cvss": 7.8
+    },
+    {
+      "id": "msf-hp-jetdirect-path-traversal",
+      "path": "xpl/msf-hp-jetdirect-path-traversal",
+      "source": "metasploit",
+      "title": "HP JetDirect Path Traversal RCE (CVE-2017-2741)",
+      "cve": "CVE-2017-2741",
+      "year": 2017,
+      "era": "legacy",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "orchestration_msf",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "msf-hp-pjl-scan",
+      "path": "xpl/msf-hp-pjl-scan",
+      "source": "metasploit",
+      "title": "HP PJL Enumeration Scanner (MSF-HP-PJL-SCAN)",
+      "cve": "MSF-HP-PJL-SCAN",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "info_disclosure"
+      ],
+      "severity": "low",
+      "cvss": 5.3
+    },
+    {
+      "id": "msf-lexmark-cred-dump",
+      "path": "xpl/msf-lexmark-cred-dump",
+      "source": "metasploit",
+      "title": "Lexmark Credential Dump (CVE-2023-26067)",
+      "cve": "['CVE-2023-26067', 'CVE-2023-26068']",
+      "year": 2023,
+      "era": "modern",
+      "vendors": [
+        "lexmark"
+      ],
+      "integration": "orchestration_msf",
+      "categories": [
+        "rce"
+      ],
+      "severity": "high",
+      "cvss": 9.0
+    },
+    {
+      "id": "msf-printer-to-pdf",
+      "path": "xpl/msf-printer-to-pdf",
+      "source": "metasploit",
+      "title": "Printer PJL File Dump via MSF (Printer-to-PDF)",
+      "cve": "MSF-PRINTER-TO-PDF",
+      "year": null,
+      "era": "timeless",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "medium",
+      "cvss": 6.5
+    },
+    {
+      "id": "msf-printjob-capture",
+      "path": "xpl/msf-printjob-capture",
+      "source": "metasploit",
+      "title": "Print Job Capture (MitM via LLMNR/SMB)",
+      "cve": "PS-JOB-CAPTURE-001",
+      "year": null,
+      "era": "timeless",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "orchestration_msf",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "medium",
+      "cvss": 6.5
+    },
+    {
+      "id": "msf-ricoh-driver-privesc",
+      "path": "xpl/msf-ricoh-driver-privesc",
+      "source": "metasploit",
+      "title": "Ricoh Printer Driver LPE (CVE-2019-19363)",
+      "cve": "CVE-2019-19363",
+      "year": 2019,
+      "era": "legacy",
+      "vendors": [
+        "ricoh"
+      ],
+      "integration": "orchestration_msf",
+      "categories": [
+        "lpe"
+      ],
+      "severity": "high",
+      "cvss": 7.8
+    },
+    {
+      "id": "msf-snmp-hp-laserjet",
+      "path": "xpl/msf-snmp-hp-laserjet",
+      "source": "metasploit",
+      "title": "HP LaserJet SNMP Enumeration",
+      "cve": "CVE-2002-1048",
+      "year": 2002,
+      "era": "legacy",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "orchestration_msf",
+      "categories": [
+        "scanner"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "msf-spoolfool-privesc",
+      "path": "xpl/msf-spoolfool-privesc",
+      "source": "metasploit",
+      "title": "SpoolFool Windows LPE (CVE-2022-21999)",
+      "cve": "CVE-2022-21999",
+      "year": 2022,
+      "era": "modern",
+      "vendors": [
+        "microsoft"
+      ],
+      "integration": "orchestration_msf",
+      "categories": [
+        "lpe"
+      ],
+      "severity": "high",
+      "cvss": 7.8
+    },
+    {
+      "id": "research-bizhub-user-extract",
+      "path": "xpl/research/research-bizhub-user-extract",
+      "source": "research",
+      "title": "Konica Bizhub C554 Unauthenticated Address Book User Extraction",
+      "cve": "",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "konica"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "medium",
+      "cvss": 6.5
+    },
+    {
+      "id": "research-brother-fw-upload",
+      "path": "xpl/research/research-brother-fw-upload",
+      "source": "research",
+      "title": "Brother MFC/DCP Unsigned Firmware Upload",
+      "cve": "FIRMWARE-BROTHER-001",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "brother"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "high",
+      "cvss": 8.0
+    },
+    {
+      "id": "research-brother-nvram",
+      "path": "xpl/research/research-brother-nvram",
+      "source": "research",
+      "title": "Brother PJL NVRAM Write Exhaustion DoS",
+      "cve": "",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "brother"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "dos"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "research-brother-passback",
+      "path": "xpl/research/research-brother-passback",
+      "source": "research",
+      "title": "Brother LDAP/SMTP Credential Pass-Back Attack (CVE-2024-51984)",
+      "cve": "CVE-2024-51984",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "brother"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "info_disclosure"
+      ],
+      "severity": "high",
+      "cvss": 7.1
+    },
+    {
+      "id": "research-brother-serial-pwd",
+      "path": "xpl/research/research-brother-serial-pwd",
+      "source": "research",
+      "title": "Brother Serial Number → Admin Password Derivation (CVE-2024-51977/51978)",
+      "cve": "['CVE-2024-51977', 'CVE-2024-51978']",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "brother"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "info_disclosure"
+      ],
+      "severity": "critical",
+      "cvss": 9.1
+    },
+    {
+      "id": "research-brother-vuln-enum",
+      "path": "xpl/research/research-brother-vuln-enum",
+      "source": "research",
+      "title": "Brother Device Vulnerability Enumeration",
+      "cve": "['CVE-2024-51977', 'CVE-2024-51978']",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "brother"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "medium",
+      "cvss": 7.5
+    },
+    {
+      "id": "research-brother-wsd-dos",
+      "path": "xpl/research/research-brother-wsd-dos",
+      "source": "research",
+      "title": "Brother WSD Device Crash DoS (CVE-2024-51983)",
+      "cve": "CVE-2024-51983",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "brother"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "dos"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "research-brother-wsd-ssrf",
+      "path": "xpl/research/research-brother-wsd-ssrf",
+      "source": "research",
+      "title": "Brother WSD Forced TCP / SSRF (CVE-2024-51980 + CVE-2024-51981)",
+      "cve": "CVE-2024-51980",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "brother",
+        "konica"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "ssrf"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "research-canon-ldif-extract",
+      "path": "xpl/research/research-canon-ldif-extract",
+      "source": "research",
+      "title": "Canon iR-ADV LDIF Address Book + SMB Credential Extraction",
+      "cve": "",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "canon"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "medium",
+      "cvss": 6.5
+    },
+    {
+      "id": "research-canon-pcl-bof",
+      "path": "xpl/research/research-canon-pcl-bof",
+      "source": "research",
+      "title": "Canon imageRUNNER CVE-2025-14235 PCL Buffer Overflow",
+      "cve": "CVE-2025-14235",
+      "year": 2025,
+      "era": "modern",
+      "vendors": [
+        "canon"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "research-canon-pixma-fw",
+      "path": "xpl/research/research-canon-pixma-fw",
+      "source": "research",
+      "title": "Canon PIXMA .ful Firmware Extraction",
+      "cve": "FIRMWARE-CANON-PIXMA-001",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "canon"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "high",
+      "cvss": 6.8
+    },
+    {
+      "id": "research-canon-ps-bof",
+      "path": "xpl/research/research-canon-ps-bof",
+      "source": "research",
+      "title": "Canon imageRUNNER CVE-2025-14232 PostScript Buffer Overflow",
+      "cve": "CVE-2025-14232",
+      "year": 2025,
+      "era": "modern",
+      "vendors": [
+        "canon"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "high",
+      "cvss": 9.8
+    },
+    {
+      "id": "research-canon-xps-bof-2025b",
+      "path": "xpl/research/research-canon-xps-bof-2025b",
+      "source": "research",
+      "title": "Canon XPS Parser BOF RCE — CVE-2025-14234 + CVE-2025-14237 (Advisory CP2026-001)",
+      "cve": "CVE-2025-14234",
+      "year": 2025,
+      "era": "modern",
+      "vendors": [
+        "canon"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "research-cups-chain-2026",
+      "path": "xpl/research/research-cups-chain-2026",
+      "source": "research",
+      "title": "CUPS 2.4.16 Unauthenticated RCE (CVE-2026-34980)",
+      "cve": "CVE-2026-34980",
+      "year": 2026,
+      "era": "modern",
+      "vendors": [
+        "openprinting/cups"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.1
+    },
+    {
+      "id": "research-cups-chain-2026-34980",
+      "path": "xpl/research/research-cups-chain-2026-34980",
+      "source": "research",
+      "title": "CUPS 2.4.16 CRLF Injection RCE (CVE-2026-34980)",
+      "cve": "CVE-2026-34980",
+      "year": 2026,
+      "era": "modern",
+      "vendors": [
+        "cups",
+        "linux"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "research-cups-nofaxgiven",
+      "path": "xpl/research/research-cups-nofaxgiven",
+      "source": "research",
+      "title": "CUPS mDNS SSRF + Fax-to-LAN (NoFaxGiven) Attack",
+      "cve": "['CVE-2024-47176', 'FAXPLOIT-NOFAXGIVEN']",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "linux/cups"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "ssrf"
+      ],
+      "severity": "high",
+      "cvss": 9.9
+    },
+    {
+      "id": "research-cups-pwn2own-2026-chain",
+      "path": "xpl/research/research-cups-pwn2own-2026-chain",
+      "source": "research",
+      "title": "CUPS Pwn2Own 2026 Full Chain Orchestrator (CVE-2026-34480)",
+      "cve": "CVE-2026-34480",
+      "year": 2026,
+      "era": "modern",
+      "vendors": [
+        "cups",
+        "linux"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "research-cups-pwn2own-2026-stage1",
+      "path": "xpl/research/research-cups-pwn2own-2026-stage1",
+      "source": "research",
+      "title": "CUPS cups-browsed UAF Stage 1 — Pwn2Own 2026 (CVE-2026-34477)",
+      "cve": "CVE-2026-34477",
+      "year": 2026,
+      "era": "modern",
+      "vendors": [
+        "cups",
+        "linux"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "research-cups-pwn2own-2026-stage2",
+      "path": "xpl/research/research-cups-pwn2own-2026-stage2",
+      "source": "research",
+      "title": "CUPS Heap Spray via IPP Attributes Stage 2 — Pwn2Own 2026 (CVE-2026-34478)",
+      "cve": "CVE-2026-34478",
+      "year": 2026,
+      "era": "modern",
+      "vendors": [
+        "cups",
+        "linux"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "research-cups-pwn2own-2026-stage3",
+      "path": "xpl/research/research-cups-pwn2own-2026-stage3",
+      "source": "research",
+      "title": "CUPS ROP Chain via job-name Overflow Stage 3 — Pwn2Own 2026 (CVE-2026-34479)",
+      "cve": "CVE-2026-34479",
+      "year": 2026,
+      "era": "modern",
+      "vendors": [
+        "cups",
+        "linux"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "research-cups-root-2026",
+      "path": "xpl/research/research-cups-root-2026",
+      "source": "research",
+      "title": "CUPS 2.4.16 LPE Root Race Condition (CVE-2026-34990)",
+      "cve": "CVE-2026-34990",
+      "year": 2026,
+      "era": "modern",
+      "vendors": [
+        "openprinting/cups"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "lpe"
+      ],
+      "severity": "high",
+      "cvss": 7.8
+    },
+    {
+      "id": "CVE-2024-51982",
+      "path": "xpl/research/research-cve-2024-51982",
+      "source": "research",
+      "title": "PJL FORMLINES Non-Numeric DoS — Brother/Ricoh/Fujifilm (2024)",
+      "cve": "CVE-2024-51982",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "brother",
+        "fujifilm",
+        "konica",
+        "ricoh",
+        "toshiba"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "dos"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "research/research-dell-b5460-enum",
+      "path": "xpl/research/research-dell-b5460-enum",
+      "source": "research",
+      "title": "Dell B5460dn / Lexmark OEM SNMP Factory Reset & Credential Dump",
+      "cve": "DELL-B5460-SNMP-001",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "dell"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "high",
+      "cvss": 8.5
+    },
+    {
+      "id": "research-dell-mfp-enum",
+      "path": "xpl/research/research-dell-mfp-enum",
+      "source": "research",
+      "title": "Dell MFP 3115n Job Log Username Enumeration",
+      "cve": "",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "dell"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "info_disclosure"
+      ],
+      "severity": "medium",
+      "cvss": 5.3
+    },
+    {
+      "id": "RESEARCH-EPSON-CONNECT-CLOUD",
+      "path": "xpl/research/research-epson-connect-cloud",
+      "source": "research",
+      "title": "Epson Connect Cloud Email Exposed via SNMP (Cloud Print Hijack)",
+      "cve": "",
+      "year": 2026,
+      "era": "modern",
+      "vendors": [
+        "epson"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "info_disclosure"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "research-epson-fw-unsigned",
+      "path": "xpl/research/research-epson-fw-unsigned",
+      "source": "research",
+      "title": "Epson WorkForce Unsigned Firmware Upload",
+      "cve": "FIRMWARE-EPSON-001",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "epson"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "RESEARCH-EPSON-LPD-UNAUTH",
+      "path": "xpl/research/research-epson-lpd-unauth",
+      "source": "research",
+      "title": "Epson EcoTank Unauthenticated LPD Print Job Submission",
+      "cve": "CVE-2023-27516",
+      "year": 2023,
+      "era": "modern",
+      "vendors": [
+        "epson"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "dos",
+        "info_disclosure"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "RESEARCH-EPSON-NOAUTH-DISCLOSURE",
+      "path": "xpl/research/research-epson-noauth-disclosure",
+      "source": "research",
+      "title": "Epson EcoTank Unauthenticated Info Disclosure + CWE-603 Auth Bypass",
+      "cve": "CVE-2022-3426",
+      "year": 2022,
+      "era": "modern",
+      "vendors": [
+        "epson"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "auth_bypass",
+        "info_disclosure"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "research/research-fax-config-exfil",
+      "path": "xpl/research/research-fax-config-exfil",
+      "source": "research",
+      "title": "MFP FAX Configuration Exposure & Address Book Exfiltration",
+      "cve": "FAX-CONFIG-EXFIL-001",
+      "year": null,
+      "era": "timeless",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "medium",
+      "cvss": 6.5
+    },
+    {
+      "id": "research-fax-dll-inject",
+      "path": "xpl/research/research-fax-dll-inject",
+      "source": "research",
+      "title": "HP MFP Fax Stack Memory Corruption (Faxploit — CVE-2018-5924/5925)",
+      "cve": "CVE-2018-5924",
+      "year": 2018,
+      "era": "legacy",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "research/research-ftp-printer-grab",
+      "path": "xpl/research/research-ftp-printer-grab",
+      "source": "research",
+      "title": "Printer FTP Filesystem Access & Exfiltration",
+      "cve": "FTP-PRINTER-ACCESS-001",
+      "year": null,
+      "era": "timeless",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "research-fuser-thermal-attack",
+      "path": "xpl/research/research-fuser-thermal-attack",
+      "source": "research",
+      "title": "Fuser Thermal Runaway Attack (Multi-vendor — Physical Destruction)",
+      "cve": "",
+      "year": 2017,
+      "era": "legacy",
+      "vendors": [
+        "generic",
+        "hp",
+        "kyocera",
+        "ricoh",
+        "xerox"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "physical_damage"
+      ],
+      "severity": "critical",
+      "cvss": 9.5
+    },
+    {
+      "id": "RESEARCH-GENERIC-PJL-NVRAM",
+      "path": "xpl/research/research-generic-pjl-nvram",
+      "source": "research",
+      "title": "PJL NVRAM Read via DINQUIRE (Generic / HP / Lexmark)",
+      "cve": "CVE-2010-4107",
+      "year": 2010,
+      "era": "legacy",
+      "vendors": [
+        "dell",
+        "hp",
+        "lexmark"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "info_disclosure"
+      ],
+      "severity": "high",
+      "cvss": 8.0
+    },
+    {
+      "id": "research-gooseegg-spooler",
+      "path": "xpl/research/research-gooseegg-spooler",
+      "source": "research",
+      "title": "GooseEgg Windows Print Spooler LPE (CVE-2022-38028)",
+      "cve": "CVE-2022-38028",
+      "year": 2022,
+      "era": "modern",
+      "vendors": [
+        "microsoft"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "lpe"
+      ],
+      "severity": "high",
+      "cvss": 7.8
+    },
+    {
+      "id": "research-hp-bof-series-2022",
+      "path": "xpl/research/research-hp-bof-series-2022",
+      "source": "research",
+      "title": "HP Multi-Model Network BOF Series (CVE-2022-28721 / CVE-2023-1329 / CVE-2024-0794)",
+      "cve": "CVE-2022-28721",
+      "year": 2022,
+      "era": "modern",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "research-hp-disk-access",
+      "path": "xpl/research/research-hp-disk-access",
+      "source": "research",
+      "title": "HP LaserJet Internal Disk Access via EWS (Research)",
+      "cve": "",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "info_disclosure"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "research-hp-efi-rootkit",
+      "path": "xpl/research/research-hp-efi-rootkit",
+      "source": "research",
+      "title": "HP LaserJet EFI/UEFI Rootkit Research (Printing Shellz)",
+      "cve": "",
+      "year": 2021,
+      "era": "modern",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "persistence"
+      ],
+      "severity": "critical",
+      "cvss": 9.0
+    },
+    {
+      "id": "research-hp-ews-ssrf-2024-4479",
+      "path": "xpl/research/research-hp-ews-ssrf-2024-4479",
+      "source": "research",
+      "title": "HP LaserJet EWS SSRF (CVE-2024-4479)",
+      "cve": "CVE-2024-4479",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "ssrf"
+      ],
+      "severity": "high",
+      "cvss": 8.6
+    },
+    {
+      "id": "research-hp-futuresmart-leak",
+      "path": "xpl/research/research-hp-futuresmart-leak",
+      "source": "research",
+      "title": "HP FutureSmart 5.6 Info Disclosure (CVE-2023-1707)",
+      "cve": "CVE-2023-1707",
+      "year": 2023,
+      "era": "modern",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "info_disclosure"
+      ],
+      "severity": "critical",
+      "cvss": 9.1
+    },
+    {
+      "id": "research-hp-fw-auth-bypass-2023-6018",
+      "path": "xpl/research/research-hp-fw-auth-bypass-2023-6018",
+      "source": "research",
+      "title": "HP LaserJet Firmware Auth Bypass + Upload (CVE-2023-6018)",
+      "cve": "CVE-2023-6018",
+      "year": 2023,
+      "era": "modern",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "auth_bypass",
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "research-hp-fw-bypass",
+      "path": "xpl/research/research-hp-fw-bypass",
+      "source": "research",
+      "title": "HP LaserJet Firmware Auth Bypass → Upload (CVE-2023-6018)",
+      "cve": "CVE-2023-6018",
+      "year": 2023,
+      "era": "modern",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "auth_bypass",
+        "persistence",
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "research-hp-fw-extract",
+      "path": "xpl/research/research-hp-fw-extract",
+      "source": "research",
+      "title": "HP Printer Firmware Version Extraction and CVE Mapping",
+      "cve": "CVE-2017-2741",
+      "year": 2017,
+      "era": "legacy",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "information_disclosure"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "research-hp-mfp-bof-2021-39237",
+      "path": "xpl/research/research-hp-mfp-bof-2021-39237",
+      "source": "research",
+      "title": "HP LaserJet MFP Stack Buffer Overflow (CVE-2021-39237)",
+      "cve": "CVE-2021-39237",
+      "year": 2021,
+      "era": "modern",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "research-hp-pagewide-ssrf-2017-2750",
+      "path": "xpl/research/research-hp-pagewide-ssrf-2017-2750",
+      "source": "research",
+      "title": "HP PageWide Enterprise Solution Bundle RCE/SSRF (CVE-2017-2750)",
+      "cve": "CVE-2017-2750",
+      "year": 2017,
+      "era": "legacy",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce",
+        "ssrf"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "research-hp-pjl-traversal-2010-4107",
+      "path": "xpl/research/research-hp-pjl-traversal-2010-4107",
+      "source": "research",
+      "title": "HP JetDirect PJL Directory Traversal (CVE-2010-4107)",
+      "cve": "CVE-2010-4107",
+      "year": 2010,
+      "era": "legacy",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "path_traversal"
+      ],
+      "severity": "high",
+      "cvss": 7.8
+    },
+    {
+      "id": "research-hp-printing-shellz",
+      "path": "xpl/research/research-hp-printing-shellz",
+      "source": "research",
+      "title": "HP LaserJet Enterprise MFP FutureSmart Stack BOF RCE (Printing Shellz)",
+      "cve": "CVE-2021-39238",
+      "year": 2021,
+      "era": "modern",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "native_poly_c",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "research-hp-uart-bof-2022-3942",
+      "path": "xpl/research/research-hp-uart-bof-2022-3942",
+      "source": "research",
+      "title": "HP LaserJet MFP UART Buffer Overflow RCE (CVE-2022-3942)",
+      "cve": "CVE-2022-3942",
+      "year": 2022,
+      "era": "modern",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "research-hp-xps-bof",
+      "path": "xpl/research/research-hp-xps-bof",
+      "source": "research",
+      "title": "HP LaserJet Enterprise CVE-2025-26506 XPS Buffer Overflow",
+      "cve": "CVE-2025-26506",
+      "year": 2025,
+      "era": "modern",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "high",
+      "cvss": 9.8
+    },
+    {
+      "id": "research/research-ipp-anon-inject",
+      "path": "xpl/research/research-ipp-anon-inject",
+      "source": "research",
+      "title": "IPP Anonymous Print Job Injection",
+      "cve": "IPP-ANON-PRINT-001",
+      "year": null,
+      "era": "timeless",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "medium",
+      "cvss": 5.5
+    },
+    {
+      "id": "research/research-ipp-evil-twin",
+      "path": "xpl/research/research-ipp-evil-twin",
+      "source": "research",
+      "title": "Rogue IPP Printer / Evil-Twin via bettercap ZeroGod (Go)",
+      "cve": "IPP-EVIL-TWIN-001",
+      "year": null,
+      "era": "timeless",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "high",
+      "cvss": 8.0
+    },
+    {
+      "id": "research-ipp-fuzz-enum",
+      "path": "xpl/research/research-ipp-fuzz-enum",
+      "source": "research",
+      "title": "IPP Fuzzer & Attribute Enumerator",
+      "cve": "MULTI",
+      "year": null,
+      "era": "timeless",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "medium",
+      "cvss": 7.5
+    },
+    {
+      "id": "research/research-ipp-print-uri-ssrf",
+      "path": "xpl/research/research-ipp-print-uri-ssrf",
+      "source": "research",
+      "title": "IPP Print-URI Server-Side Request Forgery (SSRF)",
+      "cve": "CVE-2022-23968",
+      "year": 2022,
+      "era": "modern",
+      "vendors": [
+        "xerox"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce",
+        "ssrf"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "research/research-ipp-purge-dos",
+      "path": "xpl/research/research-ipp-purge-dos",
+      "source": "research",
+      "title": "IPP Purge-Jobs Denial of Service (Anonymous)",
+      "cve": "IPP-PURGE-DOS-001",
+      "year": null,
+      "era": "timeless",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "dos"
+      ],
+      "severity": "medium",
+      "cvss": 6.5
+    },
+    {
+      "id": "research-konica-fw-upload",
+      "path": "xpl/research/research-konica-fw-upload",
+      "source": "research",
+      "title": "Konica Minolta bizhub Unsigned Firmware Upload",
+      "cve": "FIRMWARE-KONICA-001",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "konica"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "high",
+      "cvss": 8.5
+    },
+    {
+      "id": "research-konica-soap-extract",
+      "path": "xpl/research/research-konica-soap-extract",
+      "source": "research",
+      "title": "Konica Minolta SOAP API Credential Extraction",
+      "cve": "",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "konica"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "medium",
+      "cvss": 6.5
+    },
+    {
+      "id": "research-kyocera-pjl-creds",
+      "path": "xpl/research/research-kyocera-pjl-creds",
+      "source": "research",
+      "title": "Kyocera TASKALFA PJL Credential & Config Extraction",
+      "cve": "",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "kyocera"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "info_disclosure"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "research-laser-scanner-attack",
+      "path": "xpl/research/research-laser-scanner-attack",
+      "source": "research",
+      "title": "Laser Scanner / Photosensitive Drum Damage Attack (Multi-vendor)",
+      "cve": "",
+      "year": 2017,
+      "era": "legacy",
+      "vendors": [
+        "canon",
+        "generic",
+        "hp",
+        "kyocera",
+        "ricoh",
+        "xerox"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "physical_damage",
+        "scanner"
+      ],
+      "severity": "critical",
+      "cvss": 9.2
+    },
+    {
+      "id": "research-ldap-hash-capture",
+      "path": "xpl/research/research-ldap-hash-capture",
+      "source": "research",
+      "title": "MFP LDAP Credential Pass-Back Attack",
+      "cve": "LDAP-HASH-CAPTURE-001",
+      "year": null,
+      "era": "timeless",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "high",
+      "cvss": 6.5
+    },
+    {
+      "id": "research-lexmark-cve-2023-26067",
+      "path": "xpl/research/research-lexmark-cve-2023-26067",
+      "source": "research",
+      "title": "Lexmark CVE-2023-26067 SSRF / Pre-Auth RCE",
+      "cve": "CVE-2023-26067",
+      "year": 2023,
+      "era": "modern",
+      "vendors": [
+        "lexmark"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce",
+        "ssrf"
+      ],
+      "severity": "critical",
+      "cvss": 9.0
+    },
+    {
+      "id": "research-lexmark-fw-decrypt",
+      "path": "xpl/research/research-lexmark-fw-decrypt",
+      "source": "research",
+      "title": "Lexmark FLS Firmware Decryption Analysis",
+      "cve": "CVE-2023-50738",
+      "year": 2023,
+      "era": "modern",
+      "vendors": [
+        "lexmark"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "high",
+      "cvss": 7.2
+    },
+    {
+      "id": "research-lexmark-fw-downgrade",
+      "path": "xpl/research/research-lexmark-fw-downgrade",
+      "source": "research",
+      "title": "Lexmark Firmware Downgrade to Arbitrary Code Execution (CVE-2023-50738)",
+      "cve": "CVE-2023-50738",
+      "year": 2023,
+      "era": "modern",
+      "vendors": [
+        "lexmark"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "high",
+      "cvss": 8.8
+    },
+    {
+      "id": "research-lexmark-heap-bof",
+      "path": "xpl/research/research-lexmark-heap-bof",
+      "source": "research",
+      "title": "Lexmark Heap Buffer Overflow via Multipart Form Upload (CVE-2024-11345)",
+      "cve": "CVE-2024-11345",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "lexmark"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "high",
+      "cvss": 7.3
+    },
+    {
+      "id": "research-lexmark-ps-bof-50734",
+      "path": "xpl/research/research-lexmark-ps-bof-50734",
+      "source": "research",
+      "title": "Lexmark PostScript Interpreter Stack BOF RCE (CVE-2023-50734)",
+      "cve": "CVE-2023-50734",
+      "year": 2023,
+      "era": "modern",
+      "vendors": [
+        "lexmark"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.0
+    },
+    {
+      "id": "research-lexmark-ps-bof-50736",
+      "path": "xpl/research/research-lexmark-ps-bof-50736",
+      "source": "research",
+      "title": "Lexmark PostScript Memory Corruption RCE (CVE-2023-50736)",
+      "cve": "CVE-2023-50736",
+      "year": 2023,
+      "era": "modern",
+      "vendors": [
+        "lexmark"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.0
+    },
+    {
+      "id": "research-lexmark-pwn2own-2026",
+      "path": "xpl/research/research-lexmark-pwn2own-2026",
+      "source": "research",
+      "title": "Lexmark CX532adwe Pwn2Own 2026 Heap BOF RCE Chain (CVE-2025-65079/65080/65081)",
+      "cve": "CVE-2025-65079",
+      "year": 2025,
+      "era": "modern",
+      "vendors": [
+        "lexmark"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "high",
+      "cvss": 8.8
+    },
+    {
+      "id": "research-lexmark-ssrf-rce-2023-23560",
+      "path": "xpl/research/research-lexmark-ssrf-rce-2023-23560",
+      "source": "research",
+      "title": "Lexmark Multi-Model SSRF-to-RCE (CVE-2023-23560)",
+      "cve": "CVE-2023-23560",
+      "year": 2023,
+      "era": "modern",
+      "vendors": [
+        "lexmark"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce",
+        "ssrf"
+      ],
+      "severity": "critical",
+      "cvss": 9.0
+    },
+    {
+      "id": "research-mirage-rogue-ldap",
+      "path": "xpl/research/research-mirage-rogue-ldap",
+      "source": "research",
+      "title": "Mirage Rogue LDAP Server for Printer Pass-Back Credential Capture",
+      "cve": "",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "canon",
+        "hp",
+        "konica",
+        "ricoh",
+        "sharp",
+        "xerox"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "research-mirai-printer-scan",
+      "path": "xpl/research/research-mirai-printer-scan",
+      "source": "research",
+      "title": "IoT Mirai-style Default Credential Scanner for Printers",
+      "cve": "",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "brother",
+        "canon",
+        "hp",
+        "konica",
+        "lexmark",
+        "ricoh",
+        "sharp",
+        "xerox"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "medium",
+      "cvss": 5.3
+    },
+    {
+      "id": "research-motor-jam-attack",
+      "path": "xpl/research/research-motor-jam-attack",
+      "source": "research",
+      "title": "Motor Jamming / Mechanical Destruction Attack (Multi-vendor)",
+      "cve": "",
+      "year": 2017,
+      "era": "legacy",
+      "vendors": [
+        "generic",
+        "hp",
+        "kyocera",
+        "ricoh"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "physical_damage"
+      ],
+      "severity": "critical",
+      "cvss": 9.0
+    },
+    {
+      "id": "research-ms-rprn-coerce",
+      "path": "xpl/research/research-ms-rprn-coerce",
+      "source": "research",
+      "title": "MS-RPRN SpoolService NTLM Authentication Coercion",
+      "cve": "CVE-2021-1675-related",
+      "year": 2021,
+      "era": "modern",
+      "vendors": [
+        "microsoft"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "high",
+      "cvss": 8.8
+    },
+    {
+      "id": "research-nmap-printer-nse",
+      "path": "xpl/research/research-nmap-printer-nse",
+      "source": "research",
+      "title": "Nmap NSE Printer Fingerprint & Enumeration",
+      "cve": "MULTI",
+      "year": null,
+      "era": "timeless",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "medium",
+      "cvss": 5.3
+    },
+    {
+      "id": "research-nse-compat",
+      "path": "xpl/research/research-nse-compat",
+      "source": "research",
+      "title": "Nmap NSE Printer Script Compatibility Wrapper",
+      "cve": "",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "information_disclosure",
+        "recon",
+        "scanner"
+      ],
+      "severity": "info",
+      "cvss": 0.0
+    },
+    {
+      "id": "research/research-oki-b432-config-dump",
+      "path": "xpl/research/research-oki-b432-config-dump",
+      "source": "research",
+      "title": "OKI B432dn Unauthenticated Web Configuration Dump",
+      "cve": "OKI-B432-WEB-001",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "oki"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "info_disclosure"
+      ],
+      "severity": "medium",
+      "cvss": 6.5
+    },
+    {
+      "id": "research-papercut-pjl-scanner",
+      "path": "xpl/research/research-papercut-pjl-scanner",
+      "source": "research",
+      "title": "Multi-Vendor @PJL INFO ID Printer Scanner",
+      "cve": "",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "brother",
+        "canon",
+        "hp",
+        "konica",
+        "lexmark",
+        "ricoh",
+        "sharp",
+        "xerox"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "medium",
+      "cvss": 5.3
+    },
+    {
+      "id": "RESEARCH-PJL-NVRAM-DAMAGE",
+      "path": "xpl/research/research-pjl-nvram-damage",
+      "source": "research",
+      "title": "PJL/PS Physical NVRAM Damage + HP PML Factory Reset",
+      "cve": "",
+      "year": 2017,
+      "era": "legacy",
+      "vendors": [
+        "brother",
+        "dell",
+        "hp",
+        "konica",
+        "lexmark"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "dos"
+      ],
+      "severity": "critical",
+      "cvss": 9.0
+    },
+    {
+      "id": "research/research-pjl-pwd-disclosure",
+      "path": "xpl/research/research-pjl-pwd-disclosure",
+      "source": "research",
+      "title": "PJL INFO VARIABLES Password Disclosure (CVE-2011-4786)",
+      "cve": "CVE-2011-4786",
+      "year": 2011,
+      "era": "legacy",
+      "vendors": [
+        "hp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "info_disclosure"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "research-praeda-mfp-harvest",
+      "path": "xpl/research/research-praeda-mfp-harvest",
+      "source": "research",
+      "title": "MFP EWS Credential Harvester",
+      "cve": "",
+      "year": null,
+      "era": "timeless",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "medium",
+      "cvss": 7.5
+    },
+    {
+      "id": "research-pret-2.0-wrapper",
+      "path": "xpl/research/research-pret-2.0-wrapper",
+      "source": "research",
+      "title": "PRET 2.0 Enhanced Printer Exploitation Toolkit Wrapper",
+      "cve": "",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "brother",
+        "canon",
+        "hp",
+        "konica",
+        "kyocera",
+        "lexmark",
+        "ricoh",
+        "sharp",
+        "xerox"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "medium",
+      "cvss": 6.5
+    },
+    {
+      "id": "research-pret-wrapper",
+      "path": "xpl/research/research-pret-wrapper",
+      "source": "research",
+      "title": "PRET Printer Exploitation Toolkit Wrapper",
+      "cve": "MULTI",
+      "year": null,
+      "era": "timeless",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "dos",
+        "rce"
+      ],
+      "severity": "medium",
+      "cvss": 8.5
+    },
+    {
+      "id": "research-print-track-steg",
+      "path": "xpl/research/research-print-track-steg",
+      "source": "research",
+      "title": "Machine Identification Code (MIC) Print Tracking Dots Analysis",
+      "cve": "",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "forensics"
+      ],
+      "severity": "info",
+      "cvss": 0.0
+    },
+    {
+      "id": "research-printer-c2-dns",
+      "path": "xpl/research/research-printer-c2-dns",
+      "source": "research",
+      "title": "Printer C2 Channel via DNS Tunneling (Research)",
+      "cve": "",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "c2"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "research-printer-c2-http",
+      "path": "xpl/research/research-printer-c2-http",
+      "source": "research",
+      "title": "Printer C2 Channel via HTTP Polling Beacon (Research)",
+      "cve": "",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "c2"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "research-printer-c2-smb",
+      "path": "xpl/research/research-printer-c2-smb",
+      "source": "research",
+      "title": "Printer C2 Channel via SMB Auth Relay (Research)",
+      "cve": "",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "generic",
+        "microsoft"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "c2"
+      ],
+      "severity": "high",
+      "cvss": 8.0
+    },
+    {
+      "id": "research-printer-fw-tamper",
+      "path": "xpl/research/research-printer-fw-tamper",
+      "source": "research",
+      "title": "Printer Firmware Tampering — Generic Research Module",
+      "cve": "",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "persistence"
+      ],
+      "severity": "critical",
+      "cvss": 9.0
+    },
+    {
+      "id": "research-printer-grpc-shell",
+      "path": "xpl/research/research-printer-grpc-shell",
+      "source": "research",
+      "title": "Printer gRPC SSRF + Velocity RCE Reverse Shell",
+      "cve": "",
+      "year": null,
+      "era": "timeless",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce",
+        "shell"
+      ],
+      "severity": "high",
+      "cvss": 8.0
+    },
+    {
+      "id": "research-printer-iot-lateral",
+      "path": "xpl/research/research-printer-iot-lateral",
+      "source": "research",
+      "title": "Printer-as-Pivot IoT/OT Lateral Movement (Research)",
+      "cve": "",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "lateral",
+        "ssrf"
+      ],
+      "severity": "high",
+      "cvss": 8.0
+    },
+    {
+      "id": "research-printer-net-reconn",
+      "path": "xpl/research/research-printer-net-reconn",
+      "source": "research",
+      "title": "Network Reconnaissance from Compromised Printer (Research)",
+      "cve": "",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "recon",
+        "ssrf"
+      ],
+      "severity": "medium",
+      "cvss": 5.3
+    },
+    {
+      "id": "research-printnightmare",
+      "path": "xpl/research/research-printnightmare",
+      "source": "research",
+      "title": "PrintNightmare RCE/LPE — Print Spooler Exploit",
+      "cve": "['CVE-2021-1675', 'CVE-2021-34527']",
+      "year": 2021,
+      "era": "modern",
+      "vendors": [
+        "microsoft"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "lpe",
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 8.8
+    },
+    {
+      "id": "RESEARCH-PS-DOS",
+      "path": "xpl/research/research-ps-dos",
+      "source": "research",
+      "title": "PostScript Infinite Loop + Transmission Channel DoS (All PS Printers)",
+      "cve": "",
+      "year": 2017,
+      "era": "legacy",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "dos"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "RESEARCH-PS-FILESYSTEM",
+      "path": "xpl/research/research-ps-filesystem",
+      "source": "research",
+      "title": "PostScript Filesystem Access via filenameforall (All PS Printers)",
+      "cve": "CVE-2010-4107",
+      "year": 2010,
+      "era": "legacy",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "info_disclosure"
+      ],
+      "severity": "high",
+      "cvss": 7.8
+    },
+    {
+      "id": "research-ps-infinite-loop",
+      "path": "xpl/research/research-ps-infinite-loop",
+      "source": "research",
+      "title": "PostScript Infinite Loop Crash / Permanent DoS",
+      "cve": "",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "brother",
+        "canon",
+        "hp",
+        "lexmark",
+        "ricoh",
+        "xerox"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "dos"
+      ],
+      "severity": "medium",
+      "cvss": 5.5
+    },
+    {
+      "id": "RESEARCH-PS-JOB-CAPTURE",
+      "path": "xpl/research/research-ps-job-capture",
+      "source": "research",
+      "title": "PostScript Print Job Capture via showpage Hook (All PS Printers)",
+      "cve": "",
+      "year": 2017,
+      "era": "legacy",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "info_disclosure",
+        "persistence"
+      ],
+      "severity": "high",
+      "cvss": 8.0
+    },
+    {
+      "id": "research-ps-lang-abuse",
+      "path": "xpl/research/research-ps-lang-abuse",
+      "source": "research",
+      "title": "PostScript Printer Language Abuse — Dictionary Attacks",
+      "cve": "",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "high",
+      "cvss": 7.8
+    },
+    {
+      "id": "research-ps-overlay-watermark",
+      "path": "xpl/research/research-ps-overlay-watermark",
+      "source": "research",
+      "title": "PostScript Overlay Watermark Injection",
+      "cve": "",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "manipulation"
+      ],
+      "severity": "medium",
+      "cvss": 5.5
+    },
+    {
+      "id": "research-pyrrha-fw-analysis",
+      "path": "xpl/research/research-pyrrha-fw-analysis",
+      "source": "research",
+      "title": "Printer Firmware Static Analysis (Pyrrha-inspired)",
+      "cve": "FIRMWARE-ANALYSIS",
+      "year": null,
+      "era": "timeless",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "medium",
+      "cvss": 6.0
+    },
+    {
+      "id": "research-rfid-badge-exfil",
+      "path": "xpl/research/research-rfid-badge-exfil",
+      "source": "research",
+      "title": "RFID Badge Data Exfiltration via MFP Card Reader (Research)",
+      "cve": "",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "info_disclosure"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "research-ricoh-driver-lpe-2019-19363",
+      "path": "xpl/research/research-ricoh-driver-lpe-2019-19363",
+      "source": "research",
+      "title": "Ricoh Printer Driver Windows LPE (CVE-2019-19363)",
+      "cve": "CVE-2019-19363",
+      "year": 2019,
+      "era": "legacy",
+      "vendors": [
+        "ricoh"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "lpe"
+      ],
+      "severity": "high",
+      "cvss": 7.8
+    },
+    {
+      "id": "research-ricoh-ews-rce",
+      "path": "xpl/research/research-ricoh-ews-rce",
+      "source": "research",
+      "title": "Ricoh EWS Malformed HTTP RCE (CVE-2024-34161)",
+      "cve": "CVE-2024-34161",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "ricoh"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "high",
+      "cvss": 8.8
+    },
+    {
+      "id": "research-ricoh-ews-rce-2024-34161",
+      "path": "xpl/research/research-ricoh-ews-rce-2024-34161",
+      "source": "research",
+      "title": "Ricoh MP EWS CGI Remote Code Execution (CVE-2024-34161)",
+      "cve": "CVE-2024-34161",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "ricoh"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "research-ricoh-fw-unsigned",
+      "path": "xpl/research/research-ricoh-fw-unsigned",
+      "source": "research",
+      "title": "Ricoh Aficio MP Unsigned Firmware Upload",
+      "cve": "FIRMWARE-RICOH-001",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "ricoh"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "high",
+      "cvss": 8.0
+    },
+    {
+      "id": "research-ricoh-http-bof",
+      "path": "xpl/research/research-ricoh-http-bof",
+      "source": "research",
+      "title": "Ricoh Web Image Monitor Stack BOF RCE (CVE-2024-47939)",
+      "cve": "CVE-2024-47939",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "konica",
+        "ricoh"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "high",
+      "cvss": 7.7
+    },
+    {
+      "id": "research-ricoh-http-bof-2024-34161",
+      "path": "xpl/research/research-ricoh-http-bof-2024-34161",
+      "source": "research",
+      "title": "Ricoh MP Series EWS HTTP Stack Buffer Overflow (CVE-2024-34161)",
+      "cve": "CVE-2024-34161",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "ricoh"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "research-ricoh-ldap-passback",
+      "path": "xpl/research/research-ricoh-ldap-passback",
+      "source": "research",
+      "title": "Ricoh MFP LDAP Pass-Back Credential Capture",
+      "cve": "",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "ricoh"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "research-ricoh-web-cmdinject",
+      "path": "xpl/research/research-ricoh-web-cmdinject",
+      "source": "research",
+      "title": "Ricoh MP Web Admin Cmd Injection (CVE-2022-29943)",
+      "cve": "CVE-2022-29943",
+      "year": 2022,
+      "era": "modern",
+      "vendors": [
+        "ricoh"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "high",
+      "cvss": 8.8
+    },
+    {
+      "id": "research-ricoh-wpa-bof",
+      "path": "xpl/research/research-ricoh-wpa-bof",
+      "source": "research",
+      "title": "Ricoh SP wpa_supplicant Stack BOF (CVE-2021-33945)",
+      "cve": "CVE-2021-33945",
+      "year": 2021,
+      "era": "modern",
+      "vendors": [
+        "ricoh"
+      ],
+      "integration": "native_poly_c",
+      "categories": [
+        "dos",
+        "rce"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "research-sharp-rce",
+      "path": "xpl/research/research-sharp-rce",
+      "source": "research",
+      "title": "Sharp MFP CVE-2022-45796 OS Command Injection",
+      "cve": "CVE-2022-45796",
+      "year": 2022,
+      "era": "modern",
+      "vendors": [
+        "sharp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "research-sharp-smtp-passback",
+      "path": "xpl/research/research-sharp-smtp-passback",
+      "source": "research",
+      "title": "Sharp MX SMTP/POP3/LDAP Pass-Back Credential Capture",
+      "cve": "",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "sharp"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "research-shodan-mass-discovery",
+      "path": "xpl/research/research-shodan-mass-discovery",
+      "source": "research",
+      "title": "Shodan Mass Printer Discovery",
+      "cve": "",
+      "year": null,
+      "era": "timeless",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "medium",
+      "cvss": 6.0
+    },
+    {
+      "id": "research-smartcard-printer-bypass",
+      "path": "xpl/research/research-smartcard-printer-bypass",
+      "source": "research",
+      "title": "Smartcard/CAC Authentication Bypass on MFP (Research)",
+      "cve": "",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "auth_bypass"
+      ],
+      "severity": "high",
+      "cvss": 8.0
+    },
+    {
+      "id": "research-smb-auth-relay-print",
+      "path": "xpl/research/research-smb-auth-relay-print",
+      "source": "research",
+      "title": "SMB Auth Relay via Print Spooler MS-RPRN (Research)",
+      "cve": "",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "generic",
+        "microsoft"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "auth_relay"
+      ],
+      "severity": "high",
+      "cvss": 8.1
+    },
+    {
+      "id": "RESEARCH-SNMP-FACTORY-RESET",
+      "path": "xpl/research/research-snmp-factory-reset",
+      "source": "research",
+      "title": "SNMP Unauthenticated Factory Reset via Printer MIB OID (Multi-vendor)",
+      "cve": "",
+      "year": 2017,
+      "era": "legacy",
+      "vendors": [
+        "dell",
+        "hp",
+        "lexmark",
+        "ricoh",
+        "xerox"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "dos"
+      ],
+      "severity": "high",
+      "cvss": 8.5
+    },
+    {
+      "id": "research-ssport-lpe",
+      "path": "xpl/research/research-ssport-lpe",
+      "source": "research",
+      "title": "HP/Samsung/Xerox SSPORT.SYS Kernel Driver LPE (CVE-2021-3438)",
+      "cve": "CVE-2021-3438",
+      "year": 2021,
+      "era": "modern",
+      "vendors": [
+        "hp",
+        "samsung",
+        "xerox"
+      ],
+      "integration": "native_poly_c",
+      "categories": [
+        "lpe"
+      ],
+      "severity": "high",
+      "cvss": 7.8
+    },
+    {
+      "id": "research-tftp-loop-dos",
+      "path": "xpl/research/research-tftp-loop-dos",
+      "source": "research",
+      "title": "TFTP Infinite Loop DoS — Multi-vendor Embedded TFTP (CVE-2024-2169)",
+      "cve": "CVE-2024-2169",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "brother",
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "dos"
+      ],
+      "severity": "high",
+      "cvss": 7.5
+    },
+    {
+      "id": "research-thermal-printer-rprint",
+      "path": "xpl/research/research-thermal-printer-rprint",
+      "source": "research",
+      "title": "Remote Unauthenticated Print to Thermal Printers via ESC/P",
+      "cve": "",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "bixolon",
+        "epson",
+        "generic",
+        "star"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "manipulation"
+      ],
+      "severity": "medium",
+      "cvss": 6.5
+    },
+    {
+      "id": "research-toshiba-auth-bypass",
+      "path": "xpl/research/research-toshiba-auth-bypass",
+      "source": "research",
+      "title": "Toshiba e-STUDIO Auth Bypass (CVE-2024-21911)",
+      "cve": "CVE-2024-21911",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "toshiba"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "auth_bypass",
+        "rce"
+      ],
+      "severity": "high",
+      "cvss": 8.8
+    },
+    {
+      "id": "research-universal-printer-enum",
+      "path": "xpl/research/research-universal-printer-enum",
+      "source": "research",
+      "title": "Universal Printer Enumeration and Fingerprinting",
+      "cve": "",
+      "year": 2024,
+      "era": "modern",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "recon"
+      ],
+      "severity": "info",
+      "cvss": 0.0
+    },
+    {
+      "id": "research-wifi-printer-survey",
+      "path": "xpl/research/research-wifi-printer-survey",
+      "source": "research",
+      "title": "Passive Wi-Fi Survey for Wireless Printer SSIDs and WPS Pins",
+      "cve": "",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "brother",
+        "canon",
+        "epson",
+        "hp",
+        "konica",
+        "lexmark",
+        "xerox"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "medium",
+      "cvss": 5.3
+    },
+    {
+      "id": "research/research-wsd-enum",
+      "path": "xpl/research/research-wsd-enum",
+      "source": "research",
+      "title": "WSD (Web Services on Devices) Printer Discovery & Enumeration",
+      "cve": "WSD-ENUM-001",
+      "year": null,
+      "era": "timeless",
+      "vendors": [
+        "generic"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "medium",
+      "cvss": 5.3
+    },
+    {
+      "id": "research-xerox-altalink-unauth-2022-23968",
+      "path": "xpl/research/research-xerox-altalink-unauth-2022-23968",
+      "source": "research",
+      "title": "Xerox AltaLink/WorkCentre Unauthenticated Admin API (CVE-2022-23968)",
+      "cve": "CVE-2022-23968",
+      "year": 2022,
+      "era": "modern",
+      "vendors": [
+        "xerox"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "auth_bypass"
+      ],
+      "severity": "critical",
+      "cvss": 9.8
+    },
+    {
+      "id": "research-xerox-firmware-root",
+      "path": "xpl/research/research-xerox-firmware-root",
+      "source": "research",
+      "title": "Xerox WorkCentre Firmware Update Rootkit Injection",
+      "cve": "",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "xerox"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "high",
+      "cvss": 8.5
+    },
+    {
+      "id": "research-xerox-http-bof",
+      "path": "xpl/research/research-xerox-http-bof",
+      "source": "research",
+      "title": "Xerox HTTP Header/Cookie Buffer Overflow (CVE-2019-13169 / CVE-2019-13172)",
+      "cve": "CVE-2019-13169",
+      "year": 2019,
+      "era": "legacy",
+      "vendors": [
+        "xerox"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "high",
+      "cvss": 8.1
+    },
+    {
+      "id": "research-xerox-ipp-bof",
+      "path": "xpl/research/research-xerox-ipp-bof",
+      "source": "research",
+      "title": "Xerox IPP Unauthenticated Buffer Overflow (CVE-2019-13165 / CVE-2019-13168)",
+      "cve": "CVE-2019-13165",
+      "year": 2019,
+      "era": "legacy",
+      "vendors": [
+        "xerox"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "high",
+      "cvss": 8.1
+    },
+    {
+      "id": "research-xerox-passback",
+      "path": "xpl/research/research-xerox-passback",
+      "source": "research",
+      "title": "Xerox VersaLink/AltaLink LDAP/SMB Credential Passback (CVE-2022-23968/23969)",
+      "cve": "CVE-2022-23968",
+      "year": 2022,
+      "era": "modern",
+      "vendors": [
+        "xerox"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "credential_harvesting"
+      ],
+      "severity": "high",
+      "cvss": 8.1
+    },
+    {
+      "id": "research-xerox-pjl-dlm",
+      "path": "xpl/research/research-xerox-pjl-dlm",
+      "source": "research",
+      "title": "Xerox WorkCentre PJL DLM Firmware Injection & Password Extract",
+      "cve": "",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "xerox"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "high",
+      "cvss": 8.5
+    },
+    {
+      "id": "research-xerox-workcentre-cmdinject",
+      "path": "xpl/research/research-xerox-workcentre-cmdinject",
+      "source": "research",
+      "title": "Xerox WorkCentre OS Cmd Injection (CVE-2021-27508)",
+      "cve": "CVE-2021-27508",
+      "year": 2021,
+      "era": "modern",
+      "vendors": [
+        "xerox"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "high",
+      "cvss": 8.0
+    },
+    {
+      "id": "research-xsp-beef",
+      "path": "xpl/research/research-xsp-beef",
+      "source": "unknown",
+      "title": "research-xsp-beef",
+      "cve": "",
+      "year": null,
+      "era": "legacy",
+      "vendors": [
+        "all"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "unknown"
+      ],
+      "severity": "high",
+      "cvss": 6.5
+    },
+    {
+      "id": "research-zerologon-printserver",
+      "path": "xpl/research/research-zerologon-printserver",
+      "source": "research",
+      "title": "ZeroLogon via Print Server Domain Account (CVE-2020-1472)",
+      "cve": "CVE-2020-1472",
+      "year": 2020,
+      "era": "modern",
+      "vendors": [
+        "generic",
+        "microsoft"
+      ],
+      "integration": "native_python",
+      "categories": [
+        "rce"
+      ],
+      "severity": "critical",
+      "cvss": 10.0
+    }
+  ]
+}

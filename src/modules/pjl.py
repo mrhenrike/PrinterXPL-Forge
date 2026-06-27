@@ -16,6 +16,13 @@ import time
 from core.printer import printer
 from utils.codebook import codebook
 from utils.helper import log, output, conv, file, item, chunks, const as c
+from utils.vendor_profile import (
+    _HELP_CATEGORIES,
+    info_categories_for_vendor,
+    normalize_vendor,
+    vendor_allows_command,
+    vendor_command_hint,
+)
 
 
 class pjl(printer):
@@ -35,6 +42,9 @@ class pjl(printer):
         """
         Send a PJL command and optionally wait for its reply.
         """
+        if not self.conn:
+            output().errmsg("Not connected to RAW port 9100 — PJL commands unavailable.")
+            return ""
         token = c.DELIMITER + str(random.randrange(2**16))
         status_cmd = "@PJL INFO STATUS" + c.EOL if self.status and wait else ""
         footer = "@PJL ECHO " + token + c.EOL + c.EOL if wait else ""
@@ -83,6 +93,13 @@ class pjl(printer):
         """
         if mode == "init":
             self.cmd("@PJL USTATUSOFF", False)
+            if not self.vendor or self.vendor == 'generic':
+                id_raw = self.cmd("@PJL INFO ID")
+                if id_raw:
+                    detected = normalize_vendor(id_raw)
+                    if detected != 'generic':
+                        self.vendor = detected
+                        output().info(f"Vendor detected from PJL ID: {self.vendor}")
 
     # --------------------------------------------------------------------
     # status toggles
@@ -100,6 +117,38 @@ class pjl(printer):
         print("Enables or disables detailed status messages from the printer.")
         print("Useful for debugging and monitoring printer responses.")
         print()
+
+    def do_df(self, arg):
+        "Show volume information (alias for 'info filesys')"
+        self.do_info("filesys")
+
+    def do_free(self, arg):
+        "Show available memory (alias for 'info memory')"
+        self.do_info("memory")
+
+    def do_env(self, arg):
+        "Show environment variables (alias for 'info variables' / printenv)"
+        if arg:
+            self.do_printenv(arg)
+        else:
+            self.do_info("variables")
+
+    def vol_exists(self, vol=""):
+        """Return list of PJL volumes for fuzzing."""
+        str_recv = self.cmd("@PJL INFO FILESYS")
+        vols = [line.lstrip()[0] for line in str_recv.splitlines()[1:] if line.strip()]
+        if vol:
+            return vol[0] in vols
+        return [v + ":" + c.SEP for v in vols]
+
+    def dir_exists(self, path):
+        str_recv = self.cmd('@PJL FSQUERY NAME="' + path + '"', True, False)
+        return bool(re.search("TYPE=DIR", str_recv))
+
+    def file_exists(self, path):
+        str_recv = self.cmd('@PJL FSQUERY NAME="' + path + '"', True, False)
+        size = re.findall(r"TYPE\s*=\s*FILE\s+SIZE\s*=\s*(\d*)", str_recv)
+        return conv().int(item(size, c.NONEXISTENT))
 
 
     def showstatus(self, stat):
@@ -122,11 +171,24 @@ class pjl(printer):
     # 📁 SISTEMA DE ARQUIVOS (12 comandos)
     # --------------------------------------------------------------------
 
+    def default(self, line):
+        word = line.strip().split()[0].lower() if line.strip() else ''
+        if word in _HELP_CATEGORIES:
+            output().chitchat(
+                f"'{word}' is a help category, not a command — try: help {word}"
+            )
+            return
+        super(pjl, self).default(line)
+
     def do_ls(self, arg):
         "List remote directory contents"
+        if not self._require_raw('ls'):
+            return
         lst = self.dirlist(arg, False, True)
         if lst:
             print(lst)
+        else:
+            output().warning("Empty listing or no response from device.")
 
     def help_ls(self):
         """Show help for ls command"""
@@ -181,6 +243,8 @@ class pjl(printer):
 
     def do_upload(self, arg):
         "Upload file to printer: upload <local_file> [remote_path]"
+        if not self._require_raw('upload'):
+            return
         if not arg:
             output().errmsg("Usage: upload <local_file> [remote_path]")
             return
@@ -586,6 +650,10 @@ class pjl(printer):
 
     def do_id(self, *args):
         "Show comprehensive printer identification and system information (PJL-specific)"
+        if not self.conn:
+            output().warning("Not connected to RAW — showing passive fingerprint:")
+            self._show_passive_id()
+            return
         print("PJL Printer Identification & System Information:")
         print("=" * 60)
         
@@ -1075,6 +1143,16 @@ class pjl(printer):
 
     def do_nvram(self, arg):
         "Brother NVRAM operations: nvram <dump [all]|read <addr>|write <addr> <val>>"
+        if not self._require_raw('nvram'):
+            return
+        if not vendor_allows_command('nvram', self.vendor):
+            hint = vendor_command_hint('nvram')
+            output().warning(
+                f"nvram is restricted to: {hint}. "
+                f"Current vendor: {self.vendor or 'unknown'}. "
+                f"Use 'vendor set brother' if the target is Brother."
+            )
+            return
         parts = arg.split() if arg else []
 
         # --- dump ---
@@ -1601,6 +1679,8 @@ class pjl(printer):
             print()
             print("Use 'help <category>' for detailed help")
             print("Use 'help <command>' for specific command help")
+            print()
+            print("  vendor         - Show/set vendor (filters info & vendor-only cmds)")
             print()
         elif arg == "filesystem":
             self.help_filesystem()
@@ -3093,49 +3173,53 @@ end
     # ====================================================================
     
     def do_info(self, arg):
-        """Comprehensive information gathering - all PJL INFO commands"""
-        if not arg:
-            # Show all info categories
-            output().info("Gathering comprehensive printer information...")
-            print()
-            
-            categories = [
-                ("ID", "Device identification"),
-                ("STATUS", "Current status"),
-                ("CONFIG", "Configuration"),
-                ("FILESYS", "Filesystem information"),
-                ("MEMORY", "Memory information"),
-                ("PAGECOUNT", "Page counter"),
-                ("VARIABLES", "Environment variables"),
-                ("USTATUS", "Unsolicited status"),
-                ("PRODUCT", "Product information"),
-                # Hidden / undocumented categories (old HP LaserJet)
-                ("LOG", "Event log (undocumented)"),
-                ("PRODINFO", "Product info extended (HP)"),
-                ("TRACKING", "Tracking data (undocumented)"),
-                ("SUPPLIES", "Supplies/toner status (undocumented)"),
-                ("BRFIRMWARE", "Firmware version (Brother)"),
-            ]
-            
-            for cat, desc in categories:
-                print("=" * 70)
-                print(f"INFO {cat} - {desc}")
-                print("=" * 70)
-                result = self.cmd(f"@PJL INFO {cat}")
-                if result and len(result.strip()) > 0:
-                    print(result)
-                else:
-                    output().warning(f"No data for {cat}")
-                print()
-        else:
-            # Show specific category
-            category = arg.upper()
+        """Comprehensive information gathering - PJL INFO (vendor-filtered)"""
+        if not self.conn:
+            output().warning("Not connected to RAW — PJL INFO requires port 9100.")
+            self._show_passive_id()
+            return
+
+        raw_arg = (arg or '').strip()
+        force_all = raw_arg.lower() in ('all', '--all', '-a')
+
+        if raw_arg and not force_all:
+            category = raw_arg.upper()
             output().info(f"Querying INFO {category}...")
             result = self.cmd(f"@PJL INFO {category}")
             if result:
                 print(result)
             else:
                 output().warning(f"No data for {category}")
+            return
+
+        vendor = self.vendor or 'generic'
+        categories = info_categories_for_vendor(vendor, include_all=force_all)
+
+        if force_all:
+            output().info(
+                f"Gathering ALL PJL INFO categories ({len(categories)}) — audit mode..."
+            )
+        elif vendor == 'generic':
+            output().info(
+                f"Gathering generic PJL INFO ({len(categories)} categories). "
+                f"Vendor unknown — use 'vendor set <name>' or 'info all' for full scan."
+            )
+        else:
+            output().info(
+                f"Gathering PJL INFO for vendor '{vendor}' ({len(categories)} categories)..."
+            )
+        print()
+
+        for cat, desc in categories:
+            print("=" * 70)
+            print(f"INFO {cat} - {desc}")
+            print("=" * 70)
+            result = self.cmd(f"@PJL INFO {cat}")
+            if result and len(result.strip()) > 0:
+                print(result)
+            else:
+                output().warning(f"No data for {cat}")
+            print()
     
     def help_info(self):
         """Comprehensive information gathering"""
@@ -3561,15 +3645,27 @@ end
     
     def help_information(self):
         """Show help for information gathering commands"""
+        vendor = self.vendor or 'generic'
         print()
         print("Information Gathering Commands:")
         print("=" * 70)
-        print("  info           - Comprehensive INFO queries")
+        print("  id             - Printer identification")
+        print("  info           - PJL INFO queries (filtered by vendor)")
+        print("  info all       - All INFO categories (audit / spray mode)")
+        print("  info <CAT>     - Single category, e.g. info CONFIG")
+        print("  vendor         - Show or set vendor for filtering")
         print("  scan_volumes   - Scan all volumes")
         print("  firmware_info  - Detailed firmware information")
-        print("  id             - Printer identification")
         print("  variables      - Environment variables")
         print("  printenv       - Specific variable")
         print("  network        - Network information")
-        print("  nvram          - NVRAM access")
+        if vendor in ('brother', 'generic'):
+            tag = " [Brother only]" if vendor == 'generic' else ""
+            print(f"  nvram          - NVRAM access{tag}")
+        print()
+        if vendor == 'generic':
+            print("  Tip: run 'vendor' or 'vendor set hp' to narrow INFO queries.")
+        else:
+            cats = info_categories_for_vendor(vendor)
+            print(f"  Active vendor: {vendor} — 'info' queries {len(cats)} categories.")
         print()

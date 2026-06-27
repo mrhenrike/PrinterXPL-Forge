@@ -8,16 +8,16 @@ The `--attack-matrix` flag runs a full automated campaign based on the Müller e
 
 ```bash
 # Dry-run (default) - probes all attack vectors without destructive actions
-python printerxpl-forge.py 192.168.1.100 --attack-matrix
+python pxf.py 192.168.1.100 --attack-matrix
 
 # Live exploitation - AUTHORIZED LABS ONLY - some actions are irreversible
-python printerxpl-forge.py 192.168.1.100 --attack-matrix --no-dry
+python pxf.py 192.168.1.100 --attack-matrix --no-dry
 
 # Combined with network mapping (single pass)
-python printerxpl-forge.py 192.168.1.100 --attack-matrix --network-map
+python pxf.py 192.168.1.100 --attack-matrix --network-map
 
 # With debug output (show raw bytes)
-python printerxpl-forge.py 192.168.1.100 --attack-matrix --debug
+python pxf.py 192.168.1.100 --attack-matrix --debug
 ```
 
 ---

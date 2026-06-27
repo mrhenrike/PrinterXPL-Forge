@@ -170,11 +170,22 @@ _VENDOR_SEARCH_TERMS: Dict[str, List[str]] = {
 }
 
 # Implicit printer-related Shodan filter terms (always appended)
-_SHODAN_PRINTER_BASE = '(port:9100 OR port:515 OR port:631)'
+_SHODAN_PRINTER_PORTS = '80,8080,9100,631,515,443,21'
+_SHODAN_PRINTER_BASE = f'port:{_SHODAN_PRINTER_PORTS}'
 _CENSYS_PRINTER_BASE = '(services.port=9100 OR services.port=515 OR services.port=631)'
 
 # Port → protocol label
-_PORT_LABELS = {9100: 'RAW/PJL', 515: 'LPD', 631: 'IPP', 80: 'HTTP-EWS', 443: 'HTTPS-EWS'}
+_PORT_LABELS = {9100: 'RAW/PJL', 515: 'LPD', 631: 'IPP', 80: 'HTTP-EWS', 443: 'HTTPS-EWS', 8080: 'HTTP-EWS', 21: 'FTP-PRINT'}
+
+_PRINTER_PORTS = frozenset({21, 80, 443, 515, 631, 8080, 9100})
+
+_PRINTER_BANNER_RE = re.compile(
+    r'@PJL|HP HTTP Server|HP Printer|Epson_IPP|FTP Print Server|'
+    r'LaserJet|DeskJet|OfficeJet|Officejet|RICOH|Aficio|EPSON|Epson|'
+    r'Ready to Print|JetDirect|Embedded Web Server|_ipp\._tcp|_printer\._tcp|'
+    r'Print Server|PJL INFO|IPP-Server',
+    re.I,
+)
 
 
 @dataclass
@@ -192,9 +203,17 @@ class DiscoveryParams:
 
     # ── backwards-compat shim: accept legacy `city` kwarg ──────────────────
     def __post_init__(self) -> None:
-        """Normalise legacy ``city`` (str) → ``cities`` (list) if needed."""
-        # Nothing to do — kept as hook for future compat if needed.
-        pass
+        """Normalise optional list fields that may arrive as None."""
+        if self.vendors is None:
+            self.vendors = []
+        if self.countries is None:
+            self.countries = []
+        if self.cities is None:
+            self.cities = []
+        if self.regions is None:
+            self.regions = []
+        if self.ports is None:
+            self.ports = []
 
     def has_filters(self) -> bool:
         """Returns True if at least one discovery filter was provided."""
@@ -262,6 +281,8 @@ class DorkQueryBuilder:
                 # Use the first 2 search terms per vendor to avoid too many queries
                 for term in search_terms[:2]:
                     query = f"{term}{suffix}"
+                    if not port_part:
+                        query += f" {_SHODAN_PRINTER_BASE}"
                     queries.append({
                         'query': query,
                         'description': f"{vendor.title()} printers{self._geo_label()}",
@@ -702,7 +723,7 @@ class ShodanSearcher:
                     country_code = loc.get('country_code', ''),
                     city         = loc.get('city', ''),
                     org          = m.get('org', ''),
-                    hostnames    = m.get('hostnames', []),
+                    hostnames    = m.get('hostnames') or [],
                     banner       = (m.get('data', '') or '')[:600],
                     product      = m.get('product', ''),
                     version      = m.get('version', ''),
@@ -820,9 +841,11 @@ class FOFASearcher:
                 if data.get('error'):
                     _log.warning("FOFA API error: %s", data.get('errmsg', 'unknown'))
                     continue
-                for item in data.get('results', []):
+                for item in data.get('results') or []:
                     if len(hits) >= limit:
                         break
+                    if not item:
+                        continue
                     # results: [ip, port, country, region, city, org, host, os, banner, server, product, version]
                     ip = item[0] if len(item) > 0 else ''
                     if not ip or ip in seen:
@@ -904,6 +927,8 @@ class ZoomEyeSearcher:
                     for item in items:
                         if len(hits) >= limit:
                             break
+                        if not item:
+                            continue
                         ip = item.get('ip', '')
                         if not ip or ip in seen:
                             continue
@@ -995,7 +1020,9 @@ class NetlasSearcher:
                 for item in items:
                     if len(hits) >= limit:
                         break
-                    attrs = item.get('data', {})
+                    if not item:
+                        continue
+                    attrs = item.get('data') or {}
                     ip    = attrs.get('ip', '')
                     if not ip or ip in seen:
                         continue
@@ -1124,6 +1151,15 @@ class OnlineDiscoveryManager:
             'netlas':  self._netlas,
         }.items() if v is not None}
 
+    @staticmethod
+    def _is_printer_hit(hit: 'PrinterHit') -> bool:
+        """Drop Shodan noise (SQL, SMB, random honeypots) unless banner looks like a printer."""
+        if hit.port in _PRINTER_PORTS:
+            return bool(_PRINTER_BANNER_RE.search(hit.banner or hit.product or ''))
+        if hit.port == 5353:
+            return bool(_PRINTER_BANNER_RE.search(hit.banner or ''))
+        return bool(_PRINTER_BANNER_RE.search(hit.banner or hit.product or ''))
+
     def targeted_search(self,
                         params:  DiscoveryParams,
                         engines: Optional[List[str]] = None) -> List['PrinterHit']:
@@ -1178,17 +1214,24 @@ class OnlineDiscoveryManager:
 
         if not active:
             print(f"  {self._RED}[!]{self._RST} No API credentials configured.")
-            print(f"      Add keys to config.json — see: python printerxpl-forge.py --check-config")
+            print(f"      Add keys to config.json — see: python pxf.py --check-config")
             return []
 
-        # Deduplicate by IP:port
+        # Deduplicate by IP:port and drop non-printer noise
         seen: Set[Tuple[str, int]] = set()
         unique: List[PrinterHit] = []
+        dropped = 0
         for h in all_hits:
+            if not self._is_printer_hit(h):
+                dropped += 1
+                continue
             key = (h.ip, h.port)
             if key not in seen:
                 seen.add(key)
                 unique.append(h)
+
+        if dropped:
+            print(f"  {self._DIM}Filtered {dropped} non-printer hit(s){self._RST}")
 
         unique.sort(key=lambda h: (h.country_code, h.ip))
         self._hits = unique

@@ -44,6 +44,6 @@ New-Item -ItemType File -Path (Join-Path $VenvDir ".printerxpl-venv-ready") -For
 Write-Host ""
 Write-Host "=== Environment ready! ===" -ForegroundColor Green
 Write-Host "Run:      .\run.ps1 <target> [options]"
-Write-Host "Or:       python printerxpl-forge.py"
+Write-Host "Or:       python pxf.py"
 Write-Host "Activate: .\.venv\Scripts\Activate.ps1"
 Write-Host ""

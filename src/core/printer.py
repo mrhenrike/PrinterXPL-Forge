@@ -76,6 +76,7 @@ class printer(cmd.Cmd, object):
     status = False
     quiet = False
     fuzz = False
+    options_fuzz = ("path", "write", "blind")
     conn = None
     mode = None
     error = None
@@ -86,6 +87,10 @@ class printer(cmd.Cmd, object):
     vol = ""
     cwd = ""
     traversal = ""
+    _fingerprint = None
+    vendor = ""
+    product = ""
+    model = ""
     # default editor – auto-detected per OS, can be overridden at runtime
     editor = _detect_editor()
     
@@ -104,6 +109,9 @@ class printer(cmd.Cmd, object):
         self.debug = args.debug  # debug mode
         self.quiet = args.quiet  # quiet mode
         self.mode = args.mode    # command mode
+        self._fingerprint = getattr(args, '_fingerprint', None)
+        if self._fingerprint:
+            self._apply_fingerprint_meta(self._fingerprint)
 
         # Setup signal handlers for graceful interruption
         self.setup_signal_handlers()
@@ -378,8 +386,8 @@ class printer(cmd.Cmd, object):
     # These commands handle network discovery and establishing connections
 
     def do_discover(self, arg):
-        "Scan local networks for SNMP printers"
-        discovery(usage=False)
+        "Scan networks for SNMP printers (context-aware if target is set)"
+        discovery(usage=False, context_target=self.target or '')
 
     def help_discover(self):
         """Scan local networks for SNMP printers"""
@@ -403,17 +411,120 @@ class printer(cmd.Cmd, object):
         print("  - Results show IP address, model, and capabilities")
         print()
 
+    def _apply_fingerprint_meta(self, fp) -> None:
+        from utils.vendor_profile import normalize_vendor
+        self.vendor = normalize_vendor(getattr(fp, 'make', '') or '')
+        self.model = (getattr(fp, 'model', '') or '').strip()
+        make = (getattr(fp, 'make', '') or '').strip()
+        self.product = f"{make} {self.model}".strip()
+
+    def _require_raw(self, command: str = 'command') -> bool:
+        if self.conn:
+            return True
+        output().errmsg(
+            f"Not connected to RAW port 9100 — '{command}' requires an active PJL/RAW session."
+        )
+        return False
+
+    def do_vendor(self, arg):
+        "Show or set printer vendor (filters vendor-specific PJL commands)"
+        from utils.vendor_profile import normalize_vendor, VENDOR_NAMES
+        parts = (arg or '').strip().split()
+        if not parts:
+            print()
+            print(f"  Vendor : {self.vendor or '(not set — generic INFO set)'}")
+            print(f"  Product: {self.product or '(unknown)'}")
+            print(f"  Model  : {self.model or '(unknown)'}")
+            print(f"  RAW    : {'connected' if self.conn else 'offline (passive mode)'}")
+            print()
+            print("  Usage:")
+            print("    vendor set <name>   — hp, brother, epson, ricoh, xerox, …")
+            print("    vendor detect       — re-run passive fingerprint")
+            print(f"    Known: {', '.join(VENDOR_NAMES)}")
+            print()
+            return
+        sub = parts[0].lower()
+        if sub == 'set' and len(parts) >= 2:
+            self.vendor = normalize_vendor(parts[1])
+            output().info(f"Vendor set to: {self.vendor}")
+            return
+        if sub == 'detect':
+            fp = self._show_passive_id(refresh=True)
+            self._apply_fingerprint_meta(fp)
+            output().info(
+                f"Detected vendor={self.vendor or 'generic'} "
+                f"product={self.product or '?'}"
+            )
+            return
+        self.vendor = normalize_vendor(parts[0])
+        output().info(f"Vendor set to: {self.vendor}")
+
+    def help_vendor(self):
+        print()
+        print("vendor - Show or set printer vendor for command filtering")
+        print("=" * 50)
+        print("  vendor              Show current vendor / product / model")
+        print("  vendor set hp       Force vendor (filters info, nvram, etc.)")
+        print("  vendor detect       Re-detect from IPP/HTTP/SNMP fingerprint")
+        print()
+
+    def _show_passive_id(self, refresh: bool = False):
+        """Fingerprint via IPP/HTTP/SNMP/FTP when RAW/PJL is unavailable."""
+        from utils.banner_grabber import grab_all, print_fingerprint, print_protocol_hints
+        if refresh or not self._fingerprint:
+            host = (self.target or '').split(':')[0]
+            self._fingerprint = grab_all(host, timeout=5.0)
+        print_fingerprint(self._fingerprint)
+        print_protocol_hints(self._fingerprint)
+        return self._fingerprint
+
     def do_open(self, arg, mode=""):
         "Connect to a new target"
         if not arg:
             arg = input("Target: ")
-        self.target = arg
-        self.conn = conn(self.mode, self.debug, self.quiet).open(arg)
+        base = arg.split(':')[0] if ':' in arg else arg
+        self.target = base
+        explicit_port = None
+        if ':' in arg:
+            try:
+                explicit_port = int(arg.rsplit(':', 1)[1])
+            except ValueError:
+                explicit_port = None
+
+        try:
+            from utils.ports import PortConfig
+            raw_ports = []
+            if explicit_port is not None:
+                raw_ports.append(explicit_port)
+            for p in (PortConfig.resolve('raw'), 9100, 9101, 9150):
+                if p not in raw_ports:
+                    raw_ports.append(p)
+        except Exception:
+            raw_ports = [explicit_port or 9100, 9101]
+
+        self.conn = None
+        for port in raw_ports:
+            target = f"{base}:{port}"
+            self.conn = conn(self.mode, self.debug, self.quiet).open(target)
+            if self.conn:
+                if port != 9100:
+                    output().info(f"Connected on RAW port {port}")
+                break
+
         if self.conn:
             self.on_connect(mode)
             self.set_defaults(True)
         else:
             self.set_defaults(False)
+            output().warning(
+                f"RAW port unavailable on {base} — shell commands need port 9100 (PJL/PS/PCL)."
+            )
+            if self._fingerprint:
+                from utils.banner_grabber import print_fingerprint, print_protocol_hints
+                print_fingerprint(self._fingerprint)
+                print_protocol_hints(self._fingerprint)
+            else:
+                self._show_passive_id()
 
     def help_open(self):
         """Connect to a new printer target"""
@@ -554,7 +665,11 @@ class printer(cmd.Cmd, object):
 
     def do_id(self, *arg):
         "Show printer identification and system information"
-        output().message("Unknown printer")
+        if not self.conn:
+            output().warning("Not connected to RAW — showing passive fingerprint:")
+            self._show_passive_id()
+            return
+        output().message("Unknown printer — specify mode: pjl, ps, or pcl")
 
     def help_id(self):
         """Show printer identification and system information"""
@@ -1066,33 +1181,62 @@ class printer(cmd.Cmd, object):
             pass
         return completions
 
+    def vol_exists(self, vol=""):
+        """Return existing volumes for fuzzing; override in language modules."""
+        return []
+
     def do_fuzz(self, arg):
-        "Launch file-system fuzzing"
-        if not arg:
-            try:
-                arg = input("Fuzz path: ")
-            except (EOFError, KeyboardInterrupt):
-                output().errmsg("Fuzz cancelled - no path provided")
-                return
-        self.fuzz_path()
+        "File system fuzzing: fuzz path|write|blind"
+        arg = (arg or "").strip().lower()
+        if arg in self.options_fuzz:
+            self.fuzz = True
+            if arg == "path":
+                self.fuzz_path()
+            elif arg == "write":
+                self.fuzz_write()
+            elif arg == "blind":
+                self.fuzz_blind()
+            self.chitchat("Fuzzing finished.")
+            self.fuzz = False
+        elif not arg:
+            self.help_fuzz()
+        else:
+            output().errmsg(f"Unknown fuzz mode '{arg}'. Use: path, write, or blind")
 
     def fuzz_path(self):
-        "Fuzz file paths"
-        for path in fuzzer().fuzz_paths():
-            self.verify_path(path)
+        "Fuzz file paths (PRET-compatible traversal strategies)"
+        output().message("Checking base paths first.")
+        found = {}
+        for path in self.vol_exists() + list(fuzzer().path):
+            self.verify_path(path, found)
+        output().message("Checking filesystem hierarchy standard.")
+        for path in fuzzer().fhs:
+            self.verify_path(path, found)
+        if found:
+            output().message("Now checking traversal strategies.")
+            for vol in found:
+                sep = "" if vol[-1:] in ("", "/", "\\") else "/"
+                sep2 = vol[-1:] if vol[-1:] in ("/", "\\") else "/"
+                for d in fuzzer().dir:
+                    self.verify_path(vol + sep + d + sep2)
+                    for f in fuzzer().abs:
+                        if isinstance(f, list):
+                            self.verify_path(vol + sep + d + sep2 + f[0] + sep + f[1])
+                        else:
+                            self.verify_path(vol + sep + d + sep2 + f)
 
     def fuzz_write(self):
         "Fuzz write operations"
-        for path in fuzzer().fuzz_paths():
+        for path in fuzzer().write:
             for name in fuzzer().fuzz_names():
                 data = fuzzer().fuzz_data()
                 self.verify_write(path, name, data, "write")
 
     def fuzz_blind(self):
-        "Fuzz blind operations"
-        for path in fuzzer().fuzz_paths():
-            for name in fuzzer().fuzz_names():
-                self.verify_blind(path, name)
+        "Fuzz blind read-only sensitive paths"
+        for path in fuzzer().blind:
+            for rel in fuzzer().rel:
+                self.verify_blind(path, rel)
 
     def verify_path(self, path, found={}):
         "Verify if path exists"
@@ -1116,30 +1260,53 @@ class printer(cmd.Cmd, object):
 
     def complete_fuzz(self, text, line, begidx, endidx):
         "Complete fuzz parameters"
-        return []
+        return [cat for cat in self.options_fuzz if cat.startswith(text)]
 
     def help_fuzz(self):
         """Launch file-system fuzzing"""
         print()
-        print("fuzz - Launch file-system fuzzing")
+        print("fuzz - File system fuzzing (PRET-compatible)")
         print("=" * 50)
         print("DESCRIPTION:")
         print("  Performs security testing by fuzzing the printer's file system.")
-        print("  Tests various paths, filenames, and data to find vulnerabilities.")
-        print("  Use with caution as this may affect printer stability.")
+        print("  Three modes mirror the original PRET toolkit:")
         print()
         print("USAGE:")
-        print("  fuzz [path]")
+        print("  fuzz path    - Explore fs structure with path traversal strategies")
+        print("  fuzz write   - Put/append files, then check for existence")
+        print("  fuzz blind   - Read-only tests for sensitive files (/etc/passwd, etc.)")
         print()
         print("EXAMPLES:")
-        print("  fuzz                     # Fuzz current directory")
-        print("  fuzz /tmp                # Fuzz /tmp directory")
-        print("  fuzz /config             # Fuzz config directory")
+        print("  fuzz path")
+        print("  fuzz write")
+        print("  fuzz blind")
         print()
         print("NOTES:")
-        print("  - Tests for path traversal vulnerabilities")
-        print("  - May generate large amounts of output")
-        print("  - Use with caution")
+        print("  - May generate large output and affect printer stability")
+        print("  - Use only on authorized targets")
+        print()
+
+    def do_site(self, arg):
+        "Execute custom raw command on printer: site <command>"
+        if not self.conn:
+            output().errmsg(self.offline_str)
+            return
+        if not arg:
+            try:
+                arg = input("Command: ")
+            except (EOFError, KeyboardInterrupt):
+                return
+        if hasattr(self, "cmd"):
+            str_recv = self.cmd(arg)
+            if str_recv:
+                output().info(str_recv)
+        else:
+            output().errmsg("site requires an active language shell (pjl/ps/pcl)")
+
+    def help_site(self):
+        print()
+        print("site - Execute custom raw command on printer")
+        print("  site <command>   Send arbitrary PJL/PS/PCL to the device")
         print()
 
     # ====================================================================
@@ -1148,19 +1315,29 @@ class printer(cmd.Cmd, object):
     # These commands handle printing operations
 
     def do_print(self, arg):
-        "Print a file or literal text through the device"
+        'Print image/file or raw text: print <file>|"text"'
         if not arg:
-            arg = input("File or text: ")
-        if os.path.exists(arg):
-            # print file
-            data = file().read(arg)
-            if data:
-                self.send(data)
-                output().message(f"Printed file: {arg}")
+            try:
+                arg = input('File or "text": ')
+            except (EOFError, KeyboardInterrupt):
+                return
+        if arg.startswith('"') and arg.endswith('"'):
+            data = arg.strip('"').encode()
+        elif os.path.exists(arg):
+            if arg.lower().endswith(".ps"):
+                data = file().read(arg)
+            else:
+                data = self.convert(arg, "pcl")
+                if not data:
+                    return
+                data = c.UEL.encode() + data + c.UEL.encode()
         else:
-            # print literal text
-            self.send(arg.encode())
-            output().message(f"Printed text: {arg}")
+            data = arg.encode()
+        if data and self.conn:
+            self.send(data)
+            output().message("Print job sent.")
+        elif not self.conn:
+            output().errmsg(self.offline_str)
 
     def help_print(self):
         """Print a file or literal text through the device"""
@@ -1186,15 +1363,55 @@ class printer(cmd.Cmd, object):
         print("  - Printer must support the file format")
         print()
 
-    def do_convert(self, path, pdl="pcl"):
-        "Convert a file to PCL or PS format for printing"
-        if not path:
-            path = input("File: ")
+    def convert(self, path, pdl="pcl"):
+        """Convert document to PCL/PS via ImageMagick (optional dependency)."""
+        import shutil
+        if not shutil.which("convert"):
+            output().errmsg(
+                "ImageMagick 'convert' not found. "
+                "Install: apt install imagemagick ghostscript"
+            )
+            return None
+        try:
+            self.chitchat(f"Converting '{path}' to {pdl.upper()}")
+            pdf_opts = ["-density", "300"] if path.lower().endswith(".pdf") else []
+            cmd = ["convert"] + pdf_opts + [path, "-quality", "100", f"{pdl}:-"]
+            proc = subprocess.run(cmd, capture_output=True, timeout=120)
+            if proc.returncode != 0:
+                err = proc.stderr.decode(errors="replace") or "conversion failed"
+                output().errmsg("Cannot convert", err)
+                return None
+            return proc.stdout
+        except subprocess.TimeoutExpired:
+            output().errmsg("Conversion timed out")
+            return None
+        except OSError as exc:
+            output().errmsg("Cannot convert", str(exc))
+            return None
+
+    def do_convert(self, arg):
+        "Convert a file to PCL or PS (driverless printing)"
+        parts = (arg or "").split()
+        if not parts:
+            try:
+                path = input("File: ")
+            except (EOFError, KeyboardInterrupt):
+                return
+            pdl = "pcl"
+        else:
+            path = parts[0]
+            pdl = parts[1].lower() if len(parts) > 1 else "pcl"
+        if pdl not in ("pcl", "ps"):
+            output().errmsg("Format must be pcl or ps")
+            return
         if not os.path.exists(path):
             output().errmsg("File not found.")
             return
-        # Simple conversion logic here
-        output().message(f"Converted {path} to {pdl.upper()}")
+        data = self.convert(path, pdl)
+        if data:
+            out = path + f".{pdl}"
+            file().write(out, data)
+            output().message(f"Wrote {out} ({len(data)} bytes)")
 
     def help_convert(self):
         """Convert a file to PCL or PS format for printing"""
@@ -1358,8 +1575,8 @@ class printer(cmd.Cmd, object):
             ("Fonts", p("assets", "fonts")),
             ("MIBs", p("assets", "mibs")),
             ("Overlays", p("assets", "overlays")),
-            ("TestPages", os.path.abspath(os.path.join(base, os.pardir, "tests", "fixtures", "pretpages"))),
-            ("TestPages", os.path.abspath(os.path.join(base, os.pardir, "tests", "fixtures", "testpages"))),
+            ("TestPages", p("assets", "testpages")),
+            ("ModelDB", p("core", "db")),
         ]
 
         for title, folder in locations:

@@ -7,8 +7,8 @@ Scans a target printer for all known IRREVERSIBLE / PHYSICAL-DAMAGE
 vulnerabilities and produces a structured report.
 
 Usage (CLI):
-    python src/main.py <target> --destructive-audit
-    python src/main.py <target> --destructive-audit --no-dry      # LIVE execution
+    python pxf.py <target> --destructive-audit
+    python pxf.py <target> --destructive-audit --no-dry      # LIVE execution
 
 Modules covered:
   1. research-pjl-nvram-damage      NVRAM wear via PJL DEFAULT (physical)
@@ -399,7 +399,7 @@ def main_destructive_audit(args) -> None:
     host = getattr(args, 'target', None)
     if not host:
         print(f"\n  {_RED}[!] --destructive-audit requires a target IP/hostname{_RST}")
-        print(f"      Usage: python src/main.py <target> --destructive-audit\n")
+        print(f"      Usage: python pxf.py <target> --destructive-audit\n")
         sys.exit(1)
 
     dry_run     = not getattr(args, 'no_dry', False)

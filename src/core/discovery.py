@@ -41,6 +41,18 @@ OID_ENT_PHYS_FIRMWARE_REV  = '1.3.6.1.2.1.47.1.1.1.1.10'
 OID_ENT_PHYS_SERIAL        = '1.3.6.1.2.1.47.1.1.1.1.11'
 OID_ENT_PHYS_MODEL_NAME    = '1.3.6.1.2.1.47.1.1.1.1.13'
 
+from utils.ports import GLOBAL_PRINTER_TCP_PORTS
+
+_PRINTER_PROBE_PORTS = sorted(GLOBAL_PRINTER_TCP_PORTS.keys())
+
+
+def _tcp_open(host: str, port: int, timeout: float = 1.5) -> bool:
+    """Non-blocking TCP probe."""
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except Exception:
+        return False
 
 def parse_selection(sel, max_index):
     sel = sel.strip().lower()
@@ -243,12 +255,54 @@ def _snmp_get(ip, oid):
         return None
 
 
+def _is_public_ipv4(ip_str: str) -> bool:
+    try:
+        ip = ipaddress.ip_address(ip_str.strip())
+        return ip.version == 4 and not ip.is_private and not ip.is_loopback and not ip.is_link_local
+    except ValueError:
+        return False
+
+
+def _network_around(ip_str: str, prefix: int) -> ipaddress.IPv4Network:
+    return ipaddress.ip_network(f"{ip_str}/{prefix}", strict=False)
+
+
+def _scan_target_printer_ports(host: str, verbose: bool = False) -> None:
+    """Quick TCP probe for common printer ports on a single host."""
+    open_ports = [p for p in _PRINTER_PROBE_PORTS if _tcp_open(host, p)]
+    print(f"\n  Target {host} — open printer-related ports: {open_ports or 'none'}")
+    descr = _snmp_get(host, OID_HRDEV_DESCR)
+    if descr:
+        print(f"  SNMP     : {descr}")
+    if verbose:
+        for port in _PRINTER_PROBE_PORTS:
+            state = 'open' if port in open_ports else 'closed'
+            print(f"    {port}/tcp  {state}")
+    print()
+
+
+def _print_tcp_scan_results(results: list) -> None:
+    if not results:
+        output().info("No hosts with open printer ports found.")
+        return
+    print("\n  Hosts with open printer ports:")
+    for entry in sorted(results, key=lambda r: socket.inet_aton(r['host'])):
+        ports = ', '.join(str(p) for p in entry['open_ports'])
+        print(f"    {entry['host']:<16}  [{ports}]")
+    print()
+
+
 class discovery:
-    def __init__(self, usage=False):
+    def __init__(self, usage=False, context_target: str = ''):
         os_type = get_os()
         print(f"Detected OS: {os_type}")
         if os_type == 'unsupported':
             output().warning("This OS is not supported for SNMP-based discovery.")
+            return
+
+        ctx = (context_target or '').strip()
+        if ctx and _is_public_ipv4(ctx):
+            self._discover_public_context(ctx)
             return
 
         # macOS and Android are supported – just ensure the user knows the requirements
@@ -379,6 +433,65 @@ class discovery:
             output().info("No printers found via SNMP scan")
             print()
 
+    def _discover_public_context(self, ip: str) -> None:
+        """Discovery scoped to a public/WAN target instead of local LAN."""
+        print()
+        output().chitchat(
+            f"Target {ip} is a public address — local LAN scan skipped."
+        )
+        print(f"  Default printer ports: {', '.join(map(str, _PRINTER_PROBE_PORTS))}")
+        print()
+        print("  [1]  Probe this host only (TCP + SNMP if available)")
+        print("  [2]  TCP scan /24 around target (~254 hosts)")
+        print("  [3]  TCP scan /16 around target (large — confirmation required)")
+        print("  [4]  Custom CIDR (e.g. 191.37.240.0/24 or ASN allocation)")
+        print("  [0]  Cancel")
+        print()
+        try:
+            sel = input("  Select scope [1]: ").strip() or '1'
+        except (EOFError, KeyboardInterrupt):
+            print()
+            return
+
+        if sel in ('0', 'q', 'Q'):
+            return
+        if sel == '1':
+            _scan_target_printer_ports(ip, verbose=True)
+            return
+        if sel == '2':
+            cidr = str(_network_around(ip, 24))
+            results = mirai_tcp_scan(cidr)
+            _print_tcp_scan_results(results)
+            return
+        if sel == '3':
+            cidr = str(_network_around(ip, 16))
+            hosts = _network_around(ip, 16).num_addresses
+            print(f"\n  [!] /16 scan covers ~{hosts} addresses — may take a long time.")
+            confirm = input("  Continue? [y/N]: ").strip().lower()
+            if confirm not in ('y', 'yes'):
+                print("  Cancelled.")
+                return
+            results = mirai_tcp_scan(cidr, threads=512)
+            _print_tcp_scan_results(results)
+            return
+        if sel == '4':
+            try:
+                cidr = input("  Enter CIDR (e.g. 203.0.113.0/24): ").strip()
+            except (EOFError, KeyboardInterrupt):
+                print()
+                return
+            if not cidr:
+                return
+            try:
+                ipaddress.ip_network(cidr, strict=False)
+            except ValueError as exc:
+                output().warning(f"Invalid CIDR: {exc}")
+                return
+            results = mirai_tcp_scan(cidr)
+            _print_tcp_scan_results(results)
+            return
+        output().warning("Invalid selection.")
+
 
 # ── Mirai-style concurrent TCP port scanner (batch-32 enhancement) ────────────
 # Inspired by jgamblin/Mirai-Source-Code (scanner.c) concurrent scan approach
@@ -386,16 +499,6 @@ class discovery:
 
 import concurrent.futures as _futures
 import threading as _threading
-
-_PRINTER_PROBE_PORTS = [9100, 80, 443, 631, 515, 8080, 23, 161]
-
-def _tcp_open(host: str, port: int, timeout: float = 1.5) -> bool:
-    """Non-blocking TCP probe."""
-    try:
-        with socket.create_connection((host, port), timeout=timeout):
-            return True
-    except Exception:
-        return False
 
 
 def mirai_tcp_scan(cidr: str, ports: list = None, threads: int = 256,

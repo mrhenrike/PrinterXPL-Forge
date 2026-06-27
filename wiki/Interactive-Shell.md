@@ -8,31 +8,31 @@ Connect and run commands against the printer interactively. PrinterXPL-Forge sup
 
 ```bash
 # Auto-detect best language
-python printerxpl-forge.py 192.168.1.100 auto
+python pxf.py 192.168.1.100 auto
 
 # PJL (Printer Job Language) — most feature-rich
-python printerxpl-forge.py 192.168.1.100 pjl
+python pxf.py 192.168.1.100 pjl
 
 # PostScript — job capture, overlays, operator redefinition
-python printerxpl-forge.py 192.168.1.100 ps
+python pxf.py 192.168.1.100 ps
 
 # PCL (Printer Command Language) — macro filesystem (legacy HP)
-python printerxpl-forge.py 192.168.1.100 pcl
+python pxf.py 192.168.1.100 pcl
 
 # Safe mode — verify language supported before connecting
-python printerxpl-forge.py 192.168.1.100 pjl --safe
+python pxf.py 192.168.1.100 pjl --safe
 
 # Debug mode — print raw bytes on wire
-python printerxpl-forge.py 192.168.1.100 pjl --debug
+python pxf.py 192.168.1.100 pjl --debug
 
 # Non-interactive batch mode — read commands from file
-python printerxpl-forge.py 192.168.1.100 pjl -i commands.txt
+python pxf.py 192.168.1.100 pjl -i commands.txt
 
 # Log everything sent to printer to file
-python printerxpl-forge.py 192.168.1.100 pjl -o session.log
+python pxf.py 192.168.1.100 pjl -o session.log
 
 # Quiet + batch (scripting-friendly)
-python printerxpl-forge.py 192.168.1.100 pjl -i cmds.txt -o out.log -q
+python pxf.py 192.168.1.100 pjl -i cmds.txt -o out.log -q
 ```
 
 ---
@@ -276,7 +276,7 @@ exit
 ```
 
 ```bash
-python printerxpl-forge.py 192.168.1.100 pjl -i commands.txt -o session.log -q
+python pxf.py 192.168.1.100 pjl -i commands.txt -o session.log -q
 ```
 
 Output goes to `session.log` and all data is saved to disk.

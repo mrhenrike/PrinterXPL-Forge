@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PrinterXPL-Forge v3.7.0 — Advanced Printer Penetration Testing Toolkit
-====================================================================
-Root entry point — forwards all arguments to src/main.py.
+PrinterXPL-Forge — root entry point (pxf)
+=========================================
+Forwards all arguments to src/main.py (XPL-Forge suite CLI pattern: exf, wxf, fxf, ixf, pxf).
 
 Usage:
-    python printerxpl-forge.py [target] [mode] [options]
-    python3 printerxpl-forge.py --help
+    python pxf.py [target] [mode] [options]
+    pxf --help
 
 Examples:
-    python printerxpl-forge.py                          # interactive guided menu
-    python printerxpl-forge.py 192.168.1.100 --scan     # passive recon
-    python printerxpl-forge.py 192.168.1.100 pjl        # PJL interactive shell
-    python printerxpl-forge.py 192.168.1.100 --bruteforce --bf-vendor epson
+    python pxf.py                          # interactive guided menu
+    python pxf.py 192.168.1.100 --scan     # passive recon
+    python pxf.py 192.168.1.100 pjl        # PJL interactive shell
+    python pxf.py 192.168.1.100 --bruteforce --bf-vendor epson
 """
 
 # Author    : Andre Henrique (@mrhenrike)
@@ -41,6 +41,7 @@ if str(_SRC) not in sys.path:
 if __name__ == "__main__":
     try:
         from main import main
+
         main()
     except KeyboardInterrupt:
         print("\n[!] Interrupted by user.")
@@ -49,4 +50,5 @@ if __name__ == "__main__":
         print(f"[!] Import error: {exc}")
         print("    Run: ./setup_venv.sh   (Linux/macOS)  or  .\\setup_venv.ps1   (Windows)")
         print("    Or:  ./run.sh")
+        print("    Check: pxf --doctor")
         sys.exit(1)

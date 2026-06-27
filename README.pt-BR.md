@@ -56,17 +56,17 @@ O PrinterXPL-Forge inclui um modo **Auditoria de Ataques Destrutivos** que varre
 
 ```bash
 # Somente avaliação (dry-run — SEGURO, nenhum payload enviado)
-python src/main.py 192.168.1.100 --destructive-audit
+python pxf.py 192.168.1.100 --destructive-audit
 
 # Execução live — envia payloads destrutivos (SOMENTE LAB AUTORIZADO)
-python src/main.py 192.168.1.100 --destructive-audit --no-dry
+python pxf.py 192.168.1.100 --destructive-audit --no-dry
 
 # Módulos específicos
-python src/main.py 192.168.1.100 --destructive-audit \
+python pxf.py 192.168.1.100 --destructive-audit \
   --destructive-modules research-fuser-thermal-attack,research-brother-nvram
 
 # Menu interativo: escolha a opção [D] DESTRUCTIVE AUDIT
-python src/main.py
+python pxf.py
 ```
 
 ### Módulos de Destruição Física Implementados
@@ -106,8 +106,8 @@ cd PrinterXPL-Forge
 bash setup_venv.sh              # Linux/macOS (PEP 668 safe)
 # .\setup_venv.ps1              # Windows
 
-python printerxpl-forge.py --version   # auto-detecta .venv
-python printerxpl-forge.py 192.168.1.100 --scan
+python pxf.py --version   # auto-detecta .venv
+python pxf.py 192.168.1.100 --scan
 # ou: ./run.sh 192.168.1.100 --scan
 ```
 
@@ -189,13 +189,13 @@ python printerxpl-forge.py 192.168.1.100 --scan
 
 ```bash
 # Shodan
-python printerxpl-forge.py --shodan --dork "HP LaserJet" --city "São Paulo"
+python pxf.py --shodan --dork "HP LaserJet" --city "São Paulo"
 
 # Censys
-python printerxpl-forge.py --censys --dork "Ricoh Aficio" --country "BR"
+python pxf.py --censys --dork "Ricoh Aficio" --country "BR"
 
 # FOFA
-python printerxpl-forge.py --fofa --dork "Brother MFC" --country "BR"
+python pxf.py --fofa --dork "Brother MFC" --country "BR"
 ```
 
 ---

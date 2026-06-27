@@ -67,6 +67,21 @@ examples/
 labs/
 samples/
 HANDOFF-AUDIT.md
+HANDOFF*.md
+
+# Lab NVRAM / device capture dumps
+nvram/
+*.nvram
+
+# E2E, Shodan batch, deploy and one-off validation scripts (not product core)
+scripts/
+scripts/**
+
+# Local batch / retest logs (outside .log/)
+pxf_batch_*.log
+*_batch_retest*.log
+live_e2e_*.log
+shodan_*.log
 
 
 # Test results and outputs
@@ -86,10 +101,11 @@ ARCHITECTURE_*.md
 ARCHITECTURE_*.txt
 src/utils/docs/
 
-# Discovery results (auto-generated, not for repository)
+# Discovery / runtime logs (auto-generated, never commit)
 discovery_results*/
 *_results/
-.log/discovery_*.json
+.log/
+.log/**
 
 # Build / packaging artifacts (not tracked)
 build/

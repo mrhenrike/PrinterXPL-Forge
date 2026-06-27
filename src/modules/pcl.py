@@ -133,6 +133,10 @@ class pcl(printer):
 
     def do_id(self, *args):
         "Show printer identification (PCL-specific)"
+        if not self.conn:
+            output().warning("Not connected to RAW — showing passive fingerprint:")
+            self._show_passive_id()
+            return
         print("PCL Printer Identification:")
         print("=" * 60)
         

@@ -7,8 +7,8 @@ Provides a guided menu-driven interface for operators who prefer
 not to memorize CLI flags. Every option maps directly to a CLI
 command shown on screen before execution.
 
-Launch: python src/main.py  (no arguments)
-        python src/main.py --interactive
+Launch: python pxf.py  (no arguments)
+        python pxf.py --interactive
 """
 # Author    : Andre Henrique (@mrhenrike)
 # GitHub    : https://github.com/mrhenrike
@@ -23,7 +23,11 @@ import shutil
 import subprocess
 import sys
 import textwrap
+from pathlib import Path
 from typing import List, Optional, Tuple
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+_CLI = _REPO_ROOT / 'pxf.py'
 
 # ── ANSI palette ──────────────────────────────────────────────────────────────
 _RST = '\033[0m'
@@ -122,9 +126,11 @@ def _choose(options: List[Tuple[str, str]], title: str = '',
 
 def _print_cmd(cmd: List[str]) -> None:
     """Show the equivalent CLI command before execution."""
+    from version import __version__
     print()
+    print(f"  {_DIM}PrinterXPL-Forge v{__version__}{_RST}")
     print(f"  {_DIM}Running command:{_RST}")
-    print(f"  {_BLU}$  python src/main.py {' '.join(cmd)}{_RST}")
+    print(f"  {_BLU}$  python pxf.py {' '.join(cmd)}{_RST}")
     print()
 
 
@@ -132,9 +138,9 @@ def _run_cmd(cmd: List[str], pause: bool = True) -> None:
     """Execute a main.py command in subprocess and show output."""
     _print_cmd(cmd)
     py = sys.executable
-    full = [py, '-W', 'ignore', 'src/main.py'] + cmd
+    full = [py, '-W', 'ignore', str(_CLI)] + cmd
     try:
-        subprocess.run(full, check=False)
+        subprocess.run(full, check=False, cwd=str(_REPO_ROOT))
     except KeyboardInterrupt:
         print(f"\n  {_YEL}[!] Interrupted{_RST}")
     if pause:
@@ -527,7 +533,7 @@ def _workflow_full_audit() -> None:
 
     steps = [
         (f"Step 1/4  Scan (banner + CVEs)",
-         [target, '--scan']),
+         [target, '--scan', '--vendor-hint', vendor, '--no-nvd']),
         (f"Step 2/4  Brute-force login",
          [target, '--bruteforce', '--bf-vendor', vendor]
          + (['--bf-serial', serial] if serial else [])),
@@ -554,16 +560,19 @@ def _workflow_full_audit() -> None:
 # ── Main interactive loop ─────────────────────────────────────────────────────
 
 _MAIN_MENU = [
-    ('discover',     '[~]  Discover printers       Find printers on LAN or via Shodan/Censys'),
-    ('scan',         '[?]  Scan target             Fingerprint + CVE lookup + exploit matching'),
-    ('bruteforce',   '[*]  Brute-force login       Test default credentials (all protocols)'),
-    ('attack',       '[!]  Attack / Exploit        IPP, pivot, firmware, payload, XSP, matrix'),
-    ('exploits',     '[X]  Exploit library         List, check, run or download exploits'),
-    ('destructive',  '[D]  DESTRUCTIVE AUDIT       Irreversible / physical-damage attack check'),
-    ('send',         '[>]  Send print job          Send text/doc/pdf/image to target printer'),
-    ('workflow',     '[>>] Full audit workflow     Scan -> BF -> Attack matrix -> Netmap in one go'),
-    ('config',       '[=]  Config & help           API keys, settings, documentation'),
+    ('discover',    '[~]', 'Discover printers',      'Find printers on LAN or via Shodan/Censys'),
+    ('scan',        '[?]', 'Scan target',            'Fingerprint + CVE lookup + exploit matching'),
+    ('bruteforce',  '[*]', 'Brute-force login',      'Test default credentials (all protocols)'),
+    ('attack',      '[!]', 'Attack / Exploit',       'IPP, pivot, firmware, payload, XSP, matrix'),
+    ('exploits',    '[X]', 'Exploit library',        'List, check, run or download exploits'),
+    ('destructive', '[D]', 'DESTRUCTIVE AUDIT',      'Irreversible / physical-damage attack check'),
+    ('send',        '[>]', 'Send print job',         'Send text/doc/pdf/image to target printer'),
+    ('workflow',    '[>>]', 'Full audit workflow',   'Scan → BF → Attack matrix → Netmap in one go'),
+    ('config',      '[=]', 'Config & help',          'API keys, settings, documentation'),
 ]
+
+_MENU_ICON_W = 5
+_MENU_TITLE_W = 24
 
 
 def _menu_destructive() -> None:
@@ -641,24 +650,8 @@ def _menu_destructive() -> None:
 
 
 def _menu_header() -> None:
-    from version import __version__
-    print()
-    _w   = 58  # inner box width (number of ═ chars)
-    _ver = f"PrinterXPL-Forge v{__version__}"
-    _sub = "Advanced Printer Penetration Testing Toolkit"
-    _act = "Choose an action:"
-    # Each content line: 2 leading spaces + text + padding + 2 trailing spaces = _w
-    def _row(text: str, bold: str = '') -> str:
-        pad = ' ' * (_w - 4 - len(text))
-        inner = f"  {bold}{text}{_RST}{pad}  "
-        return f"  {_CYN}║{_RST}{inner}{_CYN}║{_RST}"
-    print(f"  {_CYN}╔{'═'*_w}╗{_RST}")
-    print(_row(_ver, f"{_RED}{_BLD}"))
-    print(_row(_sub, _DIM))
-    print(f"  {_CYN}╠{'═'*_w}╣{_RST}")
-    print(_row(_act))
-    print(f"  {_CYN}╚{'═'*_w}╝{_RST}")
-    print()
+    from ui.banner import print_app_banner
+    print_app_banner(action='Choose an action:', show_meta=False)
 
 
 def run_interactive() -> None:
@@ -675,16 +668,13 @@ def run_interactive() -> None:
         _clr()
         _menu_header()
 
-        for i, (key, label) in enumerate(_MAIN_MENU, 1):
-            # Split label at first double-space into icon+title and description
-            parts = label.split('  ', 2)
-            if len(parts) >= 2:
-                icon_title = parts[0] + '  ' + parts[1]
-                desc       = parts[2] if len(parts) > 2 else ''
-            else:
-                icon_title = label
-                desc       = ''
-            print(f"  {_YEL}[{i}]{_RST}  {icon_title:<36} {_DIM}{desc}{_RST}")
+        for i, (key, icon, title, desc) in enumerate(_MAIN_MENU, 1):
+            print(
+                f"  {_YEL}[{i}]{_RST}  "
+                f"{icon:<{_MENU_ICON_W}} "
+                f"{title:<{_MENU_TITLE_W}} "
+                f"{_DIM}{desc}{_RST}"
+            )
 
         print()
         # Show current session target if one is set

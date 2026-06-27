@@ -12,8 +12,9 @@ Write-Host "[pipx] Instalando pacote local em modo editable..." -ForegroundColor
 pipx install --force --editable .
 
 Write-Host "[pipx] Validando comando..." -ForegroundColor Cyan
+pxf --version
+pxf --help | Out-Null
 printerxpl-forge --version
-printerxpl-forge --help | Out-Null
 
 Write-Host "[pipx] OK" -ForegroundColor Green
 

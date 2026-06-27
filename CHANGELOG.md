@@ -1,3 +1,134 @@
+## [6.3.1] - 2026-06-27 - HP EWS session auth + bruteforce hardening
+
+### Added
+- HP FutureSmart EWS session login via `GET /AuthChk` (sid cookie + `X-Auth-Client-Counter`)
+- Ricoh IM/webArch form detection (`login.cgi` + `userid`/`password`)
+- Vendor-priority HTTP login paths; HTML form `action` parsing
+- PRET parity: `pxf.py` entry, PJL shell commands, LPD fuzz, native PS/PCL assets
+
+### Fixed
+- HTTP bruteforce false positives on HP EWS/nginx (`/` returns 200 for any Basic cred)
+- Form POST sentinel validation (reject identical responses for any password)
+- Shodan/FOFA/Netlas discovery `NoneType` guards on empty API rows
+- `DiscoveryParams` list fields normalised when `None`
+- Poly-runner imports (`core.poly_runner`); FTP grab `dry_run`/`timeout` signature
+- Ricoh CVE-2024-34161 IM-series CGI paths alongside MP layout
+
+### Changed
+- `.gitignore`: exclude `scripts/`, `nvram/`, `.log/`, batch/e2e logs from VCS
+
+---
+
+## [6.3.0] - 2026-06-26 - Module install profiles (pip extras)
+
+### Added
+- `xpl_manifest.json` — tagged catalog (year, vendor, era, integration type)
+- Profiles: `modern` (2020+, default), `full-depth` (30 years), `vendor-*`, `modern-vendor-*`
+- `pxf-profile` CLI + `--profile` / `--profile-list` / `--profile-show`
+- Pip extras: `[modern]`, `[full-depth]`, `[vendor-hp]`, `[engines-rce]`, `[native-only]`, etc.
+- `tools/generate_xpl_manifest.py` for release regeneration
+
+### Notes
+- Wheel ships all modules; profile filters runtime load (vendor/year)
+- MSF wrappers tagged `orchestration_msf` — migrate to `native_python` over time
+- After `pip install printerxpl-forge[vendor-hp]` run: `pxf-profile vendor-hp`
+
+---
+
+## [6.2.8] - 2026-06-26 - Global printer port map (default scan)
+
+### Added
+- `GLOBAL_PRINTER_TCP_PORTS` in `utils/ports.py` — ~30 TCP ports used worldwide (RAW alts, IPP/BMPP, LPD, EWS, WSD, RTSP/MFP, vendor 9200/9220/931/9500, etc.)
+- Default scan/discover/nmap integration uses full global map
+- Attack-surface warning when no standard print ports are open
+
+### Changed
+- Port 21 dropped unless FTP `220` banner (tcpwrapped honeypots)
+- Discover local uses same port set as `--scan`
+
+---
+
+## [6.2.7] - 2026-06-26 - CLI entry point renamed to pxf.py
+
+### Changed
+- Root launcher renamed from `printerxpl-forge.py` to `pxf.py` (XPL-Forge suite pattern: exf, wxf, fxf, ixf, **pxf**)
+- Interactive menu, run scripts, docs and in-app hints use `python pxf.py`
+- PyPI console script `pxf` added; `printerxpl-forge` kept as alias
+
+---
+
+## [6.2.6] - 2026-06-25 - nmap scan + workflow vendor hint
+
+### Added
+- nmap integration for port scan when `nmap` is installed (`-Pn`, all printer ports)
+- `--vendor-hint` for scan / Full Audit workflow (uses vendor when fingerprint empty)
+- Version label shown before each interactive workflow command
+
+### Changed
+- Full Audit: scan passes `--vendor-hint hp` + `--no-nvd`; BF uses same vendor
+- Scan timeout increased to 8s for WAN targets
+- env_doctor checks for `nmap` and `snmpget`
+
+---
+
+## [6.2.5] - 2026-06-25 - HP EWS fingerprint + exploit port/vendor gating
+
+### Fixed
+- **Critical:** `_grab_http()` was broken (orphaned code) — HTTP/HTTPS fingerprint never ran
+- False-positive port 21 (TCP accept without FTP 220 banner) removed from scan
+- FTP/Ricoh exploits matched without vendor or verified FTP port
+- Generic CVEs (PJL/IPP/SNMP) shown when required ports were closed
+
+### Added
+- HP Embedded Web Server parser (`Server:` header + DevMgmt XML)
+- Parallel port scan; HTTP probe on 80/443/631/8080/9100 even if SYN scan misses
+- SNMP fallback via `snmpget` when pysnmp unavailable
+- Generic CVE filter tied to open ports and printer languages
+
+### Changed
+- Exploit matching: vendor-specific modules require vendor or CVE match, not port alone
+- Attack recommendation hints for HP DeskJet/OfficeJet (IPP/web vs PJL)
+
+---
+
+## [6.2.4] - 2026-06-25 - Vendor-aware PJL shell
+
+### Added
+- `vendor` shell command (`vendor set hp`, `vendor detect`)
+- `utils/vendor_profile.py` — INFO categories and vendor-only command map
+- `info all` — full PJL INFO audit spray (previous default behaviour)
+
+### Changed
+- `info` without args queries generic categories only; adds vendor-specific blocks when vendor is known
+- Auto vendor detection from PJL `INFO ID` on RAW connect
+
+### Fixed
+- PJL commands (`ls`, `nvram`, …) blocked when RAW/9100 is offline (no silent empty dumps)
+- `filesystem` / `information` etc. typed as commands → hint to use `help <category>`
+- `nvram` restricted to Brother vendor (or explicit `vendor set brother`)
+
+---
+
+## [6.2.3] - 2026-06-25 - UI alignment, exploit matching, public-IP discovery
+
+### Fixed
+- Interactive menu column alignment (icon / title / description)
+- Exploit matching crash when CVE/vendor/lang metadata is a list (`'list' object has no attribute 'upper'`)
+- Attack surface risk display when values are non-string
+- `discover` in shell no longer scans local LAN when session target is a public IP
+- Shell `id`/`info` empty when RAW/9100 closed — passive fingerprint via IPP/HTTP/SNMP/FTP
+- Auto-detect language now probes all protocols (was broken without `--safe`)
+
+### Changed
+- Unified boxed banner for interactive menu and CLI (`src/ui/banner.py`)
+- Added `-t`/`--target` as alternative to positional target IP
+- Public-IP discovery offers /24, /16, custom CIDR and single-host port probe
+
+### Added
+- `src/utils/normalize.py` — `as_str()` / `as_str_list()` helpers for fingerprint inputs
+
+---
+
 ## [6.2.2] - 2026-06-25 - CLI doctor + global flags
 
 ### Added
@@ -14,7 +145,7 @@
 - `run.sh` / `run.ps1` — auto-run setup when `.venv` is missing
 
 ### Changed
-- `printerxpl-forge.py` and `src/main.py` re-exec into `.venv` before imports
+- `pxf.py` and `src/main.py` re-exec into `.venv` before imports
 - README installation section updated for PEP 668 distros
 - Restored `pyproject.toml` and GitHub Actions auto-publish workflow
 

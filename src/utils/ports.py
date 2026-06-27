@@ -44,6 +44,41 @@ from __future__ import annotations
 
 from typing import Dict, FrozenSet, Optional, Set
 
+# ── Global printer/MFP TCP probe set (worldwide vendors, last ~30 years) ─────
+# Single source of truth for default scan, discover, and nmap integration.
+# UDP (161 SNMP, 162 trap, 3702 WSD) probed separately in banner_grabber.
+GLOBAL_PRINTER_TCP_PORTS: Dict[int, str] = {
+    21:    'FTP',
+    23:    'Telnet',
+    80:    'HTTP',
+    137:   'NetBIOS-NS',
+    138:   'NetBIOS-DGM',
+    139:   'NetBIOS-SSN',
+    170:   'Print-Srv',
+    443:   'HTTPS',
+    445:   'SMB',
+    514:   'Shell/LPD-legacy',
+    515:   'LPD',
+    554:   'RTSP',
+    631:   'IPP',
+    632:   'BMPP',
+    931:   'Vendor-931',
+    9100:  'RAW',
+    9101:  'RAW-Alt',
+    9102:  'RAW-Alt',
+    9150:  'RAW-Alt',
+    9200:  'Vendor-9200',
+    9220:  'Vendor-9220',
+    9500:  'ISMServer',
+    8080:  'HTTP-Alt',
+    8443:  'HTTPS-Alt',
+    8510:  'Canon-HTTP',
+    8554:  'RTSP-Alt',
+    9000:  'AltHTTP',
+    5357:  'WSD-HTTP',
+    6514:  'Syslog-TLS',
+}
+
 # ── Protocol defaults ─────────────────────────────────────────────────────────
 
 _DEFAULTS: Dict[str, int] = {
@@ -208,12 +243,27 @@ class PortConfig:
     @classmethod
     def all_printer_ports(cls) -> Set[int]:
         """
-        Return the full set of ports to probe during a banner scan.
-        Includes resolved defaults for all known printer protocols plus any extras.
+        Return the full set of TCP ports to probe during a banner scan.
+        Includes the global printer port map, resolved protocol overrides, and extras.
         """
-        base = {cls.resolve(p) for p in ('raw', 'ipp', 'lpd', 'snmp', 'http', 'https', 'smb', 'telnet', 'ftp')}
+        base = set(GLOBAL_PRINTER_TCP_PORTS.keys())
+        for proto in _DEFAULTS:
+            base.add(cls.resolve(proto))
         base.update(cls._extra_ports)
         return base
+
+    @classmethod
+    def printer_port_labels(cls) -> Dict[int, str]:
+        """Port → label map for scan output (global set + overrides + extras)."""
+        labels = dict(GLOBAL_PRINTER_TCP_PORTS)
+        for proto, default in _DEFAULTS.items():
+            resolved = cls.resolve(proto)
+            if resolved != default:
+                labels.pop(default, None)
+            labels[resolved] = proto.upper()
+        for ep in cls._extra_ports:
+            labels.setdefault(ep, f'Custom({ep})')
+        return labels
 
     @classmethod
     def reset(cls) -> None:

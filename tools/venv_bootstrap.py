@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Detect, create and sync PrinterXPL-Forge local .venv (PEP 668 safe).
 
-Used by printerxpl-forge.py / src/main.py so `python printerxpl-forge.py` works
+Used by pxf.py / src/main.py so `python pxf.py` works
 on Debian/Ubuntu without touching system pip.
 """
 

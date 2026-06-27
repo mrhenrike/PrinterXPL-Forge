@@ -26,7 +26,7 @@ source .venv/bin/activate     # Linux / macOS / Termux
 pip install -r requirements.txt
 
 # Verify
-python printerxpl-forge.py --version
+python pxf.py --version
 # → PrinterXPL-Forge Version 3.7.0 (2026-03-25)
 ```
 

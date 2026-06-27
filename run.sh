@@ -11,4 +11,4 @@ if [ ! -x "$VENV/bin/python" ]; then
     bash "$SCRIPT_DIR/setup_venv.sh"
 fi
 
-exec "$VENV/bin/python" "$SCRIPT_DIR/src/main.py" "$@"
+exec "$VENV/bin/python" "$SCRIPT_DIR/pxf.py" "$@"

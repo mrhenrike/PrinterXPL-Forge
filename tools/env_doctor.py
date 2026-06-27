@@ -8,6 +8,7 @@ import argparse
 import importlib
 import os
 import platform
+import shutil
 import sys
 from typing import Dict, List, Tuple
 
@@ -27,6 +28,11 @@ OPTIONAL_DEPS: Tuple[Tuple[str, str, str], ...] = (
     ("censys", "censys", "OSINT discovery"),
     ("scikit-learn", "sklearn", "ML ranking"),
     ("joblib", "joblib", "ML models"),
+)
+
+OPTIONAL_BINARIES: Tuple[Tuple[str, str], ...] = (
+    ("nmap", "Port scan (recommended for WAN/filtered targets)"),
+    ("snmpget", "SNMP fingerprint fallback"),
 )
 
 CORE_SUBSYSTEMS: Tuple[Tuple[str, str], ...] = (
@@ -117,6 +123,14 @@ def main() -> int:
         mark = "{}OK{}".format(_G, _R) if ok else "{}WARN{}".format(_W, _R)
         print("  [{}] {:22s} ({})".format(mark, pkg, desc))
         if not ok and exit_code == 0:
+            exit_code = 1
+
+    print("\n{}___ System tools ___{}".format(_B, _R))
+    for binary, desc in OPTIONAL_BINARIES:
+        ok = bool(shutil.which(binary))
+        mark = "{}OK{}".format(_G, _R) if ok else "{}WARN{}".format(_W, _R)
+        print("  [{}] {:22s} ({})".format(mark, binary, desc))
+        if not ok and binary == 'nmap' and exit_code == 0:
             exit_code = 1
 
     print("\n{}___ Core subsystems ___{}".format(_B, _R))

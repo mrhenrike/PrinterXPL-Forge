@@ -142,7 +142,7 @@ If the required flag is not provided, lines containing unexpanded tokens are ski
 Use a custom wordlist file that replaces the default:
 
 ```bash
-python printerxpl-forge.py 192.168.1.100 --bruteforce --bf-wordlist /path/to/my_creds.txt
+python pxf.py 192.168.1.100 --bruteforce --bf-wordlist /path/to/my_creds.txt
 ```
 
 The custom file must follow the same format. Vendor sections are optional — if absent, all credentials are tried regardless of vendor.
@@ -154,7 +154,7 @@ The custom file must follow the same format. Vendor sections are optional — if
 Use `--bf-cred` to add individual pairs that are tested first (highest priority), before any wordlist entries:
 
 ```bash
-python printerxpl-forge.py 192.168.1.100 --bruteforce \
+python pxf.py 192.168.1.100 --bruteforce \
   --bf-wordlist wordlists/printer_default_creds.txt \
   --bf-cred admin:MyCustomPass \
   --bf-cred root:toor
@@ -206,11 +206,11 @@ For broader attacks, you can use community credential lists:
 
 ```bash
 # SecLists default credentials (requires SecLists installed)
-python printerxpl-forge.py 192.168.1.100 --bruteforce \
+python pxf.py 192.168.1.100 --bruteforce \
   --bf-wordlist /usr/share/seclists/Passwords/Default-Credentials/default-passwords.csv
 
 # Custom hydra-format converted to user:pass
-python printerxpl-forge.py 192.168.1.100 --bruteforce \
+python pxf.py 192.168.1.100 --bruteforce \
   --bf-wordlist /path/to/large_list.txt \
   --bf-delay 1.0 \
   --bf-no-variations

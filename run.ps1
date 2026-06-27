@@ -12,4 +12,4 @@ if (-not (Test-Path $venv_python)) {
     & "$PSScriptRoot\setup_venv.ps1"
 }
 
-& $venv_python "$PSScriptRoot\src\main.py" @args
+& $venv_python "$PSScriptRoot\pxf.py" @args

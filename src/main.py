@@ -89,6 +89,7 @@ def _expand_csv_int(raw_values: List[str]) -> List[int]:
 # Metadata
 # --------------------------------------------------------------------------- #
 APP_NAME: str = "PrinterXPL-Forge"
+CLI_NAME: str = "pxf"
 VERSION: str = get_version_string()
 
 # --------------------------------------------------------------------------- #
@@ -97,10 +98,16 @@ VERSION: str = get_version_string()
 def build_parser() -> argparse.ArgumentParser:
     """Build and return the argparse parser (shared by CLI and help)."""
     parser = argparse.ArgumentParser(
-        prog=APP_NAME.lower(),
+        prog=CLI_NAME,
         description=f"{APP_NAME} - Advanced Printer Penetration Testing Toolkit",
     )
     # Make positionals optional to allow --discover-* without target/mode
+    parser.add_argument(
+        "-t", "--target",
+        dest="target_flag",
+        metavar="HOST",
+        help="Printer IP or hostname (alternative to positional target)",
+    )
     parser.add_argument("target", nargs='?', help="Printer IP address or hostname")
     parser.add_argument(
         "mode",
@@ -140,7 +147,8 @@ def build_parser() -> argparse.ArgumentParser:
     _port_group = parser.add_argument_group(
         "custom port overrides",
         "Override default protocol ports. When not specified, each module uses its own "
-        "default (RAW=9100, IPP=631, LPD=515, SNMP=161, FTP=21, HTTP=80, HTTPS=443, SMB=445, Telnet=23). "
+        "default includes global printer TCP map (~30 ports: RAW/9100, IPP/631, "
+        "LPD/515, HTTP/S, JetDirect alts, WSD, RTSP/MFP, etc.). "
         "Use when the printer listens on non-standard ports."
     )
     _port_group.add_argument(
@@ -339,6 +347,13 @@ def build_parser() -> argparse.ArgumentParser:
         default=100,
         help="Maximum results per query per engine (default: 100).",
     )
+    _dork_group.add_argument(
+        "--dork-probe",
+        metavar="N",
+        type=int,
+        default=0,
+        help="After discovery, run fingerprint + exploit match on first N unique IPs (0=off).",
+    )
     # ── Per-engine shortcut flags (mutually exclusive — pick exactly ONE) ───────
     _dork_group.add_argument(
         "--shodan",
@@ -439,6 +454,25 @@ def build_parser() -> argparse.ArgumentParser:
         help="Path to config.json (default: config.json next to src/)",
     )
     # ── Attack modules for non-PJL/PS/PCL printers ────────────────────────────
+    parser.add_argument(
+        "--lpd-fuzz",
+        metavar="MODE",
+        choices=["get", "put", "rm", "in", "mail", "brute", "print"],
+        default=None,
+        help="LPD RFC 1179 security test (native PRET lpdtest port)",
+    )
+    parser.add_argument(
+        "--lpd-arg",
+        metavar="ARG",
+        default="",
+        help="Argument for --lpd-fuzz (remote path, payload, local file, or queue-list)",
+    )
+    parser.add_argument(
+        "--lpd-queue",
+        metavar="NAME",
+        default="lp",
+        help="LPD queue name (default: lp)",
+    )
     parser.add_argument(
         "--ipp",
         action="store_true",
@@ -682,6 +716,15 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--vendor-hint",
+        metavar="VENDOR",
+        default=None,
+        help=(
+            "Vendor hint for scan/fingerprint when auto-detect fails "
+            "(e.g. hp, epson). Used by Full Audit workflow."
+        ),
+    )
+    parser.add_argument(
         "--bf-cred",
         metavar="USER:PASS",
         action="append",
@@ -794,6 +837,21 @@ def build_parser() -> argparse.ArgumentParser:
         dest="doctor",
         help="Run environment / dependency check and exit",
     )
+    parser.add_argument(
+        "--profile",
+        metavar="NAME",
+        help="Module install profile: modern (default), full-depth, vendor-hp, modern-vendor-hp, ...",
+    )
+    parser.add_argument(
+        "--profile-list",
+        action="store_true",
+        help="List available module install profiles and exit",
+    )
+    parser.add_argument(
+        "--profile-show",
+        action="store_true",
+        help="Show active profile stats and exit",
+    )
     return parser
 
 
@@ -806,7 +864,12 @@ def get_args() -> argparse.Namespace:
         version=f"%(prog)s {get_version_string()}",
         help="Show program version and exit",
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+    if getattr(args, 'target_flag', None):
+        if args.target and args.target != args.target_flag:
+            parser.error("Specify target either positionally or with -t/--target, not both.")
+        args.target = args.target_flag
+    return args
 
 
 from itertools import zip_longest
@@ -826,6 +889,53 @@ def _ui_section(step: str, title: str, target: str = '') -> None:
     print(f"  {_CYN}│{_RST}")
 
 
+def _probe_discovered_targets(hits, limit: int, no_nvd: bool = True) -> None:
+    """Quick PXF validation on IPs returned by online discovery."""
+    from utils.banner_grabber import grab_all, print_fingerprint
+    from utils.exploit_manager import get_matched_for_target
+    from utils.vuln_scanner import scan as vuln_scan
+    from utils.normalize import as_str
+
+    seen: list[str] = []
+    for h in hits:
+        if h.ip and h.ip not in seen:
+            seen.append(h.ip)
+        if len(seen) >= limit:
+            break
+
+    if not seen:
+        return
+
+    output().green(f"\n>> Dork Probe — validating {len(seen)} target(s)")
+    for ip in seen:
+        vendor = next((x.vendor for x in hits if x.ip == ip and x.vendor), '')
+        print(f"\n  {'─'*60}\n  Probe: {ip}  (vendor hint: {vendor or 'auto'})")
+        try:
+            fp = grab_all(ip, timeout=8.0, verbose=False, vendor_hint=vendor or None)
+            print_fingerprint(fp)
+            report = vuln_scan(
+                host=ip, make=fp.make, model=fp.model, firmware=fp.firmware,
+                open_ports=fp.open_ports, printer_langs=fp.printer_langs,
+                use_nvd=not no_nvd, verbose=False,
+            )
+            cves = [
+                as_str(getattr(c, 'cve_id', None) or getattr(c, 'id', ''))
+                for c in report.specific_cves + report.vendor_cves
+                if as_str(getattr(c, 'cve_id', None) or getattr(c, 'id', ''))
+            ]
+            matched = get_matched_for_target(
+                make=fp.make, model=fp.model, firmware=fp.firmware or '',
+                open_ports=fp.open_ports, langs=fp.printer_langs, cves=cves,
+            )
+            output().message(
+                f"  Risk {report.risk_score}/10 | "
+                f"{len(matched)} exploit(s): "
+                + (', '.join(x.id for x in matched[:5]) or 'none')
+            )
+        except Exception as exc:
+            output().warning(f"  Probe failed for {ip}: {exc}")
+
+
 def _run_auto_exploit(args) -> None:
     """
     Automatic exploit pipeline:
@@ -842,23 +952,42 @@ def _run_auto_exploit(args) -> None:
 
     output().green(f"\n>> Auto Exploit — {target}")
 
-    # Step 1: fingerprint
-    fp = {}
+    vendor_hint = getattr(args, 'vendor_hint', None) or getattr(args, 'bf_vendor', None) or ''
+    make = model = firmware = serial = ''
+    ports: list = []
+    langs: list = []
+    cves: list = []
+
     try:
-        fp = grab_all(target, timeout=timeout, quiet=True)
+        fp = grab_all(
+            target, timeout=float(timeout), verbose=False,
+            vendor_hint=vendor_hint or None,
+        )
         if not args.quiet:
             print_fingerprint(fp)
+        make     = fp.make or ''
+        model    = fp.model or ''
+        firmware = fp.firmware or ''
+        ports    = fp.open_ports or []
+        langs    = fp.printer_langs or []
+        serial   = fp.serial or getattr(args, 'bf_serial', '') or ''
+        from utils.vuln_scanner import scan as vuln_scan
+        from utils.normalize import as_str
+        report = vuln_scan(
+            host=target, make=make, model=model, firmware=firmware,
+            open_ports=ports, printer_langs=langs,
+            snmp_descr=fp.snmp_descr, doc_formats=fp.doc_formats,
+            use_nvd=not getattr(args, 'no_nvd', False), verbose=False,
+        )
+        for c in report.specific_cves + report.vendor_cves:
+            cid = as_str(getattr(c, 'cve_id', None) or getattr(c, 'id', ''))
+            if cid:
+                cves.append(cid)
     except Exception as exc:
         output().warning(f"Fingerprint failed: {exc} — proceeding with empty fingerprint")
+        serial = getattr(args, 'bf_serial', '') or ''
 
-    make      = fp.get('make', '') or ''
-    model     = fp.get('model', '') or ''
-    firmware  = fp.get('firmware', '') or ''
-    ports     = fp.get('open_ports', []) or []
-    langs     = fp.get('langs', []) or []
-    cves      = fp.get('cves', []) or []
-    serial    = getattr(args, 'bf_serial', '') or ''
-    mac       = getattr(args, 'bf_mac', '') or ''
+    mac = getattr(args, 'bf_mac', '') or ''
 
     results = auto_exploit(
         target,
@@ -902,21 +1031,27 @@ def _run_scan(args) -> None:
             "NVD API key not configured — using public rate limit (5 req/30s). "
             "Add nvd.api_key to config.json for higher limits."
         )
-    timeout  = 5.0
+    timeout  = 8.0
+    vendor_hint = getattr(args, 'vendor_hint', None) or getattr(args, 'bf_vendor', None) or ''
 
     _ui_section('1/3', 'Fingerprint & Banner Grab', target)
 
-    # 1. Banner grab (with spinner)
+    # 1. Banner grab (spinner only in interactive mode)
     try:
-        from ui.spinner import Spinner
-        sp = Spinner(f'Probing {target} ...').start()
-        try:
-            fp = grab_all(target, timeout=timeout, verbose=False)
-        finally:
-            sp.stop(True, f'Fingerprint complete — {fp.make or "?"} {fp.model or ""}')
+        if getattr(args, 'quiet', False):
+            fp = grab_all(target, timeout=timeout, verbose=False, vendor_hint=vendor_hint)
+        else:
+            from ui.spinner import Spinner
+            sp = Spinner(f'Probing {target} ...').start()
+            try:
+                fp = grab_all(target, timeout=timeout, verbose=False, vendor_hint=vendor_hint)
+            finally:
+                sp.stop(True, f'Fingerprint complete — {fp.make or "?"} {fp.model or ""}')
     except Exception:
-        fp = grab_all(target, timeout=timeout, verbose=True)
+        fp = grab_all(target, timeout=timeout, verbose=True, vendor_hint=vendor_hint)
     print_fingerprint(fp)
+    if vendor_hint and not fp.make:
+        output().warning(f"Vendor hint '{vendor_hint}' did not resolve — check connectivity.")
 
     # 2. CVE / vuln scan
     _ui_section('2/3', 'Vulnerability Assessment', target)
@@ -940,15 +1075,20 @@ def _run_scan(args) -> None:
     xpl_active = getattr(args, 'xpl', False) or True  # always show on scan
     try:
         from utils.exploit_manager import get_matched_for_target, print_matched_exploits
+        from utils.normalize import as_str
         all_cve_entries = report.specific_cves + report.vendor_cves + report.generic_cves
         vuln_cves = []
         for c in all_cve_entries:
             if hasattr(c, 'cve_id'):
-                vuln_cves.append(c.cve_id)
+                cid = as_str(c.cve_id)
             elif hasattr(c, 'id'):
-                vuln_cves.append(c.id)
+                cid = as_str(c.id)
             elif isinstance(c, dict):
-                vuln_cves.append(c.get('id', c.get('cve_id', '')))
+                cid = as_str(c.get('id', c.get('cve_id', '')))
+            else:
+                cid = ''
+            if cid:
+                vuln_cves.append(cid)
         matched_xpls = get_matched_for_target(
             make=fp.make, model=fp.model, firmware=getattr(fp, 'firmware', '') or getattr(fp, 'firmware_version', ''),
             open_ports=fp.open_ports, langs=fp.printer_langs,
@@ -966,23 +1106,23 @@ def _run_scan(args) -> None:
     _GRN = '\033[1;32m'; _YEL = '\033[1;33m'
     try:
         from utils.default_creds import get_creds_for_vendor
-        bf_vendor_hint = (fp.make or '').lower().split()[0] if fp.make else 'generic'
+        bf_vendor_hint = (fp.make or vendor_hint or 'generic').lower().split()[0]
         vendor_creds   = get_creds_for_vendor(bf_vendor_hint)
         serial_hint    = fp.serial or '<SERIAL>'
         print(f"\n  {_CYN}┌── Next Steps ──────────────────────────────────────────────{_RST}")
         print(f"  {_CYN}│{_RST}")
         print(f"  {_CYN}│{_RST}  {_GRN}Brute-force{_RST} ({len(vendor_creds)} default creds for {bf_vendor_hint}):")
-        print(f"  {_CYN}│{_RST}    {_DIM}python src/main.py {target} --bruteforce "
+        print(f"  {_CYN}│{_RST}    {_DIM}python pxf.py {target} --bruteforce "
               f"--bf-vendor {bf_vendor_hint} --bf-serial {serial_hint}{_RST}")
         print(f"  {_CYN}│{_RST}")
         print(f"  {_CYN}│{_RST}  {_GRN}Attack matrix{_RST} (BlackHat 2017 + CVEs, dry-run):")
-        print(f"  {_CYN}│{_RST}    {_DIM}python src/main.py {target} --attack-matrix{_RST}")
+        print(f"  {_CYN}│{_RST}    {_DIM}python pxf.py {target} --attack-matrix{_RST}")
         print(f"  {_CYN}│{_RST}")
         print(f"  {_CYN}│{_RST}  {_GRN}Network mapping{_RST} (subnet scan, pivot paths):")
-        print(f"  {_CYN}│{_RST}    {_DIM}python src/main.py {target} --network-map{_RST}")
+        print(f"  {_CYN}│{_RST}    {_DIM}python pxf.py {target} --network-map{_RST}")
         print(f"  {_CYN}│{_RST}")
         print(f"  {_CYN}│{_RST}  {_YEL}Interactive guided menu:{_RST}")
-        print(f"  {_CYN}│{_RST}    {_DIM}python src/main.py  (no args){_RST}")
+        print(f"  {_CYN}│{_RST}    {_DIM}python pxf.py  (no args){_RST}")
         print(f"  {_CYN}└─────────────────────────────────────────────────────────────{_RST}")
     except Exception:
         pass
@@ -1004,20 +1144,55 @@ def _run_scan(args) -> None:
     # 4. Auto-mode recommendation
     print()
     output().green(">> Attack Mode Recommendation:")
-    langs = [l.upper() for l in fp.printer_langs]
-    if 'PJL' in langs:
-        output().message("  Recommended: python src/main.py {target} pjl --safe")
-    elif 'PS' in langs or 'POSTSCRIPT' in langs:
-        output().message(f"  Recommended: python src/main.py {target} ps --safe")
-    elif 'PCL' in langs:
-        output().message(f"  Recommended: python src/main.py {target} pcl --safe")
-    elif fp.doc_formats:
+    from utils.normalize import as_str_list
+    langs = [l.upper() for l in as_str_list(fp.printer_langs)]
+    ports = set(fp.open_ports or [])
+    target_blob = f"{fp.make or ''} {fp.model or ''}".lower()
+    is_hp_consumer = (
+        target_blob.startswith('hp deskjet')
+        or target_blob.startswith('hp officejet')
+        or 'deskjet' in target_blob
+        or 'officejet' in target_blob
+        or 'envy' in target_blob
+    )
+    raw_open = 9100 in ports
+
+    if is_hp_consumer or ('AIRPRINT' in langs and 'PJL' not in langs and not raw_open):
+        lang_display = ', '.join(as_str_list(fp.printer_langs)) or 'unknown'
         output().warning(
-            f"  Printer uses {fp.printer_langs} — not a PJL/PS/PCL laser printer.\n"
-            f"  Attack surface: IPP job submission, web interface, LPD flooding."
+            f"  HP inkjet/MFP ({lang_display}) — PJL/RAW shell unlikely (9100 "
+            f"{'open' if raw_open else 'closed/filtered'}).\n"
+            f"  Try: --ipp  |  --bruteforce --bf-vendor hp  |  web EWS on :80/:443"
+        )
+    elif 'PJL' in langs and raw_open:
+        output().message(f"  Recommended: python pxf.py {target} pjl --safe")
+    elif ('PS' in langs or 'POSTSCRIPT' in langs) and raw_open:
+        output().message(f"  Recommended: python pxf.py {target} ps --safe")
+    elif 'PCL' in langs and raw_open:
+        output().message(f"  Recommended: python pxf.py {target} pcl --safe")
+    elif fp.doc_formats or langs:
+        lang_display = ', '.join(as_str_list(fp.printer_langs)) or 'unknown'
+        output().warning(
+            f"  Printer uses {lang_display} — no RAW/PJL shell surface detected.\n"
+            f"  Attack surface: IPP job submission, web interface, LPD (if :515 open)."
         )
     else:
-        output().warning("  Could not determine printer language. Try: auto mode")
+        hints = []
+        if 515 in ports:
+            hints.append(f'--lpd-fuzz get --lpd-arg /etc/passwd')
+        if 631 in ports:
+            hints.append('--ipp')
+        if raw_open:
+            hints.append('auto mode (PJL/PS/PCL probe on :9100)')
+        if 80 in ports or 443 in ports or 8080 in ports:
+            hints.append('--bruteforce')
+        if hints:
+            output().warning(
+                "  Language unknown — probe open services:\n  Try: "
+                + '  |  '.join(hints)
+            )
+        else:
+            output().warning("  Could not determine printer language. Try: auto mode")
 
 # --------------------------------------------------------------------------- #
 # --------------------------------------------------------------------------- #
@@ -1175,13 +1350,33 @@ def _run_attack_modules(args) -> None:
     Dispatch to the appropriate attack/audit module based on CLI flags.
 
     Supports: --ipp, --ipp-submit, --pivot, --pivot-scan, --storage,
-              --firmware, --firmware-reset, --payload, --implant.
+              --firmware, --firmware-reset, --payload, --implant,
+              --lpd-fuzz.
     """
     from utils.config import load_config
     load_config(path=getattr(args, 'config', None))
 
     target  = args.target
     timeout = 10.0
+
+    # ── LPD fuzz (RFC 1179) ───────────────────────────────────────────────────
+    if getattr(args, 'lpd_fuzz', None):
+        from utils.ports import PortConfig as _PC
+        lpd_port = _PC.resolve('lpd')
+        output().green(
+            f"\n>> LPD Fuzz ({args.lpd_fuzz}): {target}:{lpd_port}"
+        )
+        try:
+            from protocols.lpd_fuzz import run_lpd_fuzz
+            run_lpd_fuzz(
+                target,
+                args.lpd_fuzz,
+                getattr(args, 'lpd_arg', '') or '',
+                port=lpd_port,
+                queue=getattr(args, 'lpd_queue', 'lp') or 'lp',
+            )
+        except Exception as exc:
+            output().errmsg(f"LPD fuzz error: {exc}")
 
     # ── IPP audit ─────────────────────────────────────────────────────────────
     if getattr(args, 'ipp', False):
@@ -1658,56 +1853,9 @@ def _run_attack_modules(args) -> None:
 # Banner
 # --------------------------------------------------------------------------- #
 def intro(quiet: bool) -> None:
-    """Print the PrinterXPL-Forge banner (ASCII art on the left, project info on the right)."""
-    if quiet:
-        return
-
-    # ASCII art for an MFP-style printer (left column)
-    art = [
-        "   _____________________________________________________________   ",
-        "  /___________________________________________________________/|   ",
-        " | |=========================================================| |   ",
-        " | |                                                         | |   ",
-        " | |  ____________   __________   ________________________   | |   ",
-        " | | | [] [] []  | |  ________ | |  . . .  . . .  . . .  |   | |   ",
-        " | | |___________| | |  ____  || |________________________|  | |   ",
-        " | |---------------| | |____| || |-------------------------- | |   ",
-        " | |  ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___    | |   ",
-        " | | |___|___|___|___|___|___|___|___|___|___|___|___|___|   | |   ",
-        " | |_________________________________________________________| |   ",
-        " | |-------------------  OUTPUT TRAY  ---------------------- | |   ",
-        " | |_________________________________________________________|/|   ",
-        " |  ______________________   ___________________________       |   ",
-        " | |                     |   |                          |      |   ",
-        " | |      PAPER BIN      |   |      SUPPLY DRAWER       |      |   ",
-        " | |_____________________|   |__________________________|      |   ",
-        " |___________________________________________________________|/   ",
-        "|___________________[====   PAPER   ====]___________________/   ",
-        "",
-    ]
-
-    # Project information (right column)
-    info = [
-        "",
-        "",
-        "",
-        "",
-        "",
-        f"{APP_NAME} :: Advanced Printer Penetration Testing Toolkit",
-        VERSION,
-        "Author : Andre Henrique",
-        "Contact: X / LinkedIn @mrhenrike",
-        "",
-        "feast on paper, harvest vulnerabilities",
-        "",
-        "(ASCII art by ChatGPT)",
-    ]
-
-    gap = 4  # spaces between the two columns
-    art_width = max(len(line) for line in art)
-
-    for left, right in zip_longest(art, info, fillvalue=""):
-        print(f"{left:<{art_width}}{' ' * gap}{right}")
+    """Print the unified PrinterXPL-Forge banner."""
+    from ui.banner import print_app_banner
+    print_app_banner(quiet=quiet)
 
 # --------------------------------------------------------------------------- #
 # Main logic
@@ -1753,6 +1901,35 @@ def main() -> None:
             sys.path.insert(0, str(_repo))
         from tools.env_doctor import main as doctor_main
         raise SystemExit(doctor_main())
+
+    if getattr(args, "profile_list", False):
+        from utils.module_profile import PROFILE_HELP, VENDOR_SLUGS, list_profiles
+        print("\nModule install profiles (pip + runtime filter):\n")
+        for name in ("modern", "full-depth", "native-only", "engines-rce"):
+            print(f"  {name:22s}  {PROFILE_HELP.get(name, '')}")
+        print("\n  Vendor (all years):")
+        for v in VENDOR_SLUGS:
+            print(f"    vendor-{v}")
+        print("\n  Vendor (2020+ only):")
+        for v in VENDOR_SLUGS:
+            print(f"    modern-vendor-{v}")
+        print(f"\n  Total named profiles: {len(list_profiles())}")
+        print("\n  pip:  pip install printerxpl-forge[vendor-hp] && pxf-profile vendor-hp")
+        raise SystemExit(0)
+
+    if getattr(args, "profile_show", False):
+        from utils.module_profile import profile_stats
+        st = profile_stats()
+        output().green(f"Profile: {st['profile']} — {st['description']}")
+        print(f"  Active modules: {st['active']} / {st['total_shipped']} shipped")
+        print(f"  Config: {st['config_file']}")
+        raise SystemExit(0)
+
+    if getattr(args, "profile", None):
+        from utils.module_profile import apply_pip_extra, profile_stats
+        name = apply_pip_extra(args.profile)
+        st = profile_stats(name)
+        output().green(f"[+] Profile set: {name} ({st['active']}/{st['total_shipped']} modules)")
 
     # Handle discovery shortcuts that do not require positionals
     if args.discover_local:
@@ -1860,7 +2037,7 @@ def main() -> None:
                     "  --dork-org     ORG                  e.g. 'Telefonica'\n"
                     "  --dork-cpe     CPE                  Censys/Netlas only\n"
                     "  --dork-model   MODEL                e.g. 'deskjet pro 5500'\n\n"
-                    "Or provide a direct IP target: python printerxpl-forge.py <IP> --scan"
+                    "Or provide a direct IP target: python pxf.py <IP> --scan"
                 )
                 sys.exit(1)
 
@@ -1952,8 +2129,14 @@ def main() -> None:
             hits = mgr.targeted_search(dork_params, engines=_engines)
             mgr.print_results(hits)
             saved = mgr.export_results(hits)
-            if saved:
-                output().green(f"[+] Next: python printerxpl-forge.py <IP> --scan  (test an individual target)")
+            probe_n = getattr(args, 'dork_probe', 0) or 0
+            if probe_n > 0 and hits:
+                _probe_discovered_targets(hits, probe_n, no_nvd=getattr(args, 'no_nvd', False))
+            elif saved:
+                output().green(
+                    f"[+] Next: python pxf.py <IP> --scan  "
+                    f"or re-run with --dork-probe 3"
+                )
 
         except SystemExit:
             pass
@@ -2037,7 +2220,7 @@ def main() -> None:
 
     # ── Attack / audit dispatchers ────────────────────────────────────────────
     _needs_target = ('ipp', 'ipp_submit', 'pivot', 'storage', 'firmware',
-                     'firmware_reset', 'payload', 'implant',
+                     'firmware_reset', 'payload', 'implant', 'lpd_fuzz',
                      'attack_matrix', 'network_map', 'xsp',
                      'xpl_check', 'xpl_run', 'bruteforce', 'auto_exploit')
     _any_attack = any(getattr(args, a.replace('-', '_'), None)
@@ -2106,33 +2289,42 @@ def main() -> None:
     # Default to auto-detect when no mode is specified
     args.mode = args.mode or 'auto'
 
-    # Auto-detect printer language support if mode is 'auto'
+    # Auto-detect printer language via passive fingerprint (IPP/SNMP/HTTP/FTP)
     if args.mode == 'auto':
-        output().info("Auto-detecting printer language support...")
-        # Try to detect via capabilities
-        cap = capabilities(args)
-        
-        # Priority: PJL > PostScript > PCL
-        if cap.support:
-            if 'PJL' in str(cap.support):
-                args.mode = 'pjl'
-                output().info("✅ PJL support detected. Using PJL mode")
-            elif 'PostScript' in str(cap.support) or 'PS' in str(cap.support):
-                args.mode = 'ps'
-                output().info("✅ PostScript support detected. Using PS mode")
-            elif 'PCL' in str(cap.support):
-                args.mode = 'pcl'
-                output().info("✅ PCL support detected. Using PCL mode")
-            else:
-                output().warning("⚠️  Unknown language detected. Defaulting to PJL")
-                args.mode = 'pjl'
-        else:
-            # Fallback to PJL
-            output().warning("⚠️  Could not detect language. Defaulting to PJL")
-            args.mode = 'pjl'
+        from utils.banner_grabber import grab_all
+        from utils.normalize import as_str_list
 
-    # Capability auto-detection (e.g., SNMP, USB IDs, PJL INFO, etc.)
-    capabilities(args)
+        output().info("Auto-detecting printer language support...")
+        fp = grab_all(args.target, timeout=4.0)
+        args._fingerprint = fp
+        langs = {l.upper() for l in as_str_list(fp.printer_langs)}
+
+        if fp.pjl_id or 'PJL' in langs:
+            args.mode = 'pjl'
+            output().info("✅ PJL support detected. Using PJL mode")
+        elif langs & {'PS', 'POSTSCRIPT'}:
+            args.mode = 'ps'
+            output().info("✅ PostScript support detected. Using PS mode")
+        elif 'PCL' in langs:
+            args.mode = 'pcl'
+            output().info("✅ PCL support detected. Using PCL mode")
+        elif 9100 in fp.open_ports:
+            args.mode = 'pjl'
+            output().warning("⚠️  Port 9100 open but language unknown — trying PJL")
+        else:
+            args.mode = 'pjl'
+            ports = ', '.join(str(p) for p in fp.open_ports) or 'none'
+            output().warning(
+                f"⚠️  No PJL/PS/PCL/RAW on target (ports: {ports}). "
+                f"Shell opens in passive mode — use `--scan` or `--ipp`."
+            )
+
+        ident = f"{fp.make} {fp.model}".strip()
+        if ident:
+            output().info(f"Detected: {ident}")
+
+    if args.safe:
+        capabilities(args)
 
     # Map language option to the corresponding interactive shell class.
     shell_map: Dict[str, Callable[[argparse.Namespace], object]] = {

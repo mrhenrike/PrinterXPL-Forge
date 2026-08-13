@@ -112,7 +112,6 @@ build/
 dist/
 debian/
 packaging/
-tests/
 tools/
 
 # HTTP server logs

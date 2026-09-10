@@ -39,6 +39,7 @@ from core.capabilities import capabilities
 from modules.pjl import pjl
 from modules.ps import ps
 from modules.pcl import pcl
+from modules.acl import acl
 from utils.helper import output
 from version import get_version_string
 
@@ -112,8 +113,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "mode",
         nargs='?',
-        choices=["pjl", "ps", "pcl", "auto"],
-        help="Printer language to abuse (PJL, PostScript, PCL, or auto-detect)",
+        choices=["pjl", "ps", "pcl", "acl", "auto"],
+        help="Printer language to abuse (PJL, PostScript, PCL, ACL, or auto-detect)",
     )
     parser.add_argument(
         "-s",
@@ -2331,6 +2332,7 @@ def main() -> None:
         "pjl": pjl,
         "ps": ps,
         "pcl": pcl,
+        "acl": acl,
     }
 
     # Instantiate and run the chosen shell.

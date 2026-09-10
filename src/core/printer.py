@@ -103,7 +103,7 @@ class printer(cmd.Cmd, object):
     # --------------------------------------------------------------------
     # INITIALIZATION AND CONTROL METHODS
     # --------------------------------------------------------------------
-    def __init__(self, args):
+    def __init__(self, args, skip_open=False):
         # init cmd module
         cmd.Cmd.__init__(self)
         self.debug = args.debug  # debug mode
@@ -117,7 +117,7 @@ class printer(cmd.Cmd, object):
         self.setup_signal_handlers()
 
         # connect to device (skip if target is test)
-        if args.target != "test":
+        if args.target != "test" and not skip_open:
             self.do_open(args.target, "init")
         # log pjl/ps cmds to file
         if args.log:

@@ -1,0 +1,47 @@
+{
+  "id": "research-lexmark-ssrf-ews-2025-9269",
+  "source": "research",
+  "url": "https://www.lexmark.com/en_us/solutions/security/lexmark-security-advisories/current-advisories.html",
+  "cve": "CVE-2025-9269",
+  "title": "Lexmark EWS Server-Side Request Forgery (CVE-2025-9269)",
+  "description": "SSRF vulnerability in the embedded web server of various Lexmark devices. An attacker can force the printer to make HTTP requests to internal or external targets.",
+  "type": "remote",
+  "category": "ssrf",
+  "protocol": "HTTP",
+  "port": 80,
+  "severity": "high",
+  "cvss": 7.5,
+  "date": "2025-09-01",
+  "author": "Andre Henrique (@mrhenrike) | Uniao Geek",
+  "vendor": [
+    "Lexmark"
+  ],
+  "model_patterns": [
+    "MX[0-9]",
+    "CX[0-9]",
+    "MS[0-9]",
+    "CS[0-9]",
+    "XM[0-9]",
+    "MB[0-9]",
+    "MC[0-9]",
+    "Lexmark"
+  ],
+  "firmware_patterns": [],
+  "requires": [
+    "port:80"
+  ],
+  "local_only": false,
+  "tags": [
+    "lexmark",
+    "ssrf",
+    "ews",
+    "embedded-web-server",
+    "cve-2025-9269",
+    "2025"
+  ],
+  "poc_available": false,
+  "references": [
+    "https://www.lexmark.com/en_us/solutions/security/lexmark-security-advisories/current-advisories.html",
+    "https://nvd.nist.gov/vuln/detail/CVE-2025-9269"
+  ]
+}

@@ -152,8 +152,12 @@ def check(host: str, port: int = 631, timeout: float = 8.0) -> bool:
         return False
 
 
-def run(host: str, port: int = 631, timeout: float = 8.0) -> Dict[str, Any]:
+def run(host: str, port: int = 631, timeout: float = 8.0,
+        dry_run: bool = True, **opts) -> Dict[str, Any]:
     """Execute Get-Printer-Attributes and return extracted information.
+
+    Args:
+        dry_run: unused for this read-only probe, accepted for interface parity.
 
     Returns:
         Dict with 'success', 'host', 'port', 'attributes', 'raw_length'.

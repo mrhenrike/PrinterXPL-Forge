@@ -159,11 +159,15 @@ def check(host: str, port: int = 631, timeout: float = 8.0) -> bool:
         return False
 
 
-def run(host: str, port: int = 631, timeout: float = 8.0) -> Dict[str, Any]:
+def run(host: str, port: int = 631, timeout: float = 8.0,
+        dry_run: bool = True, **opts) -> Dict[str, Any]:
     """Probe IPP/CUPS for Create-Job + Send-Document URI injection.
 
     Safe mode: uses a harmless test URI (http://127.0.0.1:9999/probe).
     No files are written. Only connection attempt to test URI is made.
+
+    Args:
+        dry_run: unused for this probe (always safe), accepted for interface parity.
 
     Returns:
         Dict with 'success', 'job_id', 'send_doc_response_code', 'vulnerable'.

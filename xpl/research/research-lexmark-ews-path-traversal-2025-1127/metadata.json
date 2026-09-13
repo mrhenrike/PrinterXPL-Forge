@@ -1,0 +1,47 @@
+{
+  "id": "research-lexmark-ews-path-traversal-2025-1127",
+  "source": "research",
+  "url": "https://www.lexmark.com/en_us/solutions/security/lexmark-security-advisories/current-advisories.html",
+  "cve": "CVE-2025-1127",
+  "title": "Lexmark EWS Path Traversal + Race Condition (CVE-2025-1127)",
+  "description": "Combination path traversal and concurrent execution vulnerability in the Lexmark embedded web server. Allows file read/write outside the intended scope.",
+  "type": "remote",
+  "category": "traversal",
+  "protocol": "HTTP",
+  "port": 80,
+  "severity": "high",
+  "cvss": 8.1,
+  "date": "2025-04-01",
+  "author": "Andre Henrique (@mrhenrike) | Uniao Geek",
+  "vendor": [
+    "Lexmark"
+  ],
+  "model_patterns": [
+    "MX[0-9]",
+    "CX[0-9]",
+    "MS[0-9]",
+    "CS[0-9]",
+    "XM[0-9]",
+    "MB[0-9]",
+    "MC[0-9]",
+    "Lexmark"
+  ],
+  "firmware_patterns": [],
+  "requires": [
+    "port:80"
+  ],
+  "local_only": false,
+  "tags": [
+    "lexmark",
+    "ews",
+    "path-traversal",
+    "race-condition",
+    "cve-2025-1127",
+    "2025"
+  ],
+  "poc_available": false,
+  "references": [
+    "https://www.lexmark.com/en_us/solutions/security/lexmark-security-advisories/current-advisories.html",
+    "https://nvd.nist.gov/vuln/detail/CVE-2025-1127"
+  ]
+}

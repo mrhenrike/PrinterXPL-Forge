@@ -1,3 +1,26 @@
+## [6.4.0] - 2026-09-13 - CVE expansion, ACL module, catalog hygiene
+
+### Added
+- 16 new CVE modules (check-first): Lexmark ESF/PS batch (CVE-2025-65077/65078/65080/65081/9269/1127/4044), HP PostScript (CVE-2025-26507/26508), HP DeskJet WSD RCE (CVE-2026-4682), Canon remote management (CVE-2026-1789), Brother/Fujifilm/Toshiba/Konica spillover (CVE-2024-51979/51981/51982), CUPS 2025 version checks (CVE-2025-58060/58364)
+- `src/modules/acl.py` — corrected HP ACL low-level shell (PR #3 base, bugs fixed)
+- `tests/test_acl.py` — unit tests for hp_checksum, response parser, allowlist constants
+- `tools/generate_xpl_manifest.py` — restored missing manifest regenerator script
+- `xpl/ipp/` modules now discovered by the loader (IPP-CUPS-TRAVERSAL-001, IPP-INFO-001)
+- `metadata.json` added to `research-hp-xps-bof` (CVE-2025-26506) fixing name/advisory mismatch
+
+### Fixed
+- Metadata merge bug: `{**json, **METADATA}` was overriding authoritative JSON values with `UNKNOWN` placeholders; JSON now wins over placeholder METADATA fields
+- `do_reset()` NameError (`rlen` undefined), `hp_checksum()` off-by-one (`% 1` instead of `% 2`), socket `b""` unpack crash, raw `_sock` access — all corrected in ACL module
+- ACL destructive commands (BurnSpiFlash, BurnFlash, FixNvRam, reset) now require model allowlist + confirmation; non-tested models are rejected
+
+### Changed
+- `cve_catalog.json` `_meta.version` aligned to 6.3.1 (was stuck at 6.0.0)
+- `wiki/CVE-Catalog.md` timeline extended to 2025–2026
+- `xpl/index.json` regenerated: 210 exploits (was 185/191), schema key unified to `exploits[]`
+- `src/data/xpl_manifest.json` regenerated: 210 modules, `by_era.modern` 109 (was 98)
+
+---
+
 ## [6.3.1] - 2026-06-27 - HP EWS session auth + bruteforce hardening
 
 ### Added
@@ -770,4 +793,3 @@ Author: André Henrique (@mrhenrike) | União Geek — https://github.com/Uniao-
 ---
 
 *Full git history available via `git log --oneline --all` in the repository.*
-

@@ -1,0 +1,43 @@
+{
+  "id": "research-canon-remote-mgmt-2026-1789",
+  "source": "research",
+  "url": "https://www.cla.canon.com/en/support/product-advisories/cpa2026-003-vulnerability-mitigation-remediation-for-production-printers-and-office-multifunction-printers",
+  "cve": "CVE-2026-1789",
+  "title": "Canon imageFORCE/imageRUNNER Remote Management Info Disclosure (CVE-2026-1789)",
+  "description": "A vulnerability in the browser-based remote management interface of Canon production printers and office MFPs (imageFORCE, imageRUNNER ADVANCE, imagePRESS, imageCLASS) may allow an attacker with administrator privileges to access sensitive information stored on the device via specially crafted requests. CVSS 4.9 (CVSSv3, PR:H).",
+  "type": "remote",
+  "category": "info_disclosure",
+  "protocol": "HTTP",
+  "port": 80,
+  "severity": "medium",
+  "cvss": 4.9,
+  "date": "2026-03-01",
+  "author": "Andre Henrique (@mrhenrike) | Uniao Geek",
+  "vendor": [
+    "Canon"
+  ],
+  "model_patterns": [
+    "imageFORCE",
+    "imageRUNNER",
+    "imagePRESS",
+    "imageCLASS",
+    "Canon"
+  ],
+  "firmware_patterns": [],
+  "requires": [
+    "port:80"
+  ],
+  "tags": [
+    "canon",
+    "info-disclosure",
+    "remote-management",
+    "cve-2026-1789",
+    "2026",
+    "mfp"
+  ],
+  "poc_available": false,
+  "references": [
+    "https://www.cla.canon.com/en/support/product-advisories/cpa2026-003-vulnerability-mitigation-remediation-for-production-printers-and-office-multifunction-printers",
+    "https://nvd.nist.gov/vuln/detail/CVE-2026-1789"
+  ]
+}

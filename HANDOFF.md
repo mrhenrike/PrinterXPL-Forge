@@ -148,3 +148,16 @@ EmbedXPL bridge ja cobre modulos de impressora via EmbedXPL-Forge.
 ### Pendencias
 - [ ] papercut/papercut_rce.py
 - [ ] hp/hp_jetdirect_path_traversal.py
+
+## [2026-09-14 19:05] -- Pendencias adicionais resolvidas
+
+### Concluido nesta sub-sessao
+- PaperCut CVE-2023-27350 RCE module adicionado: xpl/exploits/papercut/
+- HP JetDirect path traversal adicionado: xpl/exploits/hp/hp_jetdirect_path_traversal.py
+- publish-pypi.yml ja estava no .gitignore (regra magna ja estava respeitada)
+- Commit: c6768e3
+
+### Pendencias remanescentes (low priority)
+- [ ] CVE-2025-4045/4046 (Lexmark Print Mgmt Client): fora do escopo de rede
+- [ ] Validar modulos ACL em hardware HP P2035n
+- [ ] Print Spooler LPE (CVE-2021-34527 Mimispool ja foi adicionado na sessao anterior)

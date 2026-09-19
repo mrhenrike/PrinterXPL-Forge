@@ -1,3 +1,22 @@
+<p align="center">
+  <img src="docs/img/printerxpl-forge-banner_16x9.png" alt="PrinterXPL-Forge Banner" width="100%"/>
+</p>
+
+<p align="center">
+  [![Python](https://img.shields.io/badge/Python-3.8%2B-blue?style=flat-square&logo=python)](https://python.org)
+  [![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows-informational?style=flat-square)](README.md#compatibility)
+  [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+  [![XPL Suite](https://img.shields.io/badge/XPL--Forge-Suite-red?style=flat-square)](https://github.com/mrhenrike)
+  [![Issues](https://img.shields.io/github/issues/mrhenrike/PrinterXPL-Forge?style=flat-square)](https://github.com/mrhenrike/PrinterXPL-Forge/issues)
+  [![Last Commit](https://img.shields.io/github/last-commit/mrhenrike/PrinterXPL-Forge?style=flat-square)](https://github.com/mrhenrike/PrinterXPL-Forge/commits)
+</p>
+
+---
+
+> **Platform Note:** This framework is designed and tested primarily on **Linux** (Debian/Ubuntu/Kali). Most hardware-dependent modules (wireless adapters, USB devices, raw socket access, firmware tools) require Linux. Running on Windows or macOS may cause errors or limited functionality in many modules. Linux is strongly recommended for maximum compatibility.
+
+---
+
 <div align="center">
 
 # PrinterXPL-Forge
@@ -5,13 +24,6 @@
 *Advanced Printer Penetration Testing Toolkit*
 
 **Discover · Fingerprint · Exploit · Pivot · Report**
-
-[![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://python.org)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![GitHub](https://img.shields.io/badge/GitHub-mrhenrike-black?logo=github)](https://github.com/mrhenrike/PrinterXPL-Forge)
-[![Wiki](https://img.shields.io/badge/Wiki-English-orange)](https://github.com/mrhenrike/PrinterXPL-Forge/wiki)
-[![Wiki PT-BR](https://img.shields.io/badge/Wiki-Portugu%C3%AAs-green)](https://github.com/mrhenrike/PrinterXPL-Forge/wiki/Home-pt-BR)
-[![Version](https://img.shields.io/badge/version-6.2.0-red)](https://github.com/mrhenrike/PrinterXPL-Forge/releases)
 
 > **"Is your printer safe from the void? Find out before someone else does."**
 

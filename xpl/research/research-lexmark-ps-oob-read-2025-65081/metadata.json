@@ -1,0 +1,47 @@
+{
+  "id": "research-lexmark-ps-oob-read-2025-65081",
+  "source": "research",
+  "url": "https://www.lexmark.com/en_us/solutions/security/lexmark-security-advisories/current-advisories.html",
+  "cve": "CVE-2025-65081",
+  "title": "Lexmark PostScript Out-of-Bounds Read (CVE-2025-65081)",
+  "description": "Out-of-bounds read in the PostScript interpreter across multiple Lexmark models. A crafted PS job may leak memory contents or cause a denial of service condition.",
+  "type": "remote",
+  "category": "info_disclosure",
+  "protocol": "HTTP",
+  "port": 80,
+  "severity": "high",
+  "cvss": 7.8,
+  "date": "2025-12-01",
+  "author": "Andre Henrique (@mrhenrike) | Uniao Geek",
+  "vendor": [
+    "Lexmark"
+  ],
+  "model_patterns": [
+    "MX[0-9]",
+    "CX[0-9]",
+    "MS[0-9]",
+    "CS[0-9]",
+    "XM[0-9]",
+    "MB[0-9]",
+    "MC[0-9]",
+    "Lexmark"
+  ],
+  "firmware_patterns": [],
+  "requires": [
+    "port:80"
+  ],
+  "local_only": false,
+  "tags": [
+    "lexmark",
+    "postscript",
+    "oob-read",
+    "info-disclosure",
+    "cve-2025-65081",
+    "2025"
+  ],
+  "poc_available": false,
+  "references": [
+    "https://www.lexmark.com/en_us/solutions/security/lexmark-security-advisories/current-advisories.html",
+    "https://nvd.nist.gov/vuln/detail/CVE-2025-65081"
+  ]
+}

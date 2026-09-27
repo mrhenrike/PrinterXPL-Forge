@@ -1,0 +1,1 @@
+{"id":"research-ricoh-driver-lpe-2019-19363","title":"Ricoh Printer Driver Windows LPE (CVE-2019-19363)","source":"research","cve":["CVE-2019-19363"],"cvss":7.8,"severity":"high","vendor":["Ricoh"],"protocol":"local","port":0,"tags":["lpe","local","windows","driver","dll-hijack","ricoh","high"]}

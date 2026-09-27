@@ -1,0 +1,49 @@
+{
+  "id": "research-lexmark-esf-search-path-2025-65078",
+  "source": "research",
+  "url": "https://www.lexmark.com/content/dam/support/collateral/security-alerts/CVE-2025-65078.pdf",
+  "cve": "CVE-2025-65078",
+  "title": "Lexmark ESF Untrusted Search Path RCE (CVE-2025-65078)",
+  "description": "Untrusted search path in the Lexmark Embedded Solutions Framework. Can be leveraged by a remote unauthenticated attacker to execute arbitrary code on the device. CVSS 9.3 (CVSSv4).",
+  "type": "remote",
+  "category": "rce",
+  "protocol": "HTTP",
+  "port": 80,
+  "severity": "critical",
+  "cvss": 9.3,
+  "date": "2026-01-07",
+  "author": "Andre Henrique (@mrhenrike) | Uniao Geek",
+  "vendor": [
+    "Lexmark"
+  ],
+  "model_patterns": [
+    "MX[0-9]",
+    "CX[0-9]",
+    "MS[0-9]",
+    "CS[0-9]",
+    "XM[0-9]",
+    "MB[0-9]",
+    "MC[0-9]",
+    "Lexmark"
+  ],
+  "firmware_patterns": [
+    "MXTCT.250.209"
+  ],
+  "requires": [
+    "port:80"
+  ],
+  "local_only": false,
+  "tags": [
+    "lexmark",
+    "esf",
+    "rce",
+    "untrusted-search-path",
+    "cve-2025-65078",
+    "2025"
+  ],
+  "poc_available": false,
+  "references": [
+    "https://www.lexmark.com/content/dam/support/collateral/security-alerts/CVE-2025-65078.pdf",
+    "https://nvd.nist.gov/vuln/detail/CVE-2025-65078"
+  ]
+}

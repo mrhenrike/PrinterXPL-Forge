@@ -1,0 +1,44 @@
+{
+  "id": "research-cups-2025-58060",
+  "source": "research",
+  "url": "https://openprinting.github.io/cups/",
+  "cve": "CVE-2025-58060",
+  "title": "CUPS 2.4.12 and Earlier Vulnerability (CVE-2025-58060)",
+  "description": "Vulnerability in CUPS (Common UNIX Printing System) 2.4.12 and earlier. Fixed in CUPS 2.4.13. Check probe queries /version or IPP for server version.",
+  "type": "remote",
+  "category": "rce",
+  "protocol": "IPP",
+  "port": 631,
+  "severity": "high",
+  "cvss": 7.5,
+  "date": "2025-06-01",
+  "author": "Andre Henrique (@mrhenrike) | Uniao Geek",
+  "vendor": [
+    "CUPS",
+    "OpenPrinting"
+  ],
+  "model_patterns": [
+    "CUPS",
+    "Common UNIX Printing"
+  ],
+  "firmware_patterns": [
+    "2.4.12",
+    "2.4.11",
+    "2.4.10"
+  ],
+  "requires": [
+    "port:631"
+  ],
+  "tags": [
+    "cups",
+    "linux",
+    "openprinting",
+    "cve-2025-58060",
+    "2025"
+  ],
+  "poc_available": false,
+  "references": [
+    "https://openprinting.github.io/cups/",
+    "https://nvd.nist.gov/vuln/detail/CVE-2025-58060"
+  ]
+}

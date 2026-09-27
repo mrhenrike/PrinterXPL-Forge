@@ -1,0 +1,1 @@
+{"id":"research-printer-c2-dns","title":"Printer C2 Channel via DNS Tunneling (Research)","source":"research","cve":[],"cvss":7.5,"severity":"high","vendor":["Generic"],"protocol":"DNS","port":53,"tags":["c2","dns","tunnel","exfil","apt","research","red-team","high"]}

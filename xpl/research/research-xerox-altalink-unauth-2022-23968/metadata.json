@@ -1,0 +1,1 @@
+{"id":"research-xerox-altalink-unauth-2022-23968","title":"Xerox AltaLink/WorkCentre Unauthenticated Admin API (CVE-2022-23968)","source":"research","cve":["CVE-2022-23968"],"cvss":9.8,"severity":"critical","vendor":["Xerox"],"protocol":"HTTPS","port":443,"tags":["auth-bypass","https","xerox","altalink","eip","api","critical"]}

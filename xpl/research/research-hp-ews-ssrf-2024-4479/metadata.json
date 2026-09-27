@@ -1,0 +1,1 @@
+{"id":"research-hp-ews-ssrf-2024-4479","title":"HP LaserJet EWS SSRF (CVE-2024-4479)","source":"research","cve":["CVE-2024-4479"],"cvss":8.6,"severity":"high","vendor":["HP"],"protocol":"HTTPS","port":443,"tags":["ssrf","http","hp","laserjet","ews","high"]}

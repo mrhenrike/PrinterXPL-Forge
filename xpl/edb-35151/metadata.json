@@ -1,0 +1,28 @@
+{
+  "id": "EDB-35151",
+  "source": "exploit-db",
+  "url": "https://www.exploit-db.com/exploits/35151",
+  "cve": "",
+  "title": "Xerox MFP - Dynamic Loadable Module (DLM) Arbitrary Code Execution",
+  "description": "Xerox multifunction printers accept a 'Dynamic Loadable Module' (DLM) job type via port 9100 using the XRX job header language. By supplying a modified DLM with a crafted job comment containing a shell command, an attacker can execute arbitrary code as root. The DLM signature check is bypassable.",
+  "type": "remote",
+  "category": "rce",
+  "protocol": "RAW/XRX",
+  "port": 9100,
+  "severity": "critical",
+  "cvss": 9.0,
+  "date": "2014-11-03",
+  "author": "Deral Heiland / Pete Arzamendi",
+  "vendor": ["Xerox"],
+  "model_patterns": [
+    "WorkCentre", "ColorQube", "Phaser", "VersaLink", "AltaLink"
+  ],
+  "firmware_patterns": [],
+  "requires": ["port:9100"],
+  "tags": ["rce", "firmware", "xerox", "dlm", "root"],
+  "tested_on": ["Xerox WorkCentre 7xxx series"],
+  "references": [
+    "http://foofus.net/goons/percx/Xerox_hack.pdf",
+    "https://www.exploit-db.com/exploits/35151"
+  ]
+}

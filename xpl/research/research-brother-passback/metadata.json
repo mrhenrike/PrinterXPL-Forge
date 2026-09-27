@@ -1,0 +1,1 @@
+{"id":"research-brother-passback","title":"Brother LDAP/SMTP Credential Pass-Back Attack (CVE-2024-51984)","source":"research","cve":["CVE-2024-51984"],"cvss":7.1,"severity":"high","vendor":["Brother"],"protocol":"HTTP","port":80,"tags":["passback","credential-theft","ldap","smtp","http","brother","high"]}

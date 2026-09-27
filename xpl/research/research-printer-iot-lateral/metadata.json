@@ -1,0 +1,1 @@
+{"id":"research-printer-iot-lateral","title":"Printer-as-Pivot IoT/OT Lateral Movement (Research)","source":"research","cve":[],"cvss":8.0,"severity":"high","vendor":["Generic"],"protocol":"multi","port":9100,"tags":["lateral","pivot","iot","ot","ssrf","pjl","research","red-team","high"]}

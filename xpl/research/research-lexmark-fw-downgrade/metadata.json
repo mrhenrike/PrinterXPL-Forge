@@ -1,0 +1,1 @@
+{"id":"research-lexmark-fw-downgrade","title":"Lexmark Firmware Downgrade to Arbitrary Code Execution (CVE-2023-50738)","source":"research","cve":["CVE-2023-50738"],"cvss":8.8,"severity":"high","vendor":["Lexmark"],"protocol":"HTTP","port":80,"tags":["rce","firmware-downgrade","http","lexmark","high"]}

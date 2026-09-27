@@ -1,0 +1,49 @@
+{
+  "id": "research-lexmark-esf-path-traversal-2025-65077",
+  "source": "research",
+  "url": "https://www.lexmark.com/en_us/solutions/security/lexmark-security-advisories/current-advisories.html",
+  "cve": "CVE-2025-65077",
+  "title": "Lexmark ESF Relative Path Traversal (CVE-2025-65077)",
+  "description": "Relative path traversal vulnerability in the Lexmark Embedded Solutions Framework. An unauthenticated attacker can access files outside the intended directory on affected devices.",
+  "type": "remote",
+  "category": "traversal",
+  "protocol": "HTTP",
+  "port": 80,
+  "severity": "high",
+  "cvss": 8.8,
+  "date": "2025-01-13",
+  "author": "Andre Henrique (@mrhenrike) | Uniao Geek",
+  "vendor": [
+    "Lexmark"
+  ],
+  "model_patterns": [
+    "MX[0-9]",
+    "CX[0-9]",
+    "MS[0-9]",
+    "CS[0-9]",
+    "XM[0-9]",
+    "MB[0-9]",
+    "MC[0-9]",
+    "Lexmark"
+  ],
+  "firmware_patterns": [
+    "MXTCT.250.209",
+    "CXTBT.250.209"
+  ],
+  "requires": [
+    "port:80"
+  ],
+  "local_only": false,
+  "tags": [
+    "lexmark",
+    "esf",
+    "traversal",
+    "cve-2025-65077",
+    "2025"
+  ],
+  "poc_available": false,
+  "references": [
+    "https://www.lexmark.com/en_us/solutions/security/lexmark-security-advisories/current-advisories.html",
+    "https://nvd.nist.gov/vuln/detail/CVE-2025-65077"
+  ]
+}

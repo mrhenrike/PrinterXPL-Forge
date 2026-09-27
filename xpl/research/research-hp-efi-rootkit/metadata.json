@@ -1,0 +1,1 @@
+{"id":"research-hp-efi-rootkit","title":"HP LaserJet EFI/UEFI Rootkit Research (Printing Shellz)","source":"research","cve":[],"cvss":9.0,"severity":"critical","vendor":["HP"],"protocol":"HTTPS","port":443,"tags":["persistence","efi","uefi","rootkit","hp","laserjet","critical"]}

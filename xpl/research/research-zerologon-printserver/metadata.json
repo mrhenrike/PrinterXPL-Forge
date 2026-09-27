@@ -1,0 +1,1 @@
+{"id":"research-zerologon-printserver","title":"ZeroLogon via Print Server Domain Account (CVE-2020-1472)","source":"research","cve":["CVE-2020-1472"],"cvss":10.0,"severity":"critical","vendor":["Microsoft","Generic"],"protocol":"SMB/445","port":445,"tags":["rce","smb","zerologon","domain","printer","critical"]}

@@ -1,0 +1,1 @@
+{"id":"research-tftp-loop-dos","title":"TFTP Infinite Loop DoS — Multi-vendor (CVE-2024-2169)","source":"research","cve":["CVE-2024-2169"],"cvss":7.5,"severity":"high","vendor":["Brother","Generic"],"protocol":"TFTP","port":69,"tags":["dos","tftp","brother","infinite-loop","high"]}

@@ -1,0 +1,454 @@
+# PrinterXPL-Forge — Printer Model Wordlist
+# Generated from CVE catalog, research modules, and vendor repo study
+# Author: Andre Henrique (@mrhenrike) | Uniao Geek — https://github.com/Uniao-Geek
+#
+# Usage: --wordlist printer_models.txt  or  --dork-model <model>
+# Format: one model name per line; lines starting with '#' are comments
+
+# ── HP (Hewlett-Packard) ─────────────────────────────────────────────────────
+HP LaserJet 4
+HP LaserJet 4L
+HP LaserJet 4P
+HP LaserJet 5
+HP LaserJet 5L
+HP LaserJet 6
+HP LaserJet 1000
+HP LaserJet 1010
+HP LaserJet 1012
+HP LaserJet 1015
+HP LaserJet 1018
+HP LaserJet 1020
+HP LaserJet 1022
+HP LaserJet 1100
+HP LaserJet 1200
+HP LaserJet 1300
+HP LaserJet 1320
+HP LaserJet 2100
+HP LaserJet 2200
+HP LaserJet 2300
+HP LaserJet 2400
+HP LaserJet 2420
+HP LaserJet 3050
+HP LaserJet 4000
+HP LaserJet 4050
+HP LaserJet 4200
+HP LaserJet 4240
+HP LaserJet 4250
+HP LaserJet 4350
+HP LaserJet 5000
+HP LaserJet 5100
+HP LaserJet 5200
+HP LaserJet 8000
+HP LaserJet 8100
+HP LaserJet 8150
+HP LaserJet 9000
+HP LaserJet 9050
+HP LaserJet Enterprise M506
+HP LaserJet Enterprise M507
+HP LaserJet Enterprise M553
+HP LaserJet Enterprise M604
+HP LaserJet Enterprise M605
+HP LaserJet Enterprise M606
+HP LaserJet Enterprise M607
+HP LaserJet Enterprise M608
+HP LaserJet Enterprise M609
+HP LaserJet Pro M402
+HP LaserJet Pro M404
+HP LaserJet Pro M428
+HP LaserJet Pro M452
+HP LaserJet Pro M477
+HP Color LaserJet CM4540
+HP Color LaserJet CM6030
+HP Color LaserJet CM6040
+HP Color LaserJet CP3525
+HP Color LaserJet CP4025
+HP Color LaserJet CP5525
+HP Color LaserJet M552
+HP Color LaserJet M553
+HP Color LaserJet M855
+HP Color LaserJet M880
+HP OfficeJet 8600
+HP OfficeJet 8610
+HP OfficeJet 8620
+HP OfficeJet Pro 8720
+HP OfficeJet Pro 8730
+HP OfficeJet Pro 9010
+HP OfficeJet Pro 9020
+HP DeskJet 2620
+HP DeskJet 2630
+HP DeskJet 3630
+HP DeskJet 5520
+HP PageWide Pro 452
+HP PageWide Pro 477
+HP PageWide Enterprise 556
+HP PageWide Managed P55250
+JetDirect 300x
+JetDirect 500x
+JetDirect 615n
+
+# ── Epson ────────────────────────────────────────────────────────────────────
+Epson L3110
+Epson L3150
+Epson L3250
+Epson L4160
+Epson L5190
+Epson L6190
+Epson WF-7710
+Epson WF-7720
+Epson WF-3720
+Epson WF-4720
+Epson WF-4730
+Epson WF-4740
+Epson ET-2750
+Epson ET-3750
+Epson ET-4750
+Epson EcoTank ET-2800
+Epson EcoTank ET-4800
+Epson WorkForce Pro WF-M5799
+Epson WorkForce Pro WF-C8690
+Epson Expression XP-5100
+Epson SC-T3100
+Epson SC-T5100
+Epson SC-F2100
+
+# ── Brother ──────────────────────────────────────────────────────────────────
+Brother MFC-L8900CDW
+Brother MFC-L8690CDW
+Brother MFC-L2750DW
+Brother MFC-L2710DW
+Brother MFC-9340CDW
+Brother MFC-9330CDW
+Brother MFC-J995DW
+Brother MFC-J6945DW
+Brother HL-L2370DW
+Brother HL-L2395DW
+Brother HL-L3230CDW
+Brother HL-L8360CDW
+Brother HL-L9310CDW
+Brother DCP-L2550DW
+Brother DCP-L3550CDW
+Brother DCP-7065DN
+Brother FAX-2840
+Brother FAX-2845
+Brother FAX-4100e
+Brother DCP-8020
+Brother MFC-490CW
+Brother MFC-7860DW
+Brother MFC-8910DW
+Brother MFC-9970CDW
+
+# ── Canon ────────────────────────────────────────────────────────────────────
+Canon imageRUNNER 2520
+Canon imageRUNNER 2525
+Canon imageRUNNER 2530
+Canon imageRUNNER 2535
+Canon imageRUNNER ADVANCE 4525
+Canon imageRUNNER ADVANCE C5540
+Canon imageRUNNER ADVANCE DX C357P
+Canon PIXMA MG3620
+Canon PIXMA MG5720
+Canon PIXMA MG7720
+Canon PIXMA TR4520
+Canon PIXMA TR8520
+Canon PIXMA TS5320
+Canon PIXMA TS9520
+Canon MAXIFY MB5420
+Canon MAXIFY iB4120
+Canon imageCLASS MF644Cdw
+Canon imageCLASS MF741Cdw
+Canon imageCLASS LBP622Cdw
+Canon imageCLASS LBP6230dw
+Canon imagePROGRAF TX-3000
+Canon imagePROGRAF PRO-300
+
+# ── Kyocera ──────────────────────────────────────────────────────────────────
+Kyocera TASKalfa 2553ci
+Kyocera TASKalfa 3212i
+Kyocera TASKalfa 3252ci
+Kyocera TASKalfa 4052ci
+Kyocera TASKalfa 5052ci
+Kyocera TASKalfa 6052ci
+Kyocera TASKalfa 8052ci
+Kyocera FS-1120MFP
+Kyocera FS-1320MFP
+Kyocera FS-3040MFP
+Kyocera FS-4200DN
+Kyocera FS-C5250DN
+Kyocera ECOSYS M2040dn
+Kyocera ECOSYS M2540dn
+Kyocera ECOSYS M3040idn
+Kyocera ECOSYS M3540idn
+Kyocera ECOSYS M3560idn
+Kyocera ECOSYS P2040dn
+Kyocera ECOSYS P2235dn
+Kyocera ECOSYS P3050dn
+Kyocera ECOSYS P5026cdw
+Kyocera ECOSYS P6230cdn
+Kyocera KM-3050
+
+# ── Ricoh ─────────────────────────────────────────────────────────────────────
+Ricoh Aficio MP 201
+Ricoh Aficio MP 301
+Ricoh Aficio MP 2550
+Ricoh Aficio MP 3350
+Ricoh Aficio MP C2551
+Ricoh MP 2014AD
+Ricoh MP 2555SP
+Ricoh MP C2011SP
+Ricoh MP C2004SP
+Ricoh MP C3004SP
+Ricoh MP C3504SP
+Ricoh MP C4504SP
+Ricoh MP C5504SP
+Ricoh MP C6004SP
+Ricoh SP 3600DN
+Ricoh SP 4510DN
+Ricoh SP 5310DN
+Ricoh SP C342DN
+Ricoh SP C360DNw
+Ricoh IM C2000
+Ricoh IM C3000
+Ricoh IM C4500
+Ricoh IM C6000
+
+# ── Xerox ─────────────────────────────────────────────────────────────────────
+Xerox WorkCentre 3215
+Xerox WorkCentre 3225
+Xerox WorkCentre 3615
+Xerox WorkCentre 3655
+Xerox WorkCentre 5021
+Xerox WorkCentre 5325
+Xerox WorkCentre 6505
+Xerox WorkCentre 6515
+Xerox WorkCentre 7220
+Xerox WorkCentre 7225
+Xerox WorkCentre 7530
+Xerox WorkCentre 7545
+Xerox WorkCentre 7830
+Xerox Phaser 3260
+Xerox Phaser 3320
+Xerox Phaser 3610
+Xerox Phaser 3635
+Xerox Phaser 4620
+Xerox Phaser 5550
+Xerox Phaser 6510
+Xerox Phaser 6600
+Xerox Phaser 7500
+Xerox Phaser 7800
+Xerox AltaLink B8045
+Xerox AltaLink B8055
+Xerox AltaLink C8045
+Xerox AltaLink C8055
+Xerox VersaLink B400
+Xerox VersaLink B405
+Xerox VersaLink B600
+Xerox VersaLink B605
+Xerox VersaLink C400
+Xerox VersaLink C405
+Xerox VersaLink C500
+Xerox VersaLink C505
+Xerox VersaLink C600
+Xerox VersaLink C605
+Xerox D95
+
+# ── Lexmark ──────────────────────────────────────────────────────────────────
+Lexmark CS310
+Lexmark CS410
+Lexmark CS431
+Lexmark CS510
+Lexmark CS622
+Lexmark CS720
+Lexmark CS820
+Lexmark CX310
+Lexmark CX410
+Lexmark CX510
+Lexmark CX622
+Lexmark CX725
+Lexmark CX820
+Lexmark CX860
+Lexmark CX921
+Lexmark CX943
+Lexmark MS312
+Lexmark MS410
+Lexmark MS510
+Lexmark MS610
+Lexmark MS710
+Lexmark MS810
+Lexmark MS911
+Lexmark MX310
+Lexmark MX410
+Lexmark MX510
+Lexmark MX611
+Lexmark MX710
+Lexmark MX810
+Lexmark MX910
+Lexmark T640
+Lexmark T650
+Lexmark X543
+Lexmark X546
+Lexmark X654
+Lexmark X734
+Lexmark X860
+
+# ── Konica Minolta ───────────────────────────────────────────────────────────
+Konica Minolta bizhub 215
+Konica Minolta bizhub 225
+Konica Minolta bizhub 287
+Konica Minolta bizhub 308
+Konica Minolta bizhub 368
+Konica Minolta bizhub 458
+Konica Minolta bizhub 558
+Konica Minolta bizhub 658
+Konica Minolta bizhub 758
+Konica Minolta bizhub C258
+Konica Minolta bizhub C308
+Konica Minolta bizhub C368
+Konica Minolta bizhub C458
+Konica Minolta bizhub C558
+Konica Minolta bizhub C658
+Konica Minolta bizhub PRO 1100
+Konica Minolta AccurioPress C2060
+Konica Minolta AccurioPress C3080
+Konica Minolta AccurioLabel 230
+
+# ── Sharp ─────────────────────────────────────────────────────────────────────
+Sharp MX-2610N
+Sharp MX-3110N
+Sharp MX-4141N
+Sharp MX-5141N
+Sharp MX-6240N
+Sharp MX-7040N
+Sharp MX-M264N
+Sharp MX-M314N
+Sharp MX-M354N
+Sharp MX-M453N
+Sharp MX-M503N
+Sharp MX-M623N
+Sharp MX-M753N
+Sharp AR-M207
+Sharp AR-M237
+
+# ── Samsung ──────────────────────────────────────────────────────────────────
+Samsung SCX-3200
+Samsung SCX-4600
+Samsung SCX-4623
+Samsung SCX-6600
+Samsung SCX-6700
+Samsung SCX-8230
+Samsung CLX-3305
+Samsung CLX-6260
+Samsung CLX-9201
+Samsung Xpress M2070
+Samsung Xpress M2885
+Samsung Xpress C460
+Samsung Xpress C480
+Samsung MultiXpress X7600GX
+Samsung ProXpress M3820
+Samsung ProXpress M4020
+Samsung ProXpress SL-M4580
+
+# ── OKI ──────────────────────────────────────────────────────────────────────
+OKI B412
+OKI B432
+OKI B512
+OKI B712
+OKI B721
+OKI B731
+OKI B820
+OKI B840
+OKI C332
+OKI C532
+OKI C612
+OKI C712
+OKI C911
+OKI MC362
+OKI MC573
+OKI MC760
+OKI MC770
+OKI MC780
+OKI MC852
+OKI MC862
+OKI ES7480
+OKI ES8473
+OKI ES9420
+
+# ── Toshiba ──────────────────────────────────────────────────────────────────
+Toshiba e-STUDIO 207L
+Toshiba e-STUDIO 2303A
+Toshiba e-STUDIO 2309A
+Toshiba e-STUDIO 2505AC
+Toshiba e-STUDIO 2515AC
+Toshiba e-STUDIO 2525AC
+Toshiba e-STUDIO 2805AC
+Toshiba e-STUDIO 2815AC
+Toshiba e-STUDIO 3005AC
+Toshiba e-STUDIO 3015AC
+Toshiba e-STUDIO 3505AC
+Toshiba e-STUDIO 4005AC
+Toshiba e-STUDIO 4505AC
+Toshiba e-STUDIO 5005AC
+Toshiba e-STUDIO 5505AC
+Toshiba e-STUDIO 7506AC
+
+# ── Fujifilm / Fuji Xerox ─────────────────────────────────────────────────────
+Fujifilm ApeosPort C3060
+Fujifilm ApeosPort C4060
+Fujifilm ApeosPort C5570
+Fujifilm ApeosPort C6070
+Fujifilm ApeosPort C7070
+Fuji Xerox DocuPrint CM405df
+Fuji Xerox DocuPrint CP405d
+Fuji Xerox DocuCentre VI C2271
+Fuji Xerox DocuCentre VI C3371
+Fuji Xerox DocuCentre VI C4471
+Fuji Xerox DocuCentre VI C5571
+Fuji Xerox ApeosPort-VII C4421
+
+# ── Zebra (Label/Industrial) ──────────────────────────────────────────────────
+Zebra ZT220
+Zebra ZT230
+Zebra ZT410
+Zebra ZT420
+Zebra ZT510
+Zebra ZT610
+Zebra ZT620
+Zebra ZD420
+Zebra ZD620
+Zebra ZD410
+Zebra LP2824
+Zebra LP2844
+Zebra GK420t
+Zebra GX420t
+Zebra GT800
+Zebra ZM400
+Zebra ZM600
+Zebra RZ400
+Zebra RZ600
+Zebra Xi4
+Zebra 105SL
+Zebra 140Xi4
+Zebra 170Xi4
+
+# ── Industrial / Special Purpose ─────────────────────────────────────────────
+Printronix P8210
+Printronix P8205
+Printronix T4M
+Printronix T6M
+Printronix T8000
+Printronix SL5000r
+DataCard SD260
+DataCard SD360
+DataCard CD800
+DataCard CE875
+Matica XL8300
+Matica XL8300DS
+SATO CT4-LX
+SATO LM408e
+SATO WS408
+Intermec PM23c
+Intermec PM43
+Honeywell PM23c
+Honeywell PM43
+TSC DA200
+TSC TH220
+TSC ME240

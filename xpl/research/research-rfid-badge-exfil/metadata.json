@@ -1,0 +1,1 @@
+{"id":"research-rfid-badge-exfil","title":"RFID Badge Data Exfiltration via MFP Card Reader (Research)","source":"research","cve":[],"cvss":7.5,"severity":"high","vendor":["Generic"],"protocol":"PJL/9100","port":9100,"tags":["info-disclosure","rfid","nfc","badge","mfp","exfil","high"]}

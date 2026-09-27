@@ -1,0 +1,1 @@
+{"id":"research-lexmark-pwn2own-2026","title":"Lexmark CX532adwe Pwn2Own 2026 Heap BOF RCE Chain (CVE-2025-65079/65080/65081)","source":"research","cve":["CVE-2025-65079","CVE-2025-65080","CVE-2025-65081"],"cvss":8.8,"severity":"high","vendor":["Lexmark"],"protocol":"RAW","port":9100,"tags":["rce","heap-bof","postscript","cff-font","pwn2own","raw","lexmark","high","2026"]}

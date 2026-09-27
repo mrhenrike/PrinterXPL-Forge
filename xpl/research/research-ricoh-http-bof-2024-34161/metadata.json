@@ -1,0 +1,1 @@
+{"id":"research-ricoh-http-bof-2024-34161","title":"Ricoh MP Series EWS HTTP Stack Buffer Overflow (CVE-2024-34161)","source":"research","cve":["CVE-2024-34161"],"cvss":9.8,"severity":"critical","vendor":["Ricoh"],"protocol":"HTTP","port":80,"tags":["rce","bof","http","ricoh","mp-series","ews","critical"]}

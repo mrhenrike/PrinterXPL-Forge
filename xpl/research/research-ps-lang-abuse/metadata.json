@@ -1,0 +1,1 @@
+{"id":"research-ps-lang-abuse","title":"PostScript Printer Language Abuse — Dictionary Attacks","source":"research","cve":[],"cvss":7.8,"severity":"high","vendor":["Generic"],"protocol":"RAW/9100","port":9100,"tags":["rce","postscript","ps","dictionary","serverdict","raw9100","high"]}

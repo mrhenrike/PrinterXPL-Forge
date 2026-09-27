@@ -1,0 +1,1 @@
+{"id":"research-cups-pwn2own-2026-stage2","title":"CUPS Heap Spray via IPP Attributes Stage 2 — Pwn2Own 2026 (CVE-2026-34478)","source":"research","cve":["CVE-2026-34478"],"cvss":9.8,"severity":"critical","vendor":["CUPS","Linux"],"protocol":"IPP/631","port":631,"tags":["rce","heap-spray","ipp","cups","pwn2own-2026","stage2","linux","critical"]}

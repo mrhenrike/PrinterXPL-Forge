@@ -1,0 +1,28 @@
+{
+  "id": "EDB-47850",
+  "source": "exploit-db",
+  "url": "https://www.exploit-db.com/exploits/47850",
+  "cve": "",
+  "title": "IBM RICOH Infoprint 1532 - Persistent Cross-Site Scripting (Stored XSS)",
+  "description": "The network parameter '1.network.6.10' in the Ricoh Infoprint 1532 web interface is vulnerable to stored XSS. An attacker can inject persistent JavaScript that executes in the context of the printer admin interface for any user who views the network configuration page.",
+  "type": "webapps",
+  "category": "xss",
+  "protocol": "HTTP",
+  "port": 80,
+  "severity": "medium",
+  "cvss": 5.4,
+  "date": "2020-02-07",
+  "author": "EDB contributors",
+  "vendor": ["Ricoh", "IBM"],
+  "model_patterns": [
+    "Infoprint 1532", "Infoprint 1552", "Infoprint 1572",
+    "Ricoh Aficio", "Ricoh SP", "Ricoh MP"
+  ],
+  "firmware_patterns": [],
+  "requires": ["port:80"],
+  "tags": ["xss", "web", "ricoh", "stored", "admin"],
+  "tested_on": ["IBM RICOH Infoprint 1532"],
+  "references": [
+    "https://www.exploit-db.com/exploits/47850"
+  ]
+}

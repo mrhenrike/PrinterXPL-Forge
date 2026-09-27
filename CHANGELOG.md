@@ -1,3 +1,9 @@
+## [minor-sync-2026-09-26] - 2026-09-26
+
+### Changed
+- EmbedXPL v5.0.0 sync: search engine + autopwn modules deployed
+- Domain contracts updated (DOMAIN-CONTRACTS.md)
+
 ## [6.4.0] - 2026-09-13 - CVE expansion, ACL module, catalog hygiene
 
 ### Added

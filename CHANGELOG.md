@@ -1,5 +1,11 @@
 ## [Unreleased]
 
+## [6.5.2] - 2026-10-06
+
+### Changed
+- Release alignment for GitHub tag + PyPI (includes ACL credit wire-up beyond v6.5.1).
+
+
 ### Changed
 - Attribution: HP ACL module credits Catalin Patulea (@cpatulea) as original contributor via PR #3; in-tree rewrite remains the hardened implementation
 - ACL shell wire-up completed: `printer.__init__(..., skip_open=)` and `acl` mode registered in `src/main.py`

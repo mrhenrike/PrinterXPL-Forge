@@ -8,6 +8,10 @@ Operates over RAW/JetDirect (port 9100) after PJL ENTER LANGUAGE=ACL.
 
 Tested on: HP P2035n (CE462A).
 
+Originally contributed by Catalin Patulea (@cpatulea) via PR #3
+(https://github.com/mrhenrike/PrinterXPL-Forge/pull/3); hardened in-tree
+(checksum/`do_reset` fixes, safer socket handling, destructive allowlist + tests).
+
 SAFETY NOTES
 ------------
 - Read-only commands (version, product, buildtime, fwinfo): safe at any time.
@@ -15,6 +19,10 @@ SAFETY NOTES
   explicit confirmation AND the device model to be in the tested allowlist.
   Sending incorrect firmware WILL BRICK the device.
 """
+
+# Author (original) : Catalin Patulea (@cpatulea) — PR #3
+# Maintainer        : Andre Henrique (@mrhenrike)
+
 from __future__ import annotations
 
 import array

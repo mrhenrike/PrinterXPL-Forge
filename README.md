@@ -856,6 +856,14 @@ Made with care for the security community.
 </div>
 ---
 
+## Contributors
+
+| Contributor | Contribution |
+|-------------|--------------|
+| [Catalin Patulea (@cpatulea)](https://github.com/cpatulea) | Original HP ACL protocol module ([PR #3](https://github.com/mrhenrike/PrinterXPL-Forge/pull/3)); hardened in-tree as `src/modules/acl.py` |
+
+See also [CONTRIBUTORS.md](CONTRIBUTORS.md).
+
 ## Contact
 
 **Support / general inquiries:** security.research@uniaogeek.com.br

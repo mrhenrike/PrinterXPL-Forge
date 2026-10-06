@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Changed
+- Attribution: HP ACL module credits Catalin Patulea (@cpatulea) as original contributor via PR #3; in-tree rewrite remains the hardened implementation
+- ACL shell wire-up completed: `printer.__init__(..., skip_open=)` and `acl` mode registered in `src/main.py`
+
 ## [minor-sync-2026-09-26] - 2026-09-26
 
 ### Changed
@@ -8,7 +14,7 @@
 
 ### Added
 - 16 new CVE modules (check-first): Lexmark ESF/PS batch (CVE-2025-65077/65078/65080/65081/9269/1127/4044), HP PostScript (CVE-2025-26507/26508), HP DeskJet WSD RCE (CVE-2026-4682), Canon remote management (CVE-2026-1789), Brother/Fujifilm/Toshiba/Konica spillover (CVE-2024-51979/51981/51982), CUPS 2025 version checks (CVE-2025-58060/58364)
-- `src/modules/acl.py` — corrected HP ACL low-level shell (PR #3 base, bugs fixed)
+- `src/modules/acl.py` — corrected HP ACL low-level shell (originally contributed by Catalin Patulea / @cpatulea in PR #3; bugs fixed in-tree)
 - `tests/test_acl.py` — unit tests for hp_checksum, response parser, allowlist constants
 - `tools/generate_xpl_manifest.py` — restored missing manifest regenerator script
 - `xpl/ipp/` modules now discovered by the loader (IPP-CUPS-TRAVERSAL-001, IPP-INFO-001)

@@ -129,10 +129,10 @@ full = [
 
 # ── Entry points ──────────────────────────────────────────────────────────────
 [project.scripts]
-pxf               = "main:main"
-printerxpl-forge  = "main:main"
-PrinterXPL-Forge  = "main:main"
-pxf-profile       = "utils.profile_cli:main"
+pxf               = "src.main:main"
+printerxpl-forge  = "src.main:main"
+PrinterXPL-Forge  = "src.main:main"
+pxf-profile       = "src.utils.profile_cli:main"
 printerxpl-nse    = "nse.install_nse:main"
 
 # ── Project links ─────────────────────────────────────────────────────────────

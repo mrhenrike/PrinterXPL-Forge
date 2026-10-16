@@ -1,8 +1,159 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "product": "PrinterXPL-Forge",
-  "focus": "printers, MFP, PJL, PCL, PostScript, spoolers",
-  "generated": "2026-09-18",
-  "phase": "0-analysis",
-  "components": []
+  "focus": "Printer exploitation \u2014 PJL, PostScript, PCL, IPP, SMB relay, brute-force",
+  "generated": "2026-10-16",
+  "phase": "G0-T03",
+  "components": [
+    {
+      "source_id": "pypi:requests",
+      "name": "requests",
+      "category": "python_dep",
+      "upstream_url": "https://github.com/psf/requests",
+      "version_spec": ">=2.31.0",
+      "license": "Apache-2.0",
+      "integration_mode": "pip_install",
+      "modifications": "none",
+      "requires_sandbox": false
+    },
+    {
+      "source_id": "pypi:urllib3",
+      "name": "urllib3",
+      "category": "python_dep",
+      "upstream_url": "https://github.com/urllib3/urllib3",
+      "version_spec": ">=2.0.0",
+      "license": "MIT",
+      "integration_mode": "pip_install",
+      "modifications": "none",
+      "requires_sandbox": false
+    },
+    {
+      "source_id": "pypi:colorama",
+      "name": "colorama",
+      "category": "python_dep",
+      "upstream_url": "https://github.com/tartley/colorama",
+      "version_spec": ">=0.4.6",
+      "license": "BSD-3-Clause",
+      "integration_mode": "pip_install",
+      "modifications": "none",
+      "requires_sandbox": false
+    },
+    {
+      "source_id": "pypi:pysnmp-lextudio",
+      "name": "pysnmp-lextudio",
+      "category": "python_dep",
+      "upstream_url": "https://github.com/lextudio/pysnmp",
+      "version_spec": ">=5.0.31",
+      "license": "BSD-2-Clause",
+      "integration_mode": "pip_install",
+      "modifications": "none",
+      "requires_sandbox": false
+    },
+    {
+      "source_id": "pypi:pyasn1",
+      "name": "pyasn1",
+      "category": "python_dep",
+      "upstream_url": "https://github.com/pyasn1/pyasn1",
+      "version_spec": ">=0.4.8",
+      "license": "BSD-2-Clause",
+      "integration_mode": "pip_install",
+      "modifications": "none",
+      "requires_sandbox": false
+    },
+    {
+      "source_id": "pypi:PyYAML",
+      "name": "PyYAML",
+      "category": "python_dep",
+      "upstream_url": "https://github.com/yaml/pyyaml",
+      "version_spec": ">=6.0",
+      "license": "MIT",
+      "integration_mode": "pip_install",
+      "modifications": "none",
+      "requires_sandbox": false
+    },
+    {
+      "source_id": "github:RUB-NDS/PRET",
+      "name": "PRET Printer Exploitation Toolkit",
+      "category": "research_reference",
+      "upstream_url": "https://github.com/RUB-NDS/PRET",
+      "license": "GPL-3.0",
+      "integration_mode": "api_integration",
+      "integration_location": "src/core/pret_engine/, src/protocols/",
+      "requires_sandbox": true,
+      "security_risk": "HIGH",
+      "module_count": 6
+    },
+    {
+      "source_id": "github:sfewer-r7/BrotherVulnerabilities",
+      "name": "Brother printer vulnerabilities (Rapid7)",
+      "category": "research_reference",
+      "upstream_url": "https://github.com/sfewer-r7/BrotherVulnerabilities",
+      "license": "MIT",
+      "integration_mode": "technique_adaptation",
+      "integration_location": "src/modules/, printerxpl/modules/exploits/brother/",
+      "requires_sandbox": true,
+      "security_risk": "HIGH",
+      "module_count": 10
+    },
+    {
+      "source_id": "github:waffl3ss/PaperCut",
+      "name": "PaperCut CVE PoCs",
+      "category": "research_reference",
+      "upstream_url": "https://github.com/waffl3ss/PaperCut",
+      "license": "MIT",
+      "integration_mode": "technique_adaptation",
+      "integration_location": "src/modules/",
+      "requires_sandbox": true,
+      "security_risk": "HIGH",
+      "module_count": 14
+    },
+    {
+      "source_id": "github:rapid7/metasploit-framework",
+      "name": "Metasploit Framework (printer modules)",
+      "category": "research_reference",
+      "upstream_url": "https://github.com/rapid7/metasploit-framework",
+      "license": "BSD-3-Clause",
+      "integration_mode": "technique_adaptation",
+      "integration_location": "src/modules/",
+      "requires_sandbox": true,
+      "security_risk": "HIGH",
+      "module_count": 12
+    },
+    {
+      "source_id": "github:gold1029/praedasploit",
+      "name": "Praeda/praedasploit printer data harvesting",
+      "category": "research_reference",
+      "upstream_url": "https://github.com/gold1029/praedasploit",
+      "license": "research",
+      "integration_mode": "technique_adaptation",
+      "integration_location": "src/modules/, src/protocols/",
+      "requires_sandbox": true,
+      "security_risk": "HIGH",
+      "module_count": 4
+    },
+    {
+      "source_id": "github:cube0x0/CVE-2021-1675",
+      "name": "CVE-2021-1675 PrintNightmare",
+      "category": "research_reference",
+      "upstream_url": "https://github.com/cube0x0/CVE-2021-1675",
+      "license": "research",
+      "integration_mode": "technique_adaptation",
+      "integration_location": "src/modules/",
+      "requires_sandbox": true,
+      "security_risk": "HIGH",
+      "module_count": 4
+    },
+    {
+      "source_id": "github:XBrutalPandaX/Mirage-Rogue-LDAP-Server",
+      "name": "Mirage Rogue LDAP Server",
+      "category": "research_reference",
+      "upstream_url": "https://github.com/XBrutalPandaX/Mirage-Rogue-LDAP-Server-",
+      "license": "research",
+      "integration_mode": "technique_adaptation",
+      "integration_location": "src/modules/",
+      "requires_sandbox": true,
+      "security_risk": "HIGH",
+      "module_count": 3
+    }
+  ]
 }

@@ -112,7 +112,9 @@ build/
 dist/
 debian/
 packaging/
-tools/
+tools/*
+!tools/xpl_cli.py
+!tools/search.py
 
 # HTTP server logs
 *.server.log

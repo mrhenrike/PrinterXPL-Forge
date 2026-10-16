@@ -1,0 +1,18 @@
+[run]
+branch = false
+
+[report]
+omit =
+    */modules/*
+    */payloads/*
+    */tests/*
+    setup.py
+    */venv*/*
+    */.venv/*
+    */site-packages/*
+    conftest.py
+    */__pycache__/*
+
+[paths]
+source =
+    .

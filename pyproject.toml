@@ -49,6 +49,7 @@ dependencies = [
     "pysnmp-lextudio>=5.0.31",
     "pyasn1>=0.4.8,<0.6",
     "PyYAML>=6.0",
+    "xpl-core>=0.1.0",
 ]
 
 # ── Optional dependency groups ────────────────────────────────────────────────

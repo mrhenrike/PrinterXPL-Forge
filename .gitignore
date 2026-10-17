@@ -180,3 +180,4 @@ packages/**/build.sh
 packages/**/build.ps1
 *.example
 *.sample
+.coverage
